@@ -12,6 +12,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.6] - 2025-10-01
+
+### Added
+- **Comprehensive review summary** displayed at the end of each run
+- Shows lecture name, issues found, PR status, and URLs
+- Better chunk progress indicators with issue counts per chunk
+- Clear status messages for different outcomes (PR created, no issues, etc.)
+- Improved visibility of review results in GitHub Actions logs
+
+### Changed
+- Enhanced logging in `review_in_chunks()` to show issues found per chunk
+- Added final summary section for both single and bulk review modes
+- Better error reporting with clear status indicators
+
+### Fixed
+- Users can now easily see review outcomes without searching through logs
+- PR creation status is clearly indicated
+- Total issues count is prominently displayed
+
 ## [0.1.5] - 2025-10-01
 
 ### Fixed

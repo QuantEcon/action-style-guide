@@ -337,12 +337,17 @@ class StyleReviewer:
             result = self.review_lecture(corrected_content, rules_text, lecture_name)
             
             if 'error' in result:
-                print(f"  Error in chunk {i+1}: {result['error']}")
+                print(f"  ❌ Error in chunk {i+1}: {result['error']}")
                 continue
+            
+            chunk_issues = len(result.get('violations', []))
+            print(f"  ✓ Chunk {i+1} complete: {chunk_issues} issues found")
             
             all_violations.extend(result.get('violations', []))
             if result.get('corrected_content'):
                 corrected_content = result['corrected_content']
+        
+        print(f"\n  📊 Total issues found: {len(all_violations)}")
         
         return {
             'issues_found': len(all_violations),

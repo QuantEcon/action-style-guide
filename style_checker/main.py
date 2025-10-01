@@ -346,6 +346,27 @@ def main():
             print(f"::set-output name=issues-found::{result.get('issues_found', 0)}")
             print(f"::set-output name=lectures-reviewed::1")
             
+            # Print summary
+            print(f"\n{'='*60}")
+            print(f"📊 REVIEW SUMMARY")
+            print(f"{'='*60}")
+            print(f"Lecture: {lecture_name}")
+            print(f"Issues found: {result.get('issues_found', 0)}")
+            if 'pr_number' in result:
+                print(f"Pull Request: #{result['pr_number']}")
+                print(f"URL: {result['pr_url']}")
+                print(f"Status: ✅ PR created successfully")
+            elif result.get('issues_found', 0) == 0:
+                print(f"Status: ✅ No issues found - lecture complies with style guide")
+            elif not create_pr:
+                print(f"Status: ℹ️  Issues found but PR creation disabled")
+            else:
+                print(f"Status: ⚠️  Issues found but no PR created")
+            
+            if 'error' in result:
+                print(f"Error: {result['error']}")
+            print(f"{'='*60}\n")
+            
         else:  # bulk mode
             result = review_bulk_lectures(
                 gh_handler=gh_handler,
@@ -363,6 +384,28 @@ def main():
                 print(f"::set-output name=pr-url::{result['pr_url']}")
             print(f"::set-output name=issues-found::{result.get('total_issues', 0)}")
             print(f"::set-output name=lectures-reviewed::{result.get('lectures_reviewed', 0)}")
+            
+            # Print summary
+            print(f"\n{'='*60}")
+            print(f"📊 BULK REVIEW SUMMARY")
+            print(f"{'='*60}")
+            print(f"Lectures reviewed: {result.get('lectures_reviewed', 0)}")
+            print(f"Total issues found: {result.get('total_issues', 0)}")
+            print(f"Lectures with issues: {result.get('lectures_with_issues', 0)}")
+            if 'pr_number' in result:
+                print(f"Pull Request: #{result['pr_number']}")
+                print(f"URL: {result['pr_url']}")
+                print(f"Status: ✅ PR created with fixes for all lectures")
+            elif result.get('total_issues', 0) == 0:
+                print(f"Status: ✅ All lectures comply with style guide")
+            elif not create_pr:
+                print(f"Status: ℹ️  Issues found but PR creation disabled")
+            else:
+                print(f"Status: ⚠️  Issues found but no PR created")
+            
+            if 'error' in result:
+                print(f"Error: {result['error']}")
+            print(f"{'='*60}\n")
         
         print(f"\n{'='*60}")
         print(f"✅ Review complete!")
