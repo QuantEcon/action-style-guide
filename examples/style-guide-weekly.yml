@@ -1,0 +1,52 @@
+name: Weekly Style Guide Review
+
+# Runs every Sunday at midnight UTC
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  # Also allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  bulk-review:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Run bulk style guide review
+        uses: QuantEcon/action-style-guide@v1
+        id: review
+        with:
+          mode: 'bulk'
+          lectures-path: 'lectures/'
+          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+          # Use Claude as default (best results)
+          llm-provider: 'claude'
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          create-pr: 'true'
+          pr-branch-prefix: 'weekly-style-review'
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "📊 Review Summary"
+          echo "Lectures reviewed: ${{ steps.review.outputs.lectures-reviewed }}"
+          echo "Issues found: ${{ steps.review.outputs.issues-found }}"
+          echo "PR URL: ${{ steps.review.outputs.pr-url }}"
+      
+      - name: Create issue if problems found
+        if: steps.review.outputs.issues-found > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📋 Weekly Style Guide Review Complete',
+              body: `The weekly automated style guide review has been completed.\n\n**Summary:**\n- Lectures reviewed: ${{ steps.review.outputs.lectures-reviewed }}\n- Issues found: ${{ steps.review.outputs.issues-found }}\n- PR: ${{ steps.review.outputs.pr-url }}\n\nPlease review the PR and merge or request changes as needed.`,
+              labels: ['automated', 'style-guide', 'weekly-review']
+            })

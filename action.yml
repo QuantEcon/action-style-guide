@@ -1,0 +1,125 @@
+name: 'QuantEcon Style Guide Checker'
+description: 'Automated style guide compliance checking for QuantEcon lecture materials'
+author: 'QuantEcon'
+
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  mode:
+    description: 'Review mode: "single" for one lecture, "bulk" for all lectures'
+    required: true
+  lectures-path:
+    description: 'Path to lectures directory'
+    required: false
+    default: 'lectures/'
+  style-guide-url:
+    description: 'URL or path to style-guide.yaml file'
+    required: false
+    default: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+  openai-api-key:
+    description: 'OpenAI API key for LLM-powered review'
+    required: false
+  anthropic-api-key:
+    description: 'Anthropic API key (alternative to OpenAI)'
+    required: false
+  github-token:
+    description: 'GitHub token for creating PRs and comments'
+    required: true
+  comment-body:
+    description: 'Issue comment body (used in single mode to extract lecture name)'
+    required: false
+  llm-provider:
+    description: 'LLM provider to use: "openai", "claude", or "gemini"'
+    required: false
+    default: 'claude'
+  llm-model:
+    description: 'Specific LLM model to use'
+    required: false
+    default: ''
+  google-api-key:
+    description: 'Google API key for Gemini (alternative to OpenAI/Anthropic)'
+    required: false
+  rule-categories:
+    description: 'Comma-separated list of rule categories to check (leave empty for all)'
+    required: false
+    default: ''
+  create-pr:
+    description: 'Whether to create a PR with suggested changes'
+    required: false
+    default: 'true'
+  pr-branch-prefix:
+    description: 'Prefix for PR branch names'
+    required: false
+    default: 'style-guide'
+  max-rules-per-request:
+    description: 'Maximum number of rules to check in a single LLM request'
+    required: false
+    default: '15'
+
+outputs:
+  pr-number:
+    description: 'Number of the created pull request'
+    value: ${{ steps.run-checker.outputs.pr-number }}
+  pr-url:
+    description: 'URL of the created pull request'
+    value: ${{ steps.run-checker.outputs.pr-url }}
+  issues-found:
+    description: 'Number of style guide issues found'
+    value: ${{ steps.run-checker.outputs.issues-found }}
+  lectures-reviewed:
+    description: 'Number of lectures reviewed'
+    value: ${{ steps.run-checker.outputs.lectures-reviewed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.github-token }}
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ github.action_path }}/requirements.txt
+
+    - name: Download style guide
+      shell: bash
+      run: |
+        if [[ "${{ inputs.style-guide-url }}" == http* ]]; then
+          curl -o /tmp/style-guide.yaml "${{ inputs.style-guide-url }}"
+        else
+          cp "${{ inputs.style-guide-url }}" /tmp/style-guide.yaml
+        fi
+
+    - name: Run style checker
+      id: run-checker
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GOOGLE_API_KEY: ${{ inputs.google-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        python ${{ github.action_path }}/style_checker/main.py \
+          --mode "${{ inputs.mode }}" \
+          --lectures-path "${{ inputs.lectures-path }}" \
+          --style-guide /tmp/style-guide.yaml \
+          --llm-provider "${{ inputs.llm-provider }}" \
+          --llm-model "${{ inputs.llm-model }}" \
+          --rule-categories "${{ inputs.rule-categories }}" \
+          --create-pr "${{ inputs.create-pr }}" \
+          --pr-branch-prefix "${{ inputs.pr-branch-prefix }}" \
+          --max-rules-per-request "${{ inputs.max-rules-per-request }}" \
+          --comment-body "${{ inputs.comment-body }}" \
+          --repository "${{ github.repository }}" \
+          --github-ref "${{ github.ref }}"
