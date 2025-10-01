@@ -26,12 +26,14 @@ Create `.github/workflows/style-guide.yml` in your repo:
 ```yaml
 name: Style Guide Checker
 on:
+  issues:
+    types: [opened, edited]
   issue_comment:
     types: [created]
 
 jobs:
   review:
-    if: contains(github.event.comment.body, '@quantecon-style-guide')
+    if: contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@quantecon-style-guide')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -43,7 +45,7 @@ jobs:
           mode: 'single'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-body: ${{ github.event.comment.body }}
+          comment-body: ${{ github.event.comment.body || github.event.issue.body }}
 ```
 
 Commit and push this file.
@@ -124,7 +126,7 @@ You can customize:
     pr-branch-prefix: 'style-fix'        # Custom branch prefix
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    comment-body: ${{ github.event.comment.body }}
+    comment-body: ${{ github.event.comment.body || github.event.issue.body }}
 ```
 
 ## Troubleshooting

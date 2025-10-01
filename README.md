@@ -77,12 +77,14 @@ Create `.github/workflows/style-guide-comment.yml`:
 ```yaml
 name: Style Guide Comment Trigger
 on:
+  issues:
+    types: [opened, edited]
   issue_comment:
     types: [created]
 
 jobs:
   check-trigger:
-    if: contains(github.event.comment.body, '@quantecon-style-guide')
+    if: contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@quantecon-style-guide')
     runs-on: ubuntu-latest
     steps:
       - uses: QuantEcon/action-style-guide@v1
@@ -93,7 +95,7 @@ jobs:
           llm-provider: 'claude'  # Default: best results
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-body: ${{ github.event.comment.body }}
+          comment-body: ${{ github.event.comment.body || github.event.issue.body }}
 ```
 
 ### 2. Configure Secrets
