@@ -134,9 +134,10 @@ def test_parse_corrected_content(sample_markdown_response):
     assert 'corrected_content' in result
     assert len(result['corrected_content']) > 0
     assert 'Sample Lecture' in result['corrected_content']
-    # Note: The parser extracts content between ```markdown and ``` markers
-    # Complex nested code blocks in the corrected content may not parse perfectly
-    # This is acceptable as the main content is captured
+    # Verify nested code blocks are preserved
+    assert '```python' in result['corrected_content']
+    assert 'def compute(x):' in result['corrected_content']
+    assert 'End of lecture' in result['corrected_content']
 
 
 def test_parse_empty_response():

@@ -104,13 +104,34 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
                 result['violations'].append(violation)
         
         # Extract corrected content
+        # Need to handle nested code blocks properly - match until the LAST ``` before end or next ##
         corrected_match = re.search(
-            r'##\s+Corrected Content\s*\n```(?:markdown)?\s*\n(.*?)\n```',
+            r'##\s+Corrected Content\s*\n```(?:markdown)?\s*\n(.*?)(?:\n```\s*(?:$|(?=\n##)))',
             response,
             re.DOTALL | re.IGNORECASE
         )
         if corrected_match:
             result['corrected_content'] = corrected_match.group(1).strip()
+        else:
+            # Fallback: try to find content after "Corrected Content" header
+            # This handles cases where the format might be slightly different
+            content_match = re.search(
+                r'##\s+Corrected Content\s*\n(.+)',
+                response,
+                re.DOTALL | re.IGNORECASE
+            )
+            if content_match:
+                # Extract everything after the header
+                content_after = content_match.group(1).strip()
+                # If it starts with a code fence, extract the content
+                code_fence_match = re.match(r'```(?:markdown)?\s*\n(.+)', content_after, re.DOTALL)
+                if code_fence_match:
+                    # Get content and find the last closing fence
+                    full_content = code_fence_match.group(1)
+                    # Remove trailing ``` if present
+                    if full_content.endswith('```'):
+                        full_content = full_content[:-3].rstrip()
+                    result['corrected_content'] = full_content
         
         # Update issues_found based on actual violations parsed if not set
         if result['issues_found'] == 0 and result['violations']:
