@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
 
+# Add the action directory to Python path for imports
+action_path = Path(__file__).parent.parent
+sys.path.insert(0, str(action_path))
+
 from style_checker.parser import load_style_guide, format_rules_for_llm
 from style_checker.reviewer import StyleReviewer
 from style_checker.github_handler import GitHubHandler
