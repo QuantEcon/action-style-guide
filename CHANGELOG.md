@@ -12,6 +12,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.7] - 2025-10-01
+
+### Fixed
+- **Critical**: Improved JSON parsing to handle malformed responses from Claude
+- Added robust error handling for unterminated strings and JSON parse errors
+- Detects when responses are truncated (hit max_tokens limit)
+- Better extraction of JSON from responses with fallback mechanisms
+
+### Added
+- Warning messages when response is truncated due to max_tokens
+- Response length logging for debugging
+- Preview of raw response in error messages
+- Attempt to extract valid JSON even from malformed responses
+- More explicit instructions to Claude about proper JSON escaping
+
+### Changed
+- Updated system prompt to emphasize proper JSON string escaping
+- Added instructions to Claude about handling long content
+- Better stop_reason detection from streaming API
+- Improved error messages with context and suggestions
+
+### Technical Details
+- Tries multiple JSON extraction methods before failing
+- Looks for outermost `{}` if direct parsing fails
+- Returns structured error with preview instead of crashing
+- Checks `stop_reason` to detect max_tokens truncation
+
 ## [0.1.6] - 2025-10-01
 
 ### Added

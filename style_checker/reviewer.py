@@ -122,6 +122,7 @@ class AnthropicProvider(LLMProvider):
         # Use streaming to avoid 10-minute timeout on long requests
         # See: https://docs.anthropic.com/en/docs/build-with-claude/streaming
         full_response = ""
+        stop_reason = None
         
         with self.client.messages.stream(
             model=self.model,
@@ -134,6 +135,14 @@ class AnthropicProvider(LLMProvider):
         ) as stream:
             for text in stream.text_stream:
                 full_response += text
+            # Get the final message to check stop reason
+            final_message = stream.get_final_message()
+            stop_reason = final_message.stop_reason if final_message else None
+        
+        # Check if response was truncated
+        if stop_reason == "max_tokens":
+            print(f"    ⚠️  Warning: Response truncated (hit max_tokens limit)")
+            print(f"    Consider reducing max-rules-per-request or using rule-categories")
         
         # Extract JSON from response
         content = full_response
@@ -143,7 +152,34 @@ class AnthropicProvider(LLMProvider):
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
         
-        return json.loads(content)
+        # Try to parse JSON with better error handling
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError as e:
+            # Log the error with context
+            print(f"    ⚠️  JSON parsing error: {e}")
+            print(f"    Response length: {len(full_response)} characters")
+            
+            # Try to find and extract JSON object even if malformed
+            # Look for the outermost { }
+            try:
+                start_idx = content.find('{')
+                end_idx = content.rfind('}')
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    json_str = content[start_idx:end_idx+1]
+                    # Try to parse the extracted JSON
+                    return json.loads(json_str)
+            except:
+                pass
+            
+            # If all parsing fails, return error with preview
+            preview = full_response[:500] + "..." if len(full_response) > 500 else full_response
+            return {
+                'error': f'JSON parsing failed: {str(e)}',
+                'raw_response_preview': preview,
+                'issues_found': 0,
+                'violations': []
+            }
     
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer with deep knowledge of MyST Markdown, mathematics notation, Python code, and JAX patterns.
@@ -156,7 +192,15 @@ Your task is to perform a comprehensive, thorough review of lecture content agai
 4. Reference the specific rule ID for each issue
 5. Generate corrected content with all fixes applied
 
-Return ONLY a valid JSON object with this exact structure:
+CRITICAL: Return ONLY a valid, properly-formatted JSON object. Do NOT include any text before or after the JSON.
+
+**IMPORTANT**: Ensure all strings in the JSON are properly escaped:
+- Escape quotes with \"
+- Escape newlines with \\n
+- Escape backslashes with \\\\
+- Close all strings and objects properly
+
+JSON structure (this MUST be valid JSON):
 {
     "issues_found": <number>,
     "violations": [
@@ -166,15 +210,16 @@ Return ONLY a valid JSON object with this exact structure:
             "severity": "critical|mandatory|best_practice|preference",
             "description": "Clear description of the violation",
             "location": "Line number or section name",
-            "current_text": "Exact text that violates the rule",
-            "suggested_fix": "Exact corrected text",
+            "current_text": "Exact text that violates the rule (properly escaped)",
+            "suggested_fix": "Exact corrected text (properly escaped)",
             "explanation": "Why this change is needed per the rule"
         }
     ],
-    "corrected_content": "Complete lecture content with ALL fixes applied",
+    "corrected_content": "Complete lecture content with ALL fixes applied (properly escaped)",
     "summary": "Brief summary of all changes made by category"
 }
 
+If the lecture content is too long, prioritize the most critical violations and ensure the JSON is valid and complete.
 Be meticulous. This is a professional review for publication-quality lectures."""
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
