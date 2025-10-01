@@ -131,6 +131,37 @@ Ensure these labels exist in your repository:
 | `rule-categories` | Comma-separated categories to check | No | All categories |
 | `create-pr` | Whether to create PR with fixes | No | `true` |
 
+### LLM Model Options
+
+The action supports three LLM providers with different models and capabilities:
+
+#### Claude (Anthropic) - Recommended
+- **Default Model**: `claude-3-5-sonnet-20241022` (8,192 max output tokens)
+- **Alternative Models**:
+  - `claude-3-opus-20240229` (4,096 max output tokens, most capable)
+  - `claude-3-sonnet-20240229` (4,096 max output tokens)
+  - `claude-3-haiku-20240307` (4,096 max output tokens, fastest)
+- **Best For**: Comprehensive style reviews, nuanced language analysis
+- **Note**: Claude 3.5 Sonnet has the highest output token limit (8,192), making it ideal for long lectures
+
+#### OpenAI (GPT-4)
+- **Default Model**: `gpt-4` (8,192 max output tokens)
+- **Alternative Models**:
+  - `gpt-4-turbo` (4,096 max output tokens)
+  - `gpt-4o` (16,384 max output tokens)
+- **Best For**: Structured JSON responses, code analysis
+
+#### Google (Gemini)
+- **Default Model**: `gemini-1.5-pro` (8,192 max output tokens)
+- **Alternative Models**:
+  - `gemini-1.5-flash` (8,192 max output tokens, faster)
+- **Best For**: Cost-effective reviews, multi-modal content
+
+**Important**: If you encounter token limit errors, either:
+1. Use a model with higher output limits (e.g., `gpt-4o` with 16K tokens)
+2. Reduce `max-rules-per-request` to review fewer rules per chunk
+3. Use `rule-categories` to focus on specific rule categories
+
 ## Rule Categories
 
 The style guide checker covers these categories:

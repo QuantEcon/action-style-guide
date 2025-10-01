@@ -92,7 +92,16 @@ Perform a comprehensive review checking ALL rules above. Identify every violatio
 
 
 class AnthropicProvider(LLMProvider):
-    """Anthropic Claude provider"""
+    """Anthropic Claude provider
+    
+    Token limits by model:
+    - claude-3-5-sonnet-20241022: 8192 max output tokens
+    - claude-3-opus-20240229: 4096 max output tokens
+    - claude-3-sonnet-20240229: 4096 max output tokens
+    - claude-3-haiku-20240307: 4096 max output tokens
+    
+    For latest models and limits, see: https://docs.anthropic.com/en/docs/about-claude/models
+    """
     
     def __init__(self, api_key: str, model: str = "claude-3-5-sonnet-20241022"):
         self.api_key = api_key
@@ -109,7 +118,7 @@ class AnthropicProvider(LLMProvider):
         
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=16000,
+            max_tokens=8192,  # Claude 3.5 Sonnet max output tokens
             temperature=0.1,
             system=self._get_system_prompt(),
             messages=[

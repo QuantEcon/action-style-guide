@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.2] - 2025-10-01
+
+### Fixed
+- **Critical**: Reduced `max_tokens` from 16000 to 8192 for Claude 3.5 Sonnet compatibility
+- Resolves API error: "max_tokens: 16000 > 8192, which is the maximum allowed"
+
+### Added
+- Comprehensive LLM model documentation in README
+- Token limit information for all supported models
+- Model selection guidance based on lecture length and requirements
+- Documentation for troubleshooting token limit errors
+
+### Changed
+- Enhanced trigger configuration to support `@quantecon-style-guide` in both issue bodies and comments
+- Updated workflow examples to include `issues` events (opened, edited)
+
 ## [0.1.1] - 2025-10-01
 
 ### Fixed
