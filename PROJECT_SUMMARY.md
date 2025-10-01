@@ -33,7 +33,8 @@ action-style-guide/
 │   └── style-guide-weekly.yml        # Scheduled bulk review
 │
 └── tests/                             # Test suite
-    └── test_basic.py                 # Basic functionality tests
+    ├── test_basic.py                 # Basic functionality tests
+    └── test_markdown_parser.py       # LLM response parsing tests
 ```
 
 ## ✨ Key Features

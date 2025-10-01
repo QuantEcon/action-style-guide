@@ -35,6 +35,7 @@ action-style-guide/
 │
 ├── Tests
 │   ├── test_basic.py                 ✓ Basic functionality
+│   ├── test_markdown_parser.py       ✓ LLM response parsing
 │   └── verify_setup.py               ✓ Setup verification
 │
 └── Meta Files

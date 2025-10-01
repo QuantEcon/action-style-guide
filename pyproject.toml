@@ -1,0 +1,58 @@
+[tool.pytest.ini_options]
+# Pytest configuration
+
+# Test discovery patterns
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+
+# Test paths
+testpaths = ["tests"]
+
+# Output options
+addopts = [
+    "-v",                    # Verbose output
+    "--strict-markers",      # Error on unknown markers
+    "--tb=short",           # Shorter traceback format
+    "--cov=style_checker",  # Coverage for style_checker module
+    "--cov-report=term-missing",  # Show missing lines in coverage
+    "--cov-report=html",    # Generate HTML coverage report
+]
+
+# Markers for categorizing tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests that call real LLM APIs",
+    "unit: marks tests as unit tests",
+]
+
+# Ignore patterns
+norecursedirs = [
+    ".git",
+    ".github",
+    "*.egg-info",
+    "__pycache__",
+    "docs",
+    "examples",
+]
+
+[tool.coverage.run]
+# Coverage configuration
+source = ["style_checker"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+# Coverage reporting
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

@@ -12,6 +12,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.8] - 2025-10-01
+
+### Changed - Major Breaking Improvement
+- **Migrated from JSON to Markdown format for LLM responses**
+  - Eliminates JSON parsing errors (unterminated strings, escaping issues)
+  - LLMs generate Markdown naturally without escaping problems
+  - More reliable for long responses (50K-70K+ characters)
+  - Human-readable format for easier debugging
+
+### Added
+- **New Markdown response parser** (`parse_markdown_response()`)
+  - Structured format with clear section delimiters
+  - Robust regex-based parsing
+  - Graceful error handling
+- **Comprehensive testing infrastructure**
+  - Migrated to pytest framework with fixtures
+  - Added `test_markdown_parser.py` (7 tests)
+  - Enhanced `test_basic.py` with 6 tests including validation
+  - **Integration tests** in `test_llm_integration.py`
+    - Real LLM API call tests with sample lecture
+    - Multi-provider support (Claude/GPT-4/Gemini)
+    - Violation detection and correction validation
+    - Marked with `@pytest.mark.integration` (skipped by default)
+- **CI/CD Pipeline** (`.github/workflows/ci.yml`)
+  - Automated testing on push and PR
+  - Python 3.9, 3.10, 3.11, 3.12 matrix
+  - Code linting (Black, isort, flake8)
+  - Coverage reporting with pytest-cov
+- **Configuration files**
+  - `pyproject.toml` with pytest and coverage config
+  - Test markers for categorization (unit, integration, slow)
+- **Comprehensive documentation**
+  - `docs/markdown-format-migration.md` - Migration details
+  - `docs/ci-cd-setup.md` - CI/CD documentation
+  - `docs/llm-integration-testing.md` - Integration test guide
+  - `docs/testing-quick-reference.md` - Quick testing reference
+  - `tests/README.md` - Complete testing guide
+
+### Updated
+- All LLM provider prompts (OpenAI, Anthropic, Gemini) to use Markdown format
+- System prompts with clear Markdown structure examples
+- Test files consolidated in `tests/` directory
+- Documentation updated across all files
+
+### Fixed
+- **Completely eliminated JSON parsing errors** that plagued v0.1.7
+- No more "Unterminated string" failures
+- Proper handling of complex lecture content with code, math, and special characters
+- Reliable parsing of long LLM responses
+
+### Technical Details
+- Removed `import json` and all `json.loads()` calls from reviewer.py
+- Removed `response_format={"type": "json_object"}` from OpenAI
+- Removed `response_mime_type: "application/json"` from Gemini
+- Parser uses regex with `re.DOTALL` for multi-line content
+- Handles nested code blocks in corrected content
+- Sample lecture with violations for integration testing
+
+### Dependencies
+- Added: `pytest>=7.4.0`
+- Added: `pytest-cov>=4.1.0`
+
 ## [0.1.7] - 2025-10-01
 
 ### Fixed

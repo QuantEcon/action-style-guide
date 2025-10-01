@@ -1,12 +1,127 @@
 """
 LLM-based Style Checker
 Supports multiple LLM providers: OpenAI, Anthropic Claude, Google Gemini
+Uses Markdown format for LLM responses (more reliable than JSON for long content)
 """
 
 import os
+import re
 from typing import List, Dict, Any, Optional, Tuple
 from abc import ABC, abstractmethod
-import json
+
+
+def parse_markdown_response(response: str) -> Dict[str, Any]:
+    """
+    Parse structured Markdown response from LLM into dict format.
+    
+    Expected format:
+    # Review Results
+    
+    ## Summary
+    <summary text>
+    
+    ## Issues Found
+    <number>
+    
+    ## Violations
+    
+    ### Violation 1: <rule_id> - <rule_title>
+    - **Severity:** <severity>
+    - **Location:** <location>
+    - **Description:** <description>
+    - **Current text:**
+    ```
+    <current_text>
+    ```
+    - **Suggested fix:**
+    ```
+    <suggested_fix>
+    ```
+    - **Explanation:** <explanation>
+    
+    [... more violations ...]
+    
+    ## Corrected Content
+    
+    ```markdown
+    <full corrected content>
+    ```
+    
+    Returns:
+        Dictionary with parsed results
+    """
+    result = {
+        'issues_found': 0,
+        'violations': [],
+        'corrected_content': '',
+        'summary': ''
+    }
+    
+    try:
+        # Extract summary
+        summary_match = re.search(r'##\s+Summary\s*\n(.*?)(?=\n##|\Z)', response, re.DOTALL)
+        if summary_match:
+            result['summary'] = summary_match.group(1).strip()
+        
+        # Extract issues count
+        issues_match = re.search(r'##\s+Issues Found\s*\n(\d+)', response, re.IGNORECASE)
+        if issues_match:
+            result['issues_found'] = int(issues_match.group(1))
+        
+        # Extract violations section
+        violations_section = re.search(
+            r'##\s+Violations\s*\n(.*?)(?=\n##\s+Corrected Content|\Z)',
+            response,
+            re.DOTALL | re.IGNORECASE
+        )
+        
+        if violations_section:
+            violations_text = violations_section.group(1)
+            
+            # Parse individual violations
+            violation_pattern = re.compile(
+                r'###\s+Violation\s+\d+:\s+([a-zA-Z0-9_-]+)\s+-\s+(.+?)\n'
+                r'.*?-\s+\*\*Severity:\*\*\s*(.+?)\n'
+                r'.*?-\s+\*\*Location:\*\*\s*(.+?)\n'
+                r'.*?-\s+\*\*Description:\*\*\s*(.+?)\n'
+                r'.*?-\s+\*\*Current text:\*\*\s*\n```(?:.*?\n)?(.*?)```\s*\n'
+                r'.*?-\s+\*\*Suggested fix:\*\*\s*\n```(?:.*?\n)?(.*?)```\s*\n'
+                r'.*?-\s+\*\*Explanation:\*\*\s*(.+?)(?=\n###|\n##|\Z)',
+                re.DOTALL | re.IGNORECASE
+            )
+            
+            for match in violation_pattern.finditer(violations_text):
+                violation = {
+                    'rule_id': match.group(1).strip(),
+                    'rule_title': match.group(2).strip(),
+                    'severity': match.group(3).strip(),
+                    'location': match.group(4).strip(),
+                    'description': match.group(5).strip(),
+                    'current_text': match.group(6).strip(),
+                    'suggested_fix': match.group(7).strip(),
+                    'explanation': match.group(8).strip()
+                }
+                result['violations'].append(violation)
+        
+        # Extract corrected content
+        corrected_match = re.search(
+            r'##\s+Corrected Content\s*\n```(?:markdown)?\s*\n(.*?)\n```',
+            response,
+            re.DOTALL | re.IGNORECASE
+        )
+        if corrected_match:
+            result['corrected_content'] = corrected_match.group(1).strip()
+        
+        # Update issues_found based on actual violations parsed if not set
+        if result['issues_found'] == 0 and result['violations']:
+            result['issues_found'] = len(result['violations'])
+            
+    except Exception as e:
+        print(f"    ⚠️  Markdown parsing error: {e}")
+        print(f"    Response preview: {response[:500]}...")
+        result['error'] = f'Markdown parsing failed: {str(e)}'
+    
+    return result
 
 
 class LLMProvider(ABC):
@@ -40,11 +155,10 @@ class OpenAIProvider(LLMProvider):
                 {"role": "system", "content": self._get_system_prompt()},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.1,
-            response_format={"type": "json_object"}
+            temperature=0.1
         )
         
-        return json.loads(response.choices[0].message.content)
+        return parse_markdown_response(response.choices[0].message.content)
     
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer. Your task is to:
@@ -54,24 +168,39 @@ class OpenAIProvider(LLMProvider):
 4. Reference the specific rule ID for each issue
 5. Provide the corrected content with all fixes applied
 
-Return your response as a JSON object with this structure:
-{
-    "issues_found": <number>,
-    "violations": [
-        {
-            "rule_id": "qe-xxx-nnn",
-            "rule_title": "Rule Title",
-            "severity": "critical|mandatory|best_practice|preference",
-            "description": "What's wrong",
-            "location": "Line X or section name",
-            "current_text": "Exact text that violates rule",
-            "suggested_fix": "Exact corrected text",
-            "explanation": "Why this change is needed"
-        }
-    ],
-    "corrected_content": "Full corrected lecture content with all fixes applied",
-    "summary": "Brief summary of changes made"
-}
+Return your response in this EXACT Markdown format:
+
+# Review Results
+
+## Summary
+<Brief summary of all changes made by category>
+
+## Issues Found
+<number>
+
+## Violations
+
+### Violation 1: <rule_id> - <rule_title>
+- **Severity:** <critical|mandatory|best_practice|preference>
+- **Location:** <Line X or section name>
+- **Description:** <What's wrong>
+- **Current text:**
+```
+<Exact text that violates rule>
+```
+- **Suggested fix:**
+```
+<Exact corrected text>
+```
+- **Explanation:** <Why this change is needed>
+
+[Repeat for each violation...]
+
+## Corrected Content
+
+```markdown
+<Full corrected lecture content with all fixes applied>
+```
 
 Be thorough and precise. Check every rule comprehensively."""
     
@@ -144,42 +273,8 @@ class AnthropicProvider(LLMProvider):
             print(f"    ⚠️  Warning: Response truncated (hit max_tokens limit)")
             print(f"    Consider reducing max-rules-per-request or using rule-categories")
         
-        # Extract JSON from response
-        content = full_response
-        # Claude might wrap JSON in markdown code blocks
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
-        
-        # Try to parse JSON with better error handling
-        try:
-            return json.loads(content)
-        except json.JSONDecodeError as e:
-            # Log the error with context
-            print(f"    ⚠️  JSON parsing error: {e}")
-            print(f"    Response length: {len(full_response)} characters")
-            
-            # Try to find and extract JSON object even if malformed
-            # Look for the outermost { }
-            try:
-                start_idx = content.find('{')
-                end_idx = content.rfind('}')
-                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                    json_str = content[start_idx:end_idx+1]
-                    # Try to parse the extracted JSON
-                    return json.loads(json_str)
-            except:
-                pass
-            
-            # If all parsing fails, return error with preview
-            preview = full_response[:500] + "..." if len(full_response) > 500 else full_response
-            return {
-                'error': f'JSON parsing failed: {str(e)}',
-                'raw_response_preview': preview,
-                'issues_found': 0,
-                'violations': []
-            }
+        # Parse the Markdown response
+        return parse_markdown_response(full_response)
     
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer with deep knowledge of MyST Markdown, mathematics notation, Python code, and JAX patterns.
@@ -192,35 +287,41 @@ Your task is to perform a comprehensive, thorough review of lecture content agai
 4. Reference the specific rule ID for each issue
 5. Generate corrected content with all fixes applied
 
-CRITICAL: Return ONLY a valid, properly-formatted JSON object. Do NOT include any text before or after the JSON.
+Return your response in this EXACT Markdown format:
 
-**IMPORTANT**: Ensure all strings in the JSON are properly escaped:
-- Escape quotes with \"
-- Escape newlines with \\n
-- Escape backslashes with \\\\
-- Close all strings and objects properly
+# Review Results
 
-JSON structure (this MUST be valid JSON):
-{
-    "issues_found": <number>,
-    "violations": [
-        {
-            "rule_id": "qe-xxx-nnn",
-            "rule_title": "Rule Title",
-            "severity": "critical|mandatory|best_practice|preference",
-            "description": "Clear description of the violation",
-            "location": "Line number or section name",
-            "current_text": "Exact text that violates the rule (properly escaped)",
-            "suggested_fix": "Exact corrected text (properly escaped)",
-            "explanation": "Why this change is needed per the rule"
-        }
-    ],
-    "corrected_content": "Complete lecture content with ALL fixes applied (properly escaped)",
-    "summary": "Brief summary of all changes made by category"
-}
+## Summary
+<Brief summary of all changes made by category>
 
-If the lecture content is too long, prioritize the most critical violations and ensure the JSON is valid and complete.
-Be meticulous. This is a professional review for publication-quality lectures."""
+## Issues Found
+<number>
+
+## Violations
+
+### Violation 1: <rule_id> - <rule_title>
+- **Severity:** <critical|mandatory|best_practice|preference>
+- **Location:** <Line X or section name>
+- **Description:** <Clear description of the violation>
+- **Current text:**
+```
+<Exact text that violates the rule>
+```
+- **Suggested fix:**
+```
+<Exact corrected text>
+```
+- **Explanation:** <Why this change is needed per the rule>
+
+[Repeat for each violation...]
+
+## Corrected Content
+
+```markdown
+<Complete lecture content with ALL fixes applied>
+```
+
+Be meticulous and thorough. This is a professional review for publication-quality lectures."""
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
         return f"""Review this QuantEcon lecture for complete style guide compliance.
@@ -250,8 +351,7 @@ class GeminiProvider(LLMProvider):
             self.model = genai.GenerativeModel(
                 model_name=model,
                 generation_config={
-                    "temperature": 0.1,
-                    "response_mime_type": "application/json"
+                    "temperature": 0.1
                 }
             )
         except ImportError:
@@ -264,16 +364,45 @@ class GeminiProvider(LLMProvider):
 {self._build_prompt(content, rules, lecture_name)}"""
         
         response = self.model.generate_content(prompt)
-        return json.loads(response.text)
+        return parse_markdown_response(response.text)
     
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer. Review lecture content against style guide rules comprehensively.
 
-Return a JSON object with:
-- issues_found: number of violations
-- violations: array of {rule_id, rule_title, severity, description, location, current_text, suggested_fix, explanation}
-- corrected_content: full corrected lecture
-- summary: brief summary of changes"""
+Return your response in this EXACT Markdown format:
+
+# Review Results
+
+## Summary
+<Brief summary of changes>
+
+## Issues Found
+<number>
+
+## Violations
+
+### Violation 1: <rule_id> - <rule_title>
+- **Severity:** <critical|mandatory|best_practice|preference>
+- **Location:** <location>
+- **Description:** <description>
+- **Current text:**
+```
+<current text>
+```
+- **Suggested fix:**
+```
+<suggested fix>
+```
+- **Explanation:** <explanation>
+
+[Repeat for each violation...]
+
+## Corrected Content
+
+```markdown
+<full corrected lecture>
+```
+"""
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
         return f"""Review: {lecture_name}
