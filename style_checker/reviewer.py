@@ -2,12 +2,14 @@
 LLM-based Style Checker
 Supports multiple LLM providers: OpenAI, Anthropic Claude, Google Gemini
 Uses Markdown format for LLM responses (more reliable than JSON for long content)
+Applies fixes programmatically instead of relying on LLM-generated corrected content
 """
 
 import os
 import re
 from typing import List, Dict, Any, Optional, Tuple
 from abc import ABC, abstractmethod
+from .fix_applier import apply_fixes, validate_fix_quality
 
 
 def parse_markdown_response(response: str) -> Dict[str, Any]:
@@ -103,8 +105,8 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
                 }
                 result['violations'].append(violation)
         
-        # Extract corrected content
-        # Need to handle nested code blocks properly - match until the LAST ``` before end or next ##
+        # Extract corrected content (optional - for backward compatibility)
+        # New approach: Apply fixes programmatically, so this field is optional
         corrected_match = re.search(
             r'##\s+Corrected Content\s*\n```(?:markdown)?\s*\n(.*?)(?:\n```\s*(?:$|(?=\n##)))',
             response,
@@ -132,6 +134,8 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
                     if full_content.endswith('```'):
                         full_content = full_content[:-3].rstrip()
                     result['corrected_content'] = full_content
+            # If still no corrected content, leave it empty (will be generated from fixes)
+
         
         # Update issues_found based on actual violations parsed if not set
         if result['issues_found'] == 0 and result['violations']:
@@ -194,7 +198,7 @@ Return your response in this EXACT Markdown format:
 # Review Results
 
 ## Summary
-<Brief summary of all changes made by category>
+<Brief summary of issues found by category>
 
 ## Issues Found
 <number>
@@ -207,23 +211,24 @@ Return your response in this EXACT Markdown format:
 - **Description:** <What's wrong>
 - **Current text:**
 ```
-<Exact text that violates rule>
+<EXACT text that violates rule - must match content precisely>
 ```
 - **Suggested fix:**
 ```
-<Exact corrected text>
+<EXACT replacement text>
 ```
 - **Explanation:** <Why this change is needed>
 
 [Repeat for each violation...]
 
-## Corrected Content
+CRITICAL INSTRUCTIONS:
+- For "Current text": Copy the EXACT text from the lecture that needs to be changed
+- For "Suggested fix": Provide the EXACT replacement text only (no explanations, no notes)
+- Do NOT include any commentary or notes in the suggested fixes
+- Be precise with quotes, spacing, and formatting
+- Each violation should be independently fixable
 
-```markdown
-<Full corrected lecture content with all fixes applied>
-```
-
-Be thorough and precise. Check every rule comprehensively."""
+Do NOT include a "Corrected Content" section - fixes will be applied programmatically.
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
         return f"""Review the following QuantEcon lecture for style guide compliance.
@@ -306,14 +311,15 @@ Your task is to perform a comprehensive, thorough review of lecture content agai
 2. Identify ALL violations, even minor ones
 3. Provide specific, actionable fixes with exact text replacements
 4. Reference the specific rule ID for each issue
-5. Generate corrected content with all fixes applied
+4. Reference the specific rule ID for each issue
+5. Provide exact text replacements for each violation
 
 Return your response in this EXACT Markdown format:
 
 # Review Results
 
 ## Summary
-<Brief summary of all changes made by category>
+<Brief summary of issues found by category>
 
 ## Issues Found
 <number>
@@ -326,21 +332,24 @@ Return your response in this EXACT Markdown format:
 - **Description:** <Clear description of the violation>
 - **Current text:**
 ```
-<Exact text that violates the rule>
+<EXACT text that violates the rule - must match content precisely>
 ```
 - **Suggested fix:**
 ```
-<Exact corrected text>
+<EXACT replacement text only - no notes or commentary>
 ```
 - **Explanation:** <Why this change is needed per the rule>
 
 [Repeat for each violation...]
 
-## Corrected Content
+CRITICAL INSTRUCTIONS:
+- For "Current text": Copy the EXACT text from the lecture (preserve all spacing, quotes, formatting)
+- For "Suggested fix": Provide ONLY the corrected text (no explanations, no notes, no commentary)
+- Do NOT include any notes, comments, or explanations within the suggested fixes
+- Be precise - fixes will be applied programmatically via text replacement
+- Each fix must be independently applicable
 
-```markdown
-<Complete lecture content with ALL fixes applied>
-```
+Do NOT include a "Corrected Content" section - fixes will be applied programmatically.
 
 Be meticulous and thorough. This is a professional review for publication-quality lectures."""
     
@@ -491,18 +500,44 @@ class StyleReviewer:
             lecture_name: Name of the lecture
             
         Returns:
-            Dictionary with review results
+            Dictionary with review results and corrected content
         """
         try:
             result = self.provider.check_style(content, rules_text, lecture_name)
             result['provider'] = self.provider_name
             result['lecture_name'] = lecture_name
+            
+            # Apply fixes programmatically if we have violations
+            if result.get('violations'):
+                print(f"  🔧 Applying {len(result['violations'])} fixes programmatically...")
+                
+                # Validate fix quality
+                validation_warnings = validate_fix_quality(result['violations'])
+                if validation_warnings:
+                    print(f"  ⚠️  Fix quality warnings:")
+                    for warning in validation_warnings[:5]:  # Show first 5
+                        print(f"      - {warning}")
+                
+                # Apply fixes
+                corrected_content, apply_warnings = apply_fixes(content, result['violations'])
+                result['corrected_content'] = corrected_content
+                result['fix_warnings'] = apply_warnings
+                
+                # If we couldn't apply any fixes, keep original content
+                if corrected_content == content and result['violations']:
+                    print(f"  ⚠️  Could not apply any fixes - keeping original content")
+                    result['corrected_content'] = content
+            else:
+                # No violations, keep original content
+                result['corrected_content'] = content
+            
             return result
         except Exception as e:
             return {
                 'error': str(e),
                 'issues_found': 0,
                 'violations': [],
+                'corrected_content': content,  # Return original on error
                 'provider': self.provider_name,
                 'lecture_name': lecture_name
             }
@@ -522,14 +557,15 @@ class StyleReviewer:
             lecture_name: Name of the lecture
             
         Returns:
-            Combined review results
+            Combined review results with programmatically applied fixes
         """
         all_violations = []
-        corrected_content = content
         
+        # Check all rule chunks against original content
         for i, rules_text in enumerate(rules_chunks):
             print(f"  Checking rule chunk {i+1}/{len(rules_chunks)}...")
-            result = self.review_lecture(corrected_content, rules_text, lecture_name)
+            # Always check against original content (not corrected from previous chunk)
+            result = self.provider.check_style(content, rules_text, lecture_name)
             
             if 'error' in result:
                 print(f"  ❌ Error in chunk {i+1}: {result['error']}")
@@ -539,15 +575,34 @@ class StyleReviewer:
             print(f"  ✓ Chunk {i+1} complete: {chunk_issues} issues found")
             
             all_violations.extend(result.get('violations', []))
-            if result.get('corrected_content'):
-                corrected_content = result['corrected_content']
         
         print(f"\n  📊 Total issues found: {len(all_violations)}")
+        
+        # Apply ALL fixes at once to the original content
+        corrected_content = content
+        fix_warnings = []
+        
+        if all_violations:
+            print(f"  🔧 Applying {len(all_violations)} fixes programmatically...")
+            
+            # Validate fix quality
+            validation_warnings = validate_fix_quality(all_violations)
+            if validation_warnings:
+                print(f"  ⚠️  Fix quality warnings:")
+                for warning in validation_warnings[:5]:
+                    print(f"      - {warning}")
+            
+            # Apply fixes
+            corrected_content, fix_warnings = apply_fixes(content, all_violations)
+            
+            if corrected_content == content and all_violations:
+                print(f"  ⚠️  Could not apply any fixes - keeping original content")
         
         return {
             'issues_found': len(all_violations),
             'violations': all_violations,
             'corrected_content': corrected_content,
+            'fix_warnings': fix_warnings,
             'summary': f"Found {len(all_violations)} issues across {len(rules_chunks)} rule checks",
             'provider': self.provider_name,
             'lecture_name': lecture_name
