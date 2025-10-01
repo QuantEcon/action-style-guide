@@ -274,7 +274,8 @@ class StyleReviewer:
         if provider == 'openai':
             self.provider = OpenAIProvider(api_key, model or "gpt-4")
         elif provider == 'claude':
-            self.provider = AnthropicProvider(api_key, model or "claude-3-5-sonnet-20241022")
+            # Use provider's default if no model specified (Sonnet 4.5)
+            self.provider = AnthropicProvider(api_key, model) if model else AnthropicProvider(api_key)
         elif provider == 'gemini':
             self.provider = GeminiProvider(api_key, model or "gemini-1.5-pro")
         else:

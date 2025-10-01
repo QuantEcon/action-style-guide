@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.5] - 2025-10-01
+
+### Fixed
+- **Critical**: Fixed hardcoded fallback to old Claude 3.5 Sonnet model in StyleReviewer
+- Now correctly uses Claude Sonnet 4.5 (`claude-sonnet-4-5-20250929`) when no model is specified
+- Resolves issue where v0.1.3 model upgrade wasn't being applied
+
+### Technical Details
+- Updated `StyleReviewer.__init__()` to pass `None` to `AnthropicProvider` when no model specified
+- This allows the provider's default model (Sonnet 4.5) to be used
+- Previous code: `model or "claude-3-5-sonnet-20241022"` (always fell back to old model)
+- New code: Only passes model if explicitly specified by user
+
 ## [0.1.4] - 2025-10-01
 
 ### Fixed
