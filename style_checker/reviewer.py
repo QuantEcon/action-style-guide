@@ -187,6 +187,7 @@ class OpenAIProvider(LLMProvider):
     
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer. Your task is to:
+
 1. Carefully review the provided lecture content against ALL style guide rules
 2. Identify EVERY violation, no matter how small
 3. Suggest specific fixes with exact text replacements
@@ -228,7 +229,7 @@ CRITICAL INSTRUCTIONS:
 - Be precise with quotes, spacing, and formatting
 - Each violation should be independently fixable
 
-Do NOT include a "Corrected Content" section - fixes will be applied programmatically.
+Do NOT include a "Corrected Content" section - fixes will be applied programmatically."""
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
         return f"""Review the following QuantEcon lecture for style guide compliance.
