@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.1] - 2025-10-01
+
+### Fixed
+- Module import path issue when running in GitHub Actions
+- Added action path to Python sys.path
+- Set PYTHONPATH environment variable in action.yml
+- Resolves `ModuleNotFoundError: No module named 'style_checker'`
+
 ## [0.1.0] - 2025-10-01
 
 ### Added
