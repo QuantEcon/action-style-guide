@@ -116,10 +116,14 @@ class AnthropicProvider(LLMProvider):
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
     def check_style(self, content: str, rules: str, lecture_name: str) -> Dict[str, Any]:
-        """Check style using Anthropic Claude"""
+        """Check style using Anthropic Claude with streaming for long requests"""
         prompt = self._build_prompt(content, rules, lecture_name)
         
-        response = self.client.messages.create(
+        # Use streaming to avoid 10-minute timeout on long requests
+        # See: https://docs.anthropic.com/en/docs/build-with-claude/streaming
+        full_response = ""
+        
+        with self.client.messages.stream(
             model=self.model,
             max_tokens=32000,  # Safe limit for all Claude 4+ models (Sonnet 4.5 supports up to 64K)
             temperature=0.1,
@@ -127,10 +131,12 @@ class AnthropicProvider(LLMProvider):
             messages=[
                 {"role": "user", "content": prompt}
             ]
-        )
+        ) as stream:
+            for text in stream.text_stream:
+                full_response += text
         
         # Extract JSON from response
-        content = response.content[0].text
+        content = full_response
         # Claude might wrap JSON in markdown code blocks
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()

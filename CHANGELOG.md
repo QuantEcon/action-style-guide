@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.4] - 2025-10-01
+
+### Fixed
+- **Critical**: Implemented streaming for Claude API requests to avoid 10-minute timeout
+- Resolves error: "Streaming is required for operations that may take longer than 10 minutes"
+
+### Changed
+- Claude API now uses streaming (`messages.stream`) instead of blocking calls
+- Improved handling of long-running style checks with high `max_tokens`
+
+### Technical Details
+- Updated `AnthropicProvider.check_style()` to use `client.messages.stream()`
+- Streams text chunks and assembles complete response before parsing
+- Required for requests with 32K max_tokens that may exceed 10-minute limit
+- See: https://docs.anthropic.com/en/docs/build-with-claude/streaming
+
 ## [0.1.3] - 2025-10-01
 
 ### Changed
