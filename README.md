@@ -135,14 +135,19 @@ Ensure these labels exist in your repository:
 
 The action supports three LLM providers with different models and capabilities:
 
-#### Claude (Anthropic) - Recommended
-- **Default Model**: `claude-3-5-sonnet-20241022` (8,192 max output tokens)
+#### Claude (Anthropic) - Recommended ⭐
+- **Default Model**: `claude-sonnet-4-5-20250929` (64,000 max output tokens) - **Latest & Best!**
+  - Best model for complex agents and coding
+  - Highest intelligence across most tasks
+  - 8x more output capacity than previous Sonnet 3.5
 - **Alternative Models**:
-  - `claude-3-opus-20240229` (4,096 max output tokens, most capable)
-  - `claude-3-sonnet-20240229` (4,096 max output tokens)
-  - `claude-3-haiku-20240307` (4,096 max output tokens, fastest)
-- **Best For**: Comprehensive style reviews, nuanced language analysis
-- **Note**: Claude 3.5 Sonnet has the highest output token limit (8,192), making it ideal for long lectures
+  - `claude-sonnet-4-20250514` (64,000 max output tokens)
+  - `claude-opus-4-1-20250805` (32,000 max output tokens) - Exceptional for specialized tasks
+  - `claude-opus-4-20250514` (32,000 max output tokens)
+  - `claude-3-7-sonnet-20250219` (64,000 max output tokens with beta header)
+  - `claude-3-5-haiku-20241022` (8,192 max output tokens) - Fastest
+- **Best For**: Comprehensive style reviews, nuanced language analysis, long lectures
+- **Note**: Claude Sonnet 4.5 is the most capable model with 64K output tokens
 
 #### OpenAI (GPT-4)
 - **Default Model**: `gpt-4` (8,192 max output tokens)
@@ -157,8 +162,8 @@ The action supports three LLM providers with different models and capabilities:
   - `gemini-1.5-flash` (8,192 max output tokens, faster)
 - **Best For**: Cost-effective reviews, multi-modal content
 
-**Important**: If you encounter token limit errors, either:
-1. Use a model with higher output limits (e.g., `gpt-4o` with 16K tokens)
+**Important**: The default Claude Sonnet 4.5 model now supports 64K output tokens, eliminating most token limit issues. If you still encounter limits:
+1. The action uses 32K tokens by default (safe for all models)
 2. Reduce `max-rules-per-request` to review fewer rules per chunk
 3. Use `rule-categories` to focus on specific rule categories
 

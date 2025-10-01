@@ -12,6 +12,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Additional test coverage
 
+## [0.1.3] - 2025-10-01
+
+### Changed
+- **Major Upgrade**: Updated default model to Claude Sonnet 4.5 (`claude-sonnet-4-5-20250929`)
+  - Latest and most capable Claude model (released September 2025)
+  - Increased max_tokens from 8,192 to 32,000 (Sonnet 4.5 supports up to 64,000)
+  - 8x more output capacity than previous Sonnet 3.5
+  - Highest intelligence across most tasks
+  - Best for complex agents and coding
+
+### Added
+- Updated model documentation with Claude 4 family models
+- Added comparison of all latest models (Sonnet 4.5, Opus 4.1, etc.)
+- Note about Claude Sonnet 4.5 being the recommended default
+
+### Deprecated
+- Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`) is now deprecated in favor of Sonnet 4.5
+
 ## [0.1.2] - 2025-10-01
 
 ### Fixed
