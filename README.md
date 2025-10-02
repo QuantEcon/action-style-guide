@@ -164,10 +164,9 @@ The action supports three LLM providers with different models and capabilities:
   - `gemini-1.5-flash` (8,192 max output tokens, faster)
 - **Best For**: Cost-effective reviews, multi-modal content
 
-**Important**: The default Claude Sonnet 4.5 model now supports 64K output tokens, eliminating most token limit issues. If you still encounter limits:
-1. The action uses 32K tokens by default (safe for all models)
-2. Reduce `max-rules-per-request` to review fewer rules per chunk
-3. Use `rule-categories` to focus on specific rule categories
+**Important**: The action now uses semantic grouping to intelligently organize rules by topic (Writing, Math, Code, etc.), which naturally handles token limits by processing related rules together. The default configuration works well for all models.
+
+If you need to focus on specific areas, use the `rule-categories` parameter to check only certain rule categories.
 
 ## Rule Categories
 

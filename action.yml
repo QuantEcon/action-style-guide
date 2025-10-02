@@ -53,10 +53,6 @@ inputs:
     description: 'Prefix for PR branch names'
     required: false
     default: 'style-guide'
-  max-rules-per-request:
-    description: 'Maximum number of rules to check in a single LLM request'
-    required: false
-    default: '15'
 
 outputs:
   pr-number:
@@ -120,7 +116,6 @@ runs:
           --rule-categories "${{ inputs.rule-categories }}" \
           --create-pr "${{ inputs.create-pr }}" \
           --pr-branch-prefix "${{ inputs.pr-branch-prefix }}" \
-          --max-rules-per-request "${{ inputs.max-rules-per-request }}" \
           --comment-body "${{ inputs.comment-body }}" \
           --repository "${{ github.repository }}" \
           --github-ref "${{ github.ref }}"

@@ -122,7 +122,7 @@ You can customize:
     lectures-path: 'lectures/'           # Change lecture directory
     llm-provider: 'claude'               # or 'openai', 'gemini'
     llm-model: 'claude-3-5-sonnet-20241022'  # Specific model
-    max-rules-per-request: 15            # Rules per AI request
+    rule-categories: 'rule'              # Focus on actionable rules only
     pr-branch-prefix: 'style-fix'        # Custom branch prefix
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
