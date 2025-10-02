@@ -4,7 +4,7 @@
 [![Status](https://img.shields.io/badge/status-development-orange.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> ⚠️ **Development Release**: This is version 0.1.0 - currently in testing phase. Please report any issues or feedback!
+> ⚠️ **Development Release**: This is version 0.2.0 - currently in testing phase. Please report any issues or feedback!
 
 A GitHub Action and bot for automated style guide compliance checking of QuantEcon lecture materials.
 
@@ -285,7 +285,6 @@ python -m style_checker.cli --mode bulk --lectures-dir lectures/
 ### Project Structure
 
 ```
-```
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
 ├── style-guide-database.md   # Style guide rules database
@@ -293,7 +292,6 @@ action-style-guide/
 │   ├── __init__.py
 │   ├── parser_md.py         # Markdown rule parser
 │   ├── reviewer.py          # LLM-based review logic
-```
 │   ├── github_handler.py    # PR/issue management
 │   ├── prompts.py           # LLM prompt templates
 │   └── cli.py               # CLI interface
