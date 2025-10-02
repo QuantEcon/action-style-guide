@@ -329,12 +329,15 @@ def main():
                 pr_branch_prefix=args.pr_branch_prefix
             )
             
-            # Set outputs for GitHub Actions
-            if 'pr_number' in result:
-                print(f"::set-output name=pr-number::{result['pr_number']}")
-                print(f"::set-output name=pr-url::{result['pr_url']}")
-            print(f"::set-output name=issues-found::{result.get('issues_found', 0)}")
-            print(f"::set-output name=lectures-reviewed::1")
+            # Set outputs for GitHub Actions (using environment file)
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            if github_output:
+                with open(github_output, 'a') as f:
+                    if 'pr_number' in result:
+                        f.write(f"pr-number={result['pr_number']}\n")
+                        f.write(f"pr-url={result['pr_url']}\n")
+                    f.write(f"issues-found={result.get('issues_found', 0)}\n")
+                    f.write(f"lectures-reviewed=1\n")
             
             # Print summary
             print(f"\n{'='*60}")
@@ -367,12 +370,15 @@ def main():
                 pr_branch_prefix=args.pr_branch_prefix
             )
             
-            # Set outputs
-            if 'pr_number' in result:
-                print(f"::set-output name=pr-number::{result['pr_number']}")
-                print(f"::set-output name=pr-url::{result['pr_url']}")
-            print(f"::set-output name=issues-found::{result.get('total_issues', 0)}")
-            print(f"::set-output name=lectures-reviewed::{result.get('lectures_reviewed', 0)}")
+            # Set outputs for GitHub Actions (using environment file)
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            if github_output:
+                with open(github_output, 'a') as f:
+                    if 'pr_number' in result:
+                        f.write(f"pr-number={result['pr_number']}\n")
+                        f.write(f"pr-url={result['pr_url']}\n")
+                    f.write(f"issues-found={result.get('total_issues', 0)}\n")
+                    f.write(f"lectures-reviewed={result.get('lectures_reviewed', 0)}\n")
             
             # Print summary
             print(f"\n{'='*60}")
