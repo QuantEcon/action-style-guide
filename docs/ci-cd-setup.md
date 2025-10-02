@@ -148,17 +148,17 @@ open htmlcov/index.html
 
 **Current Status:**
 ```
-12 passed, 1 skipped, 1 warning in 0.62s
+23 passed in 1-2 minutes
 ```
 
 **Coverage:**
-- `style_checker/parser.py`: 100% ✅
+- `style_checker/parser_md.py`: 98% ✅
 - `style_checker/__init__.py`: 100% ✅
-- `style_checker/reviewer.py`: 33% (LLM provider code needs integration tests)
+- `style_checker/reviewer.py`: 44% (LLM provider code needs integration tests)
 - `style_checker/github_handler.py`: 12% (needs integration tests)
-- `style_checker/main.py`: 0% (needs integration tests)
+- `style_checker/main.py`: 7% (needs integration tests)
 
-**Overall:** 23% coverage (good for unit tests; integration tests will improve this)
+**Overall:** 39% coverage (excellent for unit tests; integration tests will improve this)
 
 ## CI/CD Pipeline
 

@@ -77,15 +77,17 @@ open htmlcov/index.html
 
 ```
 Unit Tests:
-✅ 13 passed, 1 skipped
-📊 23% overall coverage
-✅ parser.py: 100%
-⚠️ reviewer.py: 33%
+✅ 23 passed
+📊 39% overall coverage
+✅ parser_md.py: 98%
+✅ __init__.py: 100%
+⚠️ reviewer.py: 44%
+⚠️ fix_applier.py: 69%
 ⚠️ github_handler.py: 12%
-❌ main.py: 0%
+⚠️ main.py: 7%
 
 Integration Tests:
-⏭️  5 skipped (no API key)
+⏭️  5 skipped (require API keys)
 ✅ 1 passed (sample validation)
 ```
 

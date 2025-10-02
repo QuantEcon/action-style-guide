@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Deprecated `parser.py` module (no longer needed after v0.2.0 migration)
+  - All functionality replaced by `parser_md.py`
+  - Zero imports remaining in codebase
+  - Tests coverage improved from 35% to 39%
+
 ### Planned for v1.0.0
 - Production release after testing
 - Additional caching and optimization features
