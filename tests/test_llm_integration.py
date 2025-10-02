@@ -11,7 +11,7 @@ import pytest
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from style_checker.parser import load_style_guide, format_rules_for_llm
+from style_checker.parser_md import load_style_guide, format_rules_for_llm
 from style_checker.reviewer import StyleReviewer
 
 
@@ -73,8 +73,8 @@ The solution is V(x) = 42.
 
 @pytest.fixture
 def style_guide_path():
-    """Path to style guide"""
-    return Path(__file__).parent.parent / "style-guide.yaml"
+    """Fixture to provide the style guide path"""
+    return Path(__file__).parent.parent / "style-guide-database.md"
 
 
 @pytest.fixture

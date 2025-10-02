@@ -14,7 +14,7 @@ from datetime import datetime
 action_path = Path(__file__).parent.parent
 sys.path.insert(0, str(action_path))
 
-from style_checker.parser import load_style_guide, format_rules_for_llm
+from style_checker.parser_md import load_style_guide
 from style_checker.reviewer import StyleReviewer
 from style_checker.github_handler import GitHubHandler
 
@@ -26,8 +26,7 @@ def review_single_lecture(
     style_guide_path: str,
     lectures_path: str,
     create_pr: bool,
-    pr_branch_prefix: str,
-    max_rules: int
+    pr_branch_prefix: str
 ) -> dict:
     """
     Review a single lecture and optionally create PR
@@ -54,19 +53,14 @@ def review_single_lecture(
     # Load style guide
     print(f"📋 Loading style guide rules...")
     style_guide = load_style_guide(style_guide_path)
-    all_rules = style_guide.get_all_rules()
-    print(f"✓ Loaded {len(all_rules)} rules")
     
-    # Format rules for LLM
-    rules_chunks = format_rules_for_llm(all_rules, max_rules)
-    print(f"📦 Split into {len(rules_chunks)} rule chunks")
+    # Only action 'rule' category (not 'style' or 'migrate')
+    actionable_rules = style_guide.get_actionable_rules()
+    print(f"✓ Loaded {len(style_guide.rules)} total rules")
+    print(f"✓ Using {len(actionable_rules)} actionable rules (category='rule')")
     
-    # Perform review
-    print(f"\n🤖 Starting AI-powered review...")
-    if len(rules_chunks) == 1:
-        review_result = reviewer.review_lecture(content, rules_chunks[0], lecture_name)
-    else:
-        review_result = reviewer.review_in_chunks(content, rules_chunks, lecture_name)
+    # Perform review using smart semantic grouping strategy
+    review_result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
     
     issues_found = review_result.get('issues_found', 0)
     print(f"\n📊 Review complete: {issues_found} issues found")
@@ -123,14 +117,13 @@ def review_bulk_lectures(
     style_guide_path: str,
     lectures_path: str,
     create_pr: bool,
-    pr_branch_prefix: str,
-    max_rules: int
+    pr_branch_prefix: str
 ) -> dict:
     """
-    Review all lectures and create a single PR with individual commits
+    Review all lectures in directory and create single PR
     
     Returns:
-        Dictionary with overall results
+        Dictionary with summary of all reviews and PR info
     """
     print(f"\n{'='*60}")
     print(f"📚 Bulk Review: All Lectures")
@@ -154,8 +147,11 @@ def review_bulk_lectures(
     
     # Load style guide once
     style_guide = load_style_guide(style_guide_path)
-    all_rules = style_guide.get_all_rules()
-    rules_chunks = format_rules_for_llm(all_rules, max_rules)
+    
+    # Only action 'rule' category (not 'style' or 'migrate')
+    actionable_rules = style_guide.get_actionable_rules()
+    print(f"✓ Loaded {len(style_guide.rules)} total rules")
+    print(f"✓ Using {len(actionable_rules)} actionable rules (category='rule')")
     
     # Review each lecture
     all_results = []
@@ -169,11 +165,8 @@ def review_bulk_lectures(
             # Get content
             content = gh_handler.get_lecture_content(lecture_file)
             
-            # Review
-            if len(rules_chunks) == 1:
-                result = reviewer.review_lecture(content, rules_chunks[0], lecture_name)
-            else:
-                result = reviewer.review_in_chunks(content, rules_chunks, lecture_name)
+            # Review using smart semantic grouping strategy
+            result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
             
             issues_found = result.get('issues_found', 0)
             total_issues += issues_found
@@ -283,7 +276,7 @@ def main():
     parser.add_argument('--lectures-path', default='lectures/',
                        help='Path to lectures directory')
     parser.add_argument('--style-guide', required=True,
-                       help='Path to style-guide.yaml')
+                       help='Path to style-guide-database.md')
     parser.add_argument('--llm-provider', default='claude',
                        choices=['openai', 'claude', 'gemini'],
                        help='LLM provider to use')
@@ -294,8 +287,6 @@ def main():
                        help='Whether to create PR')
     parser.add_argument('--pr-branch-prefix', default='style-guide',
                        help='Prefix for PR branches')
-    parser.add_argument('--max-rules-per-request', type=int, default=15,
-                       help='Max rules per LLM request')
     parser.add_argument('--comment-body', help='Issue comment body (for single mode)')
     parser.add_argument('--repository', required=True,
                        help='GitHub repository (owner/repo)')
@@ -335,8 +326,7 @@ def main():
                 style_guide_path=args.style_guide,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
-                pr_branch_prefix=args.pr_branch_prefix,
-                max_rules=args.max_rules_per_request
+                pr_branch_prefix=args.pr_branch_prefix
             )
             
             # Set outputs for GitHub Actions
@@ -374,8 +364,7 @@ def main():
                 style_guide_path=args.style_guide,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
-                pr_branch_prefix=args.pr_branch_prefix,
-                max_rules=args.max_rules_per_request
+                pr_branch_prefix=args.pr_branch_prefix
             )
             
             # Set outputs

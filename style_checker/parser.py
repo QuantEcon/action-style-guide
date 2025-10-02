@@ -1,12 +1,26 @@
 """
-Style Guide Rule Parser
+Style Guide Rule Parser (DEPRECATED)
 Loads and parses the style-guide.yaml database
+
+DEPRECATED: This module is deprecated. Use parser_md.py instead for the new 
+Markdown-based style guide database (style-guide-database.md).
+
+The YAML format has been replaced with Markdown for better alignment with LLM prompts
+and the new category system (rule/style/migrate).
 """
 
 import yaml
+import warnings
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+
+# Issue deprecation warning when module is imported
+warnings.warn(
+    "parser.py is deprecated. Use parser_md.py for the new Markdown-based style guide database.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 @dataclass

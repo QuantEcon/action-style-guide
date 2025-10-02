@@ -31,11 +31,13 @@ def validate_yaml(path: str) -> bool:
 
 
 def count_rules(style_guide_path: str) -> int:
-    """Count rules in style guide"""
+    """Count rules in Markdown style guide"""
     try:
         with open(style_guide_path, 'r') as f:
-            data = yaml.safe_load(f)
-        rules = data.get('rules', {})
+            content = f.read()
+        # Count lines that start with "### Rule: qe-" (rule headers)
+        import re
+        rules = re.findall(r'^### (?:Rule|Style|Migration Pattern): qe-\w+-\d+', content, re.MULTILINE)
         return len(rules)
     except:
         return 0
@@ -55,7 +57,7 @@ def main():
     print("📁 Checking Core Files...")
     files_to_check = [
         ("action.yml", "GitHub Action definition"),
-        ("style-guide.yaml", "Style guide rules"),
+        ("style-guide-database.md", "Style guide rules"),
         ("requirements.txt", "Python dependencies"),
         ("README.md", "Main documentation"),
         ("LICENSE", "License file"),
@@ -71,7 +73,7 @@ def main():
     print("🐍 Checking Python Package...")
     python_files = [
         ("style_checker/__init__.py", "Package init"),
-        ("style_checker/parser.py", "Rule parser"),
+        ("style_checker/parser_md.py", "Markdown rule parser"),
         ("style_checker/reviewer.py", "LLM reviewer"),
         ("style_checker/github_handler.py", "GitHub handler"),
         ("style_checker/main.py", "Main orchestrator"),
@@ -115,7 +117,6 @@ def main():
     print("🔍 Validating YAML Files...")
     yaml_files = [
         "action.yml",
-        "style-guide.yaml",
         "examples/style-guide-comment.yml",
         "examples/style-guide-weekly.yml",
     ]
@@ -128,12 +129,12 @@ def main():
     
     # Count rules
     print("📊 Style Guide Statistics...")
-    rule_count = count_rules("style-guide.yaml")
+    rule_count = count_rules("style-guide-database.md")
     if rule_count > 0:
         print(f"✓ Found {rule_count} style guide rules")
         checks_passed += 1
     else:
-        print(f"✗ No rules found in style-guide.yaml")
+        print(f"✗ No rules found in style-guide-database.md")
     total_checks += 1
     print()
     

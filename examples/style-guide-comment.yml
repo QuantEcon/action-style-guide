@@ -36,7 +36,7 @@ jobs:
         with:
           mode: 'single'
           lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
           # Use Claude as default (best results)
           llm-provider: 'claude'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

@@ -32,7 +32,7 @@
 │                                    ▼                                     │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │  2. Style Guide Parser                                          │   │
-│  │     • Load style-guide.yaml (51+ rules)                         │   │
+│  │     • Load style-guide-database.md (48 rules)                  │   │
 │  │     • Filter by priority & category                             │   │
 │  │     • Format for LLM consumption                                │   │
 │  │     • Split into manageable chunks                              │   │

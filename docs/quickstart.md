@@ -154,7 +154,7 @@ You can customize:
 
 1. **Start Small**: Test with one lecture before bulk reviews
 2. **Review PRs Carefully**: AI might suggest changes you don't want
-3. **Iterate**: Update style-guide.yaml as your standards evolve
+3. **Iterate**: Update style-guide-database.md as your standards evolve
 4. **Revert if needed**: Each lecture in bulk PRs is a separate commit
 5. **Monitor Costs**: LLM API calls cost money, set up billing alerts
 

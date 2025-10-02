@@ -7,9 +7,12 @@ Applies fixes programmatically instead of relying on LLM-generated corrected con
 
 import os
 import re
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from .fix_applier import apply_fixes, validate_fix_quality
+
+if TYPE_CHECKING:
+    from .parser_md import StyleGuideDatabase, StyleRule
 
 
 def parse_markdown_response(response: str) -> Dict[str, Any]:
@@ -192,7 +195,9 @@ class OpenAIProvider(LLMProvider):
 2. Identify EVERY violation, no matter how small
 3. Suggest specific fixes with exact text replacements
 4. Reference the specific rule ID for each issue
-5. Provide the corrected content with all fixes applied
+
+IMPORTANT: You will ONLY receive rules with category='rule', which are actionable and should be fixed.
+Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
 
 Return your response in this EXACT Markdown format:
 
@@ -312,8 +317,10 @@ Your task is to perform a comprehensive, thorough review of lecture content agai
 2. Identify ALL violations, even minor ones
 3. Provide specific, actionable fixes with exact text replacements
 4. Reference the specific rule ID for each issue
-4. Reference the specific rule ID for each issue
 5. Provide exact text replacements for each violation
+
+IMPORTANT: You will ONLY receive rules with category='rule', which are clearly actionable and should be fixed.
+Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
 
 Return your response in this EXACT Markdown format:
 
@@ -400,6 +407,9 @@ class GeminiProvider(LLMProvider):
     def _get_system_prompt(self) -> str:
         return """You are an expert QuantEcon style guide reviewer. Review lecture content against style guide rules comprehensively.
 
+IMPORTANT: You will ONLY receive rules with category='rule', which are clearly actionable and should be fixed.
+Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
+
 Return your response in this EXACT Markdown format:
 
 # Review Results
@@ -418,22 +428,22 @@ Return your response in this EXACT Markdown format:
 - **Description:** <description>
 - **Current text:**
 ```
-<current text>
+<EXACT current text - must match content precisely>
 ```
 - **Suggested fix:**
 ```
-<suggested fix>
+<EXACT replacement text only - no notes or commentary>
 ```
 - **Explanation:** <explanation>
 
 [Repeat for each violation...]
 
-## Corrected Content
+CRITICAL INSTRUCTIONS:
+- For "Current text": Copy EXACT text from lecture (preserve spacing, quotes, formatting)
+- For "Suggested fix": Provide ONLY corrected text (no explanations, no notes)
+- Be precise - fixes will be applied programmatically
 
-```markdown
-<full corrected lecture>
-```
-"""
+Do NOT include a "Corrected Content" section - fixes will be applied programmatically."""
     
     def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
         return f"""Review: {lecture_name}
@@ -539,47 +549,103 @@ class StyleReviewer:
                 'issues_found': 0,
                 'violations': [],
                 'corrected_content': content,  # Return original on error
-                'provider': self.provider_name,
-                'lecture_name': lecture_name
-            }
+            'provider': self.provider_name,
+            'lecture_name': lecture_name
+        }
     
-    def review_in_chunks(
+    def review_lecture_smart(
         self,
         content: str,
-        rules_chunks: List[str],
+        style_guide: 'StyleGuideDatabase',
         lecture_name: str
     ) -> Dict[str, Any]:
         """
-        Review lecture against rules in chunks (for large rule sets)
+        Smart review strategy using semantic category grouping.
+        
+        Groups rules by their semantic categories (WRITING, MATH, CODE, etc.)
+        and processes them in parallel for better performance and quality.
+        
+        Benefits:
+        - Related rules checked together (better context for LLM)
+        - Parallel processing (3-4x faster than sequential)
+        - Reasonable cost (~8 API calls vs 31 single-rule calls)
+        - Natural alignment with style guide structure
+        - Better quality results from semantic coherence
         
         Args:
             content: Full lecture content
-            rules_chunks: List of formatted rule chunks
-            lecture_name: Name of the lecture
+            style_guide: Parsed style guide database with rules
+            lecture_name: Name of the lecture file
             
         Returns:
-            Combined review results with programmatically applied fixes
+            Dictionary with all violations found across all groups
         """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        
+        print(f"\n🤖 Starting AI-powered review using semantic grouping...")
+        print(f"📊 Lecture: {lecture_name}")
+        
+        # Get all groups with their actionable rules (category='rule' only)
+        groups = style_guide.get_all_groups_with_rules(category='rule')
+        
+        if not groups:
+            print("  ⚠️  No actionable rules found!")
+            return {
+                'issues_found': 0,
+                'violations': [],
+                'corrected_content': content,
+                'summary': 'No actionable rules to check',
+                'provider': self.provider_name,
+                'lecture_name': lecture_name
+            }
+        
+        total_rules = sum(len(rules) for rules in groups.values())
+        print(f"📋 Total actionable rules: {total_rules}")
+        
+        print(f"\n📦 Processing {len(groups)} semantic groups in parallel:")
+        for group_name, rules in sorted(groups.items()):
+            print(f"   • {group_name}: {len(rules)} rules")
+        
+        # Process groups in parallel
         all_violations = []
+        max_workers = min(4, len(groups))  # Max 4 parallel calls to avoid rate limits
         
-        # Check all rule chunks against original content
-        for i, rules_text in enumerate(rules_chunks):
-            print(f"  Checking rule chunk {i+1}/{len(rules_chunks)}...")
-            # Always check against original content (not corrected from previous chunk)
-            result = self.provider.check_style(content, rules_text, lecture_name)
-            
-            if 'error' in result:
-                print(f"  ❌ Error in chunk {i+1}: {result['error']}")
-                continue
-            
-            chunk_issues = len(result.get('violations', []))
-            print(f"  ✓ Chunk {i+1} complete: {chunk_issues} issues found")
-            
-            all_violations.extend(result.get('violations', []))
+        print(f"\n🚀 Running {max_workers} parallel reviews...")
+        print()
         
-        print(f"\n  📊 Total issues found: {len(all_violations)}")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all group reviews
+            futures = {
+                executor.submit(
+                    self._review_group,
+                    content,
+                    group_name,
+                    rules,
+                    lecture_name
+                ): group_name
+                for group_name, rules in groups.items()
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(futures):
+                group_name = futures[future]
+                try:
+                    result = future.result()
+                    violations_count = len(result.get('violations', []))
+                    
+                    if violations_count > 0:
+                        print(f"  ✓ {group_name}: {violations_count} issues found")
+                    else:
+                        print(f"  ✓ {group_name}: No issues found")
+                    
+                    all_violations.extend(result.get('violations', []))
+                    
+                except Exception as e:
+                    print(f"  ❌ {group_name} failed: {e}")
         
-        # Apply ALL fixes at once to the original content
+        print(f"\n📊 Total issues found across all groups: {len(all_violations)}")
+        
+        # Apply ALL fixes programmatically to the original content
         corrected_content = content
         fix_warnings = []
         
@@ -590,7 +656,7 @@ class StyleReviewer:
             validation_warnings = validate_fix_quality(all_violations)
             if validation_warnings:
                 print(f"  ⚠️  Fix quality warnings:")
-                for warning in validation_warnings[:5]:
+                for warning in validation_warnings[:5]:  # Show first 5
                     print(f"      - {warning}")
             
             # Apply fixes
@@ -598,13 +664,75 @@ class StyleReviewer:
             
             if corrected_content == content and all_violations:
                 print(f"  ⚠️  Could not apply any fixes - keeping original content")
+        else:
+            print(f"  ✨ No issues found - lecture follows all style guide rules!")
         
         return {
             'issues_found': len(all_violations),
             'violations': all_violations,
             'corrected_content': corrected_content,
             'fix_warnings': fix_warnings,
-            'summary': f"Found {len(all_violations)} issues across {len(rules_chunks)} rule checks",
+            'summary': f"Found {len(all_violations)} issues across {len(groups)} semantic groups",
             'provider': self.provider_name,
-            'lecture_name': lecture_name
+            'lecture_name': lecture_name,
+            'groups_checked': list(groups.keys())
         }
+    
+    def _review_group(
+        self,
+        content: str,
+        group_name: str,
+        rules: List['StyleRule'],
+        lecture_name: str
+    ) -> Dict[str, Any]:
+        """
+        Review lecture content against a single semantic group of rules
+        
+        Args:
+            content: Full lecture content
+            group_name: Name of the semantic group (e.g., 'WRITING', 'MATH')
+            rules: List of StyleRule objects in this group
+            lecture_name: Name of the lecture file
+            
+        Returns:
+            Dictionary with violations found for this group
+        """
+        # Format rules for prompt
+        rules_text = self._format_rules_for_prompt(rules)
+        
+        # Review using the standard method
+        try:
+            result = self.provider.check_style(content, rules_text, f"{lecture_name}:{group_name}")
+            result['group'] = group_name
+            return result
+        except Exception as e:
+            return {
+                'error': str(e),
+                'violations': [],
+                'group': group_name
+            }
+    
+    def _format_rules_for_prompt(self, rules: List['StyleRule']) -> str:
+        """
+        Format rules for inclusion in LLM prompt
+        
+        Args:
+            rules: List of StyleRule objects
+            
+        Returns:
+            Formatted string for LLM prompt
+        """
+        formatted = []
+        for rule in rules:
+            formatted.append(rule.to_prompt_format())
+        
+        return "\n---\n\n".join(formatted)
+    
+    def _estimate_tokens(self, text: str) -> int:
+        """
+        Rough token estimation (1 token ≈ 4 characters)
+        
+        This is an approximation. Actual tokenization varies by model.
+        """
+        return len(text) // 4
+

@@ -15,9 +15,9 @@ inputs:
     required: false
     default: 'lectures/'
   style-guide-url:
-    description: 'URL or path to style-guide.yaml file'
+    description: 'URL or path to style-guide-database.md file'
     required: false
-    default: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+    default: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
   openai-api-key:
     description: 'OpenAI API key for LLM-powered review'
     required: false
@@ -96,9 +96,9 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.style-guide-url }}" == http* ]]; then
-          curl -o /tmp/style-guide.yaml "${{ inputs.style-guide-url }}"
+          curl -o /tmp/style-guide-database.md "${{ inputs.style-guide-url }}"
         else
-          cp "${{ inputs.style-guide-url }}" /tmp/style-guide.yaml
+          cp "${{ inputs.style-guide-url }}" /tmp/style-guide-database.md
         fi
 
     - name: Run style checker
@@ -114,7 +114,7 @@ runs:
         python ${{ github.action_path }}/style_checker/main.py \
           --mode "${{ inputs.mode }}" \
           --lectures-path "${{ inputs.lectures-path }}" \
-          --style-guide /tmp/style-guide.yaml \
+          --style-guide /tmp/style-guide-database.md \
           --llm-provider "${{ inputs.llm-provider }}" \
           --llm-model "${{ inputs.llm-model }}" \
           --rule-categories "${{ inputs.rule-categories }}" \

@@ -46,7 +46,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 python -m style_checker.main \
   --mode single \
   --lectures-path lectures/ \
-  --style-guide style-guide.yaml \
+  --style-guide style-guide-database.md \
   --llm-provider claude \
   --repository owner/repo \
   --comment-body "@quantecon-style-guide lecture-name" \
@@ -59,7 +59,7 @@ python -m style_checker.main \
 python -m style_checker.main \
   --mode bulk \
   --lectures-path lectures/ \
-  --style-guide style-guide.yaml \
+  --style-guide style-guide-database.md \
   --llm-provider claude \
   --repository owner/repo \
   --create-pr false
@@ -69,10 +69,8 @@ python -m style_checker.main \
 
 ### Adding New Style Rules
 
-1. Edit `style-guide.yaml`
-2. Add rule following the existing format:
-   ```yaml
-   qe-category-###:
+1. Edit `style-guide-database.md`
+2. Add rule following the existing Markdown format with category='rule'
      title: "Rule Title"
      category: "category_name"
      type: "rule_type"

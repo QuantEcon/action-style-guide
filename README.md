@@ -18,7 +18,9 @@ This action automatically reviews MyST Markdown lecture files against the compre
 - 📝 **Comprehensive Rule Coverage**: Checks all style guide rules from writing style to technical requirements
 - 🎯 **Single Lecture Reviews**: Trigger reviews via issue comments for focused, manageable PRs
 - 📅 **Scheduled Bulk Reviews**: Weekly automated reviews of all lectures with individual commits per file
-- 🔄 **Updatable Rules**: Style guide rules stored in YAML format, easy to update and extend
+- 🔄 **Updatable Rules**: Style guide rules stored in Markdown format, easy to update and extend
+- 📊 **Category System**: Rules organized by category (`rule`, `style`, `migrate`) for targeted reviews
+- 🎯 **Actionable Rules**: Automatically applies only `rule` category fixes (clearly actionable improvements)
 - 🏷️ **Automated PR Management**: Creates properly labeled PRs with detailed change descriptions
 
 ## Usage
@@ -62,7 +64,7 @@ jobs:
         with:
           mode: 'bulk'
           lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
           llm-provider: 'claude'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -91,7 +93,7 @@ jobs:
         with:
           mode: 'single'
           lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide.yaml'
+          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
           llm-provider: 'claude'  # Default: best results
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -120,7 +122,7 @@ Ensure these labels exist in your repository:
 |-------|-------------|----------|---------|
 | `mode` | Review mode: `single` or `bulk` | Yes | - |
 | `lectures-path` | Path to lectures directory | No | `lectures/` |
-| `style-guide-url` | URL or path to style-guide.yaml | No | Built-in rules |
+| `style-guide-url` | URL or path to style-guide-database.md | No | Built-in rules |
 | `openai-api-key` | OpenAI API key for GPT-4 | No | - |
 | `anthropic-api-key` | Anthropic API key for Claude | No | - |
 | `google-api-key` | Google API key for Gemini | No | - |
@@ -169,19 +171,55 @@ The action supports three LLM providers with different models and capabilities:
 
 ## Rule Categories
 
-The style guide checker covers these categories:
+The style guide uses a three-tier category system:
 
-- **Writing**: Clarity, brevity, one-sentence paragraphs, capitalization
-- **Titles**: Lecture titles and heading capitalization rules
-- **Formatting**: Bold/italic usage, Jupyter Book conventions
-- **Mathematics**: Notation standards, matrix brackets, sequences
-- **Code**: PEP8, Unicode Greek letters, timing patterns
-- **JAX**: Functional programming, pure functions, no mutation
-- **Exercises**: Syntax requirements, solution pairing
-- **References**: Citations, internal/cross-series links
-- **Index**: Indexing conventions
-- **Binary Packages**: Installation and documentation requirements
-- **Environment**: QuantEcon environment setup
+### Category: `rule` (Actionable) ✅
+Rules that are clearly actionable and will be automatically applied by the action:
+- **Writing**: One sentence per paragraph, capitalization, bold/italic usage
+- **Mathematics**: Transpose notation (`\top`), matrix brackets, sequence notation
+- **Code**: Unicode Greek letters, package installation placement, `quantecon.Timer()` usage
+- **Figures**: Caption formatting, figure naming, axis labels, line width
+- **References**: Citation style (`{cite}` vs `{cite:t}`), cross-references
+- **Links**: Internal vs cross-series linking syntax
+- **Admonitions**: Exercise/solution syntax, nested directive tick counts
+
+**These rules are automatically checked and fixed by the action.**
+
+### Category: `style` (Advisory) 💡
+Guidelines that may require human judgment or context:
+- Writing clarity and conciseness
+- Logical flow and narrative structure  
+- Figure placement and visualization choices
+- Mathematical notation simplicity
+- Code readability patterns
+
+**These rules are tracked but not automatically actioned. Future versions will add comment-based suggestions.**
+
+### Category: `migrate` (Code Transformation) 🔄
+Legacy code patterns suitable for automated transformation tools:
+- `tic/toc` → `quantecon.Timer()` migration
+- `%timeit` → `quantecon.timeit()` migration
+- NumPy → JAX functional patterns
+- In-place operations → JAX immutable updates
+
+**These rules are for specialized migration tools and are not actioned by the main checker.**
+
+## Style Guide Database
+
+The complete style guide is maintained in `style-guide-database.md` with:
+- **48 rules** organized into **8 groups**
+- **31 actionable rules** (category=`rule`)
+- **13 advisory guidelines** (category=`style`)
+- **4 migration patterns** (category=`migrate`)
+
+Each rule includes:
+- Unique rule code (e.g., `qe-writing-001`, `qe-math-004`)
+- Category classification
+- Detailed description and rationale
+- Examples showing correct/incorrect usage
+- Implementation notes for automated checking
+
+For the complete database, see: [style-guide-database.md](style-guide-database.md)
 
 ## Example Review Output
 
@@ -226,7 +264,7 @@ Each change references the specific style guide rule:
 
 To update the style guide rules:
 
-1. Edit `style-guide.yaml` in this repository
+1. Edit `style-guide-database.md` in this repository
 2. Commit and push changes
 3. All future reviews will use the updated rules automatically
 
@@ -248,13 +286,15 @@ python -m style_checker.cli --mode bulk --lectures-dir lectures/
 ### Project Structure
 
 ```
+```
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
-├── style-guide.yaml          # Style guide rules database
+├── style-guide-database.md   # Style guide rules database
 ├── style_checker/            # Main package
 │   ├── __init__.py
-│   ├── parser.py            # YAML rule parser
+│   ├── parser_md.py         # Markdown rule parser
 │   ├── reviewer.py          # LLM-based review logic
+```
 │   ├── github_handler.py    # PR/issue management
 │   ├── prompts.py           # LLM prompt templates
 │   └── cli.py               # CLI interface

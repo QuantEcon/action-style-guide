@@ -174,7 +174,7 @@ PASSED
 
 ### Fixtures
 
-- **`style_guide_path`**: Path to style-guide.yaml
+- **`style_guide_path`**: Path to style-guide-database.md
 - **`sample_rules`**: Loads subset of high-priority rules for faster testing
 
 ### Test Class
