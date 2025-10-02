@@ -11,7 +11,7 @@ import pytest
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from style_checker.parser_md import load_style_guide, format_rules_for_llm
+from style_checker.parser_md import load_style_guide
 from style_checker.reviewer import StyleReviewer
 
 
@@ -83,13 +83,21 @@ def sample_rules(style_guide_path):
     db = load_style_guide(str(style_guide_path))
     
     # Get high-priority rules for testing
-    critical = db.get_critical_rules()
-    mandatory = db.get_rules_by_priority('mandatory')
-    all_rules = critical + mandatory
+    # Use the new semantic grouping - get a few groups for testing
+    groups_with_rules = db.get_all_groups_with_rules()
     
-    # Format for LLM (limit to first chunk for faster testing)
-    chunks = format_rules_for_llm(all_rules[:10], max_rules=10)
-    return chunks[0] if chunks else ""
+    # Just use the first 2-3 groups for faster testing
+    test_groups = list(groups_with_rules.items())[:3]
+    
+    # Format rules for the prompt (similar to reviewer._format_rules_for_prompt)
+    rules_parts = []
+    for group_name, group_rules in test_groups:
+        if group_rules:
+            rules_parts.append(f"\n## {group_name.upper()} Rules\n")
+            for rule in group_rules:
+                rules_parts.append(rule.to_prompt_format())
+    
+    return "\n".join(rules_parts)
 
 
 @pytest.mark.integration

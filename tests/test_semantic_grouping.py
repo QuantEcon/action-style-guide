@@ -20,9 +20,7 @@ def test_group_extraction():
     
     # Load style guide
     style_guide_path = Path(__file__).parent.parent / "style-guide-database.md"
-    if not style_guide_path.exists():
-        print(f"❌ Style guide not found: {style_guide_path}")
-        return False
+    assert style_guide_path.exists(), f"Style guide not found: {style_guide_path}"
     
     print(f"✓ Loading style guide from: {style_guide_path}")
     style_guide = load_style_guide(str(style_guide_path))
@@ -53,13 +51,9 @@ def test_group_extraction():
     
     # Verify counts match
     expected_actionable = len(style_guide.get_actionable_rules())
-    if total_actionable == expected_actionable:
-        print(f"   ✓ Count matches expected: {expected_actionable}")
-    else:
-        print(f"   ❌ Count mismatch! Expected {expected_actionable}, got {total_actionable}")
-        return False
-    
-    return True
+    assert total_actionable == expected_actionable, \
+        f"Count mismatch! Expected {expected_actionable}, got {total_actionable}"
+    print(f"   ✓ Count matches expected: {expected_actionable}")
 
 
 def test_reviewer_integration():
@@ -71,22 +65,16 @@ def test_reviewer_integration():
     from style_checker.reviewer import StyleReviewer
     
     # Check that the method exists
-    if hasattr(StyleReviewer, 'review_lecture_smart'):
-        print("✓ StyleReviewer.review_lecture_smart() method exists")
-    else:
-        print("❌ StyleReviewer.review_lecture_smart() method NOT found")
-        return False
+    assert hasattr(StyleReviewer, 'review_lecture_smart'), \
+        "StyleReviewer.review_lecture_smart() method NOT found"
+    print("✓ StyleReviewer.review_lecture_smart() method exists")
     
     # Check helper methods
     helper_methods = ['_review_group', '_format_rules_for_prompt', '_estimate_tokens']
     for method in helper_methods:
-        if hasattr(StyleReviewer, method):
-            print(f"✓ StyleReviewer.{method}() method exists")
-        else:
-            print(f"❌ StyleReviewer.{method}() method NOT found")
-            return False
-    
-    return True
+        assert hasattr(StyleReviewer, method), \
+            f"StyleReviewer.{method}() method NOT found"
+        print(f"✓ StyleReviewer.{method}() method exists")
 
 
 def test_imports():
@@ -95,28 +83,17 @@ def test_imports():
     print("Testing Imports")
     print("=" * 60)
     
-    try:
-        from style_checker.parser_md import StyleGuideDatabase, StyleRule, load_style_guide
-        print("✓ parser_md imports successful")
-    except ImportError as e:
-        print(f"❌ parser_md import failed: {e}")
-        return False
+    # Test parser_md imports
+    from style_checker.parser_md import StyleGuideDatabase, StyleRule, load_style_guide
+    print("✓ parser_md imports successful")
     
-    try:
-        from style_checker.reviewer import StyleReviewer
-        print("✓ reviewer imports successful")
-    except ImportError as e:
-        print(f"❌ reviewer import failed: {e}")
-        return False
+    # Test reviewer imports
+    from style_checker.reviewer import StyleReviewer
+    print("✓ reviewer imports successful")
     
-    try:
-        from style_checker.main import review_single_lecture, review_bulk_lectures
-        print("✓ main imports successful")
-    except ImportError as e:
-        print(f"❌ main import failed: {e}")
-        return False
-    
-    return True
+    # Test main imports
+    from style_checker.main import review_single_lecture, review_bulk_lectures
+    print("✓ main imports successful")
 
 
 if __name__ == '__main__':
