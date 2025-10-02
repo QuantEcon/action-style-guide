@@ -108,46 +108,63 @@
 - `create_pull_request()` - Open PRs with formatting
 - `format_pr_body()` - Generate PR descriptions
 
-### 2. Style Guide Parser (`parser.py`)
-**Purpose**: Load and organize style rules
+### 2. Style Guide Parser (`parser_md.py`)
+**Purpose**: Load and organize style rules from Markdown database
 
 **Responsibilities**:
-- Parse YAML rule database
-- Validate rule structure
-- Query rules by category/priority
+- Parse Markdown-format rule database (style-guide-database.md)
+- Validate rule structure and metadata
+- Query rules by category (rule/style/migrate)
+- Organize rules into semantic groups
 - Format rules for LLM consumption
-- Chunk large rule sets
 
 **Key Classes**:
-- `StyleRule` - Individual rule representation
-- `StyleGuideDatabase` - Complete rule collection
+- `StyleRule` - Individual rule representation with metadata
+- `StyleGuideDatabase` - Complete rule collection with semantic groups
 
 **Key Methods**:
-- `load_style_guide()` - Parse YAML file
-- `get_rules_by_category()` - Filter rules
-- `format_rules_for_llm()` - Prepare for AI
+- `load_style_guide()` - Parse Markdown file
+- `get_actionable_rules()` - Get category='rule' rules
+- `get_all_groups_with_rules()` - Get semantic groups (Writing, Math, Code, etc.)
+- `StyleRule.to_prompt_format()` - Format rule for LLM prompts
+
+**Semantic Groups** (v0.2.0+):
+- WRITING - Capitalization, formatting, bold/italic usage
+- MATH - Mathematical notation, LaTeX, sequences
+- CODE - Python conventions, package installation, Unicode
+- JAX - JAX-specific patterns and best practices
+- FIGURES - Figure directives and captions
+- REFERENCES - Citations and bibliography
+- LINKS - External links and references
+- ADMONITIONS - Exercise, solution, note directives
 
 ### 3. LLM Reviewer (`reviewer.py`)
-**Purpose**: AI-powered style checking
+**Purpose**: AI-powered style checking with semantic grouping
 
 **Responsibilities**:
 - Interface with multiple LLM providers
-- Send structured prompts
-- Parse JSON responses
-- Handle chunked processing
-- Error recovery
+- Send structured prompts with semantic rule groups
+- Parse Markdown-format responses (v0.2.0+)
+- Handle parallel group processing
+- Error recovery and token management
 
 **Supported Providers**:
-- **Claude** (Anthropic) - Default, best quality
+- **Claude** (Anthropic) - Default, best quality (Claude 3.5 Sonnet)
 - **GPT-4** (OpenAI) - High quality, widely used
 - **Gemini** (Google) - Cost-effective option
 
 **Key Classes**:
 - `LLMProvider` - Abstract base class
-- `AnthropicProvider` - Claude implementation
+- `AnthropicProvider` - Claude implementation with streaming
 - `OpenAIProvider` - GPT-4 implementation
 - `GeminiProvider` - Gemini implementation
 - `StyleReviewer` - Main coordinator
+
+**Key Methods** (v0.2.0+):
+- `review_lecture_smart()` - Semantic group parallelization (2-3x faster)
+- `_review_group()` - Review single semantic group
+- `_format_rules_for_prompt()` - Format rules for LLM
+- `_estimate_tokens()` - Token estimation for safety
 
 ### 4. Main Orchestrator (`main.py`)
 **Purpose**: Coordinate the entire workflow

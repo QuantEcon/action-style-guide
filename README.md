@@ -60,7 +60,7 @@ jobs:
   style-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v1
+      - uses: QuantEcon/action-style-guide@v0.2
         with:
           mode: 'bulk'
           lectures-path: 'lectures/'
@@ -89,7 +89,7 @@ jobs:
     if: contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@quantecon-style-guide')
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v1
+      - uses: QuantEcon/action-style-guide@v0.2
         with:
           mode: 'single'
           lectures-path: 'lectures/'

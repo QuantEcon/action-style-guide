@@ -303,7 +303,7 @@ class AnthropicProvider(LLMProvider):
         # Check if response was truncated
         if stop_reason == "max_tokens":
             print(f"    ⚠️  Warning: Response truncated (hit max_tokens limit)")
-            print(f"    Consider reducing max-rules-per-request or using rule-categories")
+            print(f"    Consider using rule-categories to focus on specific rule types")
         
         # Parse the Markdown response
         return parse_markdown_response(full_response)

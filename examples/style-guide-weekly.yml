@@ -17,7 +17,7 @@ jobs:
     
     steps:
       - name: Run bulk style guide review
-        uses: QuantEcon/action-style-guide@v1
+        uses: QuantEcon/action-style-guide@v0.2
         id: review
         with:
           mode: 'bulk'

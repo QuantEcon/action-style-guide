@@ -32,7 +32,7 @@ jobs:
             })
       
       - name: Run style guide checker
-        uses: QuantEcon/action-style-guide@v1
+        uses: QuantEcon/action-style-guide@v0.2
         with:
           mode: 'single'
           lectures-path: 'lectures/'

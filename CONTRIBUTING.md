@@ -70,20 +70,36 @@ python -m style_checker.main \
 ### Adding New Style Rules
 
 1. Edit `style-guide-database.md`
-2. Add rule following the existing Markdown format with category='rule'
-     title: "Rule Title"
-     category: "category_name"
-     type: "rule_type"
-     priority: "critical|mandatory|best_practice|preference"
-     rule: "Clear description of the rule"
-     examples:
-       correct: "Good example"
-       incorrect: "Bad example"
+2. Add rule following the existing Markdown format:
+   ```markdown
+   ### [CODE] Rule Title {#rule-id}
+   
+   **Category**: rule  
+   **Group**: CODE  
+   **Priority**: critical
+   
+   **Rule**: Clear description of the rule
+   
+   **Correct**:
+   ```python
+   # Good example
+   ```
+   
+   **Incorrect**:
+   ```python
+   # Bad example
+   ```
    ```
 
-3. Update metadata counters
-4. Add to priority classifications if needed
-5. Test with sample lectures
+3. Choose appropriate category:
+   - `rule` - Actionable, enforced automatically
+   - `style` - Style preferences, informational
+   - `migrate` - Migration notes for transitions
+
+4. Choose appropriate semantic group:
+   - WRITING, MATH, CODE, JAX, FIGURES, REFERENCES, LINKS, ADMONITIONS
+
+5. Test with sample lectures using the semantic grouping system
 
 ### Adding New LLM Providers
 
