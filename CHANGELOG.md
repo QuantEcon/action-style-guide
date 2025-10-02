@@ -7,15 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- Deprecated `parser.py` module (no longer needed after v0.2.0 migration)
-  - All functionality replaced by `parser_md.py`
-  - Zero imports remaining in codebase
-  - Tests coverage improved from 35% to 39%
-
 ### Planned for v1.0.0
 - Production release after testing
 - Additional caching and optimization features
+
+## [0.2.1] - 2025-10-02
+
+### Fixed
+- **GitHub Actions Deprecation Warning**: Replace deprecated `set-output` commands with `GITHUB_OUTPUT` environment file
+  - Eliminates warnings in GitHub Actions runs
+  - More secure (prevents command injection vulnerabilities)
+  - Backward compatible for local testing
+  - Affects both single and bulk review modes
+
+- **Deprecated Parameter Reference**: Updated `max-rules-per-request` parameter removal
+  - Removed from `action.yml` inputs
+  - Removed from CLI command execution
+  - Updated documentation to reflect semantic grouping approach
+  - Fixed error: "unrecognized arguments: --max-rules-per-request 15"
+
+### Removed
+- **Deprecated Code Cleanup**: Removed `parser.py` module (157 lines)
+  - All functionality replaced by `parser_md.py` in v0.2.0
+  - Zero imports remaining in codebase
+  - Test coverage improved: 35% → 40%
+
+### Documentation
+- **Comprehensive Repository Audit**: Updated all documentation for v0.2.0 consistency
+  - `docs/architecture.md`: Updated to reflect semantic grouping and `parser_md.py`
+  - `docs/ci-cd-setup.md`: Updated test coverage statistics
+  - `docs/testing-quick-reference.md`: Updated coverage summary
+  - `CONTRIBUTING.md`: Updated to reflect Markdown database format
+  - `README.md`: Updated all examples to use `@v0.2`
+  - `examples/`: Updated workflow examples to use `@v0.2`
+
+### Improved
+- Test coverage: 35% → 40% (removed untested deprecated code)
+- Codebase size: Reduced by 157 lines
+- Documentation accuracy: All docs aligned with v0.2.0 architecture
 
 ## [0.2.0] - 2025-10-02
 
