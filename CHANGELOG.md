@@ -11,40 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production release after testing
 - Additional caching and optimization features
 
-## [0.2.1] - 2025-10-02
+## [0.2.1] - 2025-10-03
 
 ### Fixed
-- **GitHub Actions Deprecation Warning**: Replace deprecated `set-output` commands with `GITHUB_OUTPUT` environment file
-  - Eliminates warnings in GitHub Actions runs
+- **GitHub Actions Deprecation Warning**: Replaced deprecated `::set-output` commands with modern `GITHUB_OUTPUT` environment file approach
+  - Eliminates warnings in GitHub Actions workflow runs
   - More secure (prevents command injection vulnerabilities)
-  - Backward compatible for local testing
-  - Affects both single and bulk review modes
+  - Backward compatible with local development
+  - Affects: `pr-number`, `pr-url`, `issues-found`, `lectures-reviewed` outputs
 
-- **Deprecated Parameter Reference**: Updated `max-rules-per-request` parameter removal
-  - Removed from `action.yml` inputs
-  - Removed from CLI command execution
-  - Updated documentation to reflect semantic grouping approach
-  - Fixed error: "unrecognized arguments: --max-rules-per-request 15"
+### Changed
+- **Documentation Cleanup**: Comprehensive repository audit and updates
+  - Updated `docs/architecture.md` to reflect semantic grouping and `parser_md.py`
+  - Updated `CONTRIBUTING.md` with Markdown database format examples
+  - Updated all examples to use `@v0.2` tag
+  - Updated README.md workflow examples to current version
+  - Updated test coverage documentation (39-40% overall, 98% for parser_md.py)
 
 ### Removed
-- **Deprecated Code Cleanup**: Removed `parser.py` module (157 lines)
+- **Deprecated Code**: Removed `parser.py` module (157 lines)
   - All functionality replaced by `parser_md.py` in v0.2.0
   - Zero imports remaining in codebase
   - Test coverage improved: 35% → 40%
-
-### Documentation
-- **Comprehensive Repository Audit**: Updated all documentation for v0.2.0 consistency
-  - `docs/architecture.md`: Updated to reflect semantic grouping and `parser_md.py`
-  - `docs/ci-cd-setup.md`: Updated test coverage statistics
-  - `docs/testing-quick-reference.md`: Updated coverage summary
-  - `CONTRIBUTING.md`: Updated to reflect Markdown database format
-  - `README.md`: Updated all examples to use `@v0.2`
-  - `examples/`: Updated workflow examples to use `@v0.2`
+  - Cleaner, more focused repository
 
 ### Improved
-- Test coverage: 35% → 40% (removed untested deprecated code)
-- Codebase size: Reduced by 157 lines
-- Documentation accuracy: All docs aligned with v0.2.0 architecture
+- **Repository Quality**:
+  - No deprecated code or YAML references
+  - All documentation current and accurate
+  - Single, clean code path throughout
+  - Comprehensive test suite (23 tests, all passing)
 
 ## [0.2.0] - 2025-10-02
 
