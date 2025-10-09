@@ -6,7 +6,7 @@ jupytext:
 kernelspec:
   display_name: Python 3
   language: python
-  name: python3
+name: python3
 ---
 
 # Test Lecture For Style Guide Violations
@@ -37,6 +37,15 @@ import quantecon as qe
 import numpy as np
 import jax
 import jax.numpy as jnp
+```
+
+In addition to what's in Anaconda, this lecture will need the following libraries:
+
+```{code-cell} ipython
+---
+tags: [hide-output]
+---
+!pip install quantecon
 ```
 
 ## Writing style violations
@@ -99,7 +108,7 @@ $$
 u(c) = \frac{c^{1-\alpha}}{1-\alpha}
 $$
 
-where $\alpha > 0$ is the risk aversion parameter.
+where α > 0 is the risk aversion parameter.
 
 ### Wrong transpose notation (qe-math-002)
 
@@ -184,69 +193,52 @@ This section tests code-related violations.
 ### Spelled-out greek letters (qe-code-002)
 
 ```{code-cell} ipython
-def utility_function(c, alpha=0.5, beta=0.95, gamma=2.0):
+def utility_function(c, α=0.5, β=0.95, γ=2.0):
     """Utility function with discount factor."""
-    return (c**(1-alpha) - 1) / (1-alpha) * beta
+    return (c**(1-α) - 1) / (1-α) * β
 
 # Production function
-def production(k, theta=0.3, sigma=1.0):
-    return k**theta * sigma
+def production(k, θ=0.3, σ=1.0):
+    return k**θ * σ
 ```
 
 ### Missing package installation (qe-code-003)
 
-We will use the `quantecon` package for this analysis without installing it at the top.
+We will use the `quantecon` package for this analysis.
 
 ```{code-cell} ipython
-# Using quantecon without installing it first
+# Using quantecon
 mc = qe.MarkovChain([[0.9, 0.1], [0.2, 0.8]])
-```
-
-Later in the lecture:
-
-```{code-cell} ipython
-# Installing package in middle of lecture
-!pip install quantecon
 ```
 
 ### Manual timing instead of qe.Timer (qe-code-004)
 
 ```{code-cell} ipython
-import time
-
-start_time = time.time()
-result = sum([i**2 for i in range(1000000)])
-end_time = time.time()
-print(f"Elapsed: {end_time - start_time:.4f} seconds")
+with qe.Timer():
+    result = sum([i**2 for i in range(1000000)])
 ```
 
-Legacy tic/toc pattern:
+Modern timing pattern:
 
 ```{code-cell} ipython
-def tic():
-    global start_time
-    start_time = time.time()
-
-def toc():
-    end_time = time.time()
-    print(f"Elapsed: {end_time - start_time:.4f} seconds")
-
-tic()
-result = sum([i**2 for i in range(1000000)])
-toc()
+with qe.Timer():
+    result = sum([i**2 for i in range(1000000)])
 ```
 
-### Using jupyter magic for timing (qe-code-005)
+### Using quantecon timeit for benchmarking (qe-code-005)
 
 ```{code-cell} ipython
-%timeit sum([i**2 for i in range(1000000)])
+result = qe.timeit(lambda: sum([i**2 for i in range(1000000)]), number=100)
 ```
 
 ```{code-cell} ipython
-%%timeit
-result = []
-for i in range(1000):
-    result.append(i**2)
+def benchmark_function():
+    result = []
+    for i in range(1000):
+        result.append(i**2)
+    return result
+
+result = qe.timeit(benchmark_function, number=100)
 ```
 
 ## JAX violations
@@ -304,7 +296,7 @@ plt.show()
 ---
 mystnb:
   figure:
-    caption: "model comparison"
+    caption: "comparison of models"
     name: fig-model-comparison
 ---
 fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -319,8 +311,8 @@ plt.show()
 ---
 mystnb:
   figure:
-    caption: "detailed figure description"
-    name: fig-detailed-description
+    caption: "figure description"
+    name: fig-description
 ---
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
@@ -372,12 +364,6 @@ plt.show()
 ### Uppercase axis labels (qe-fig-006)
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "time series data"
-    name: fig-time-series
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time period")
@@ -386,12 +372,6 @@ plt.show()
 ```
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "annual values"
-    name: fig-annual-values
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 2, 3, 4], lw=2)
 ax.set_xlabel("year")
@@ -402,12 +382,6 @@ plt.show()
 ### Removed spines (qe-fig-007)
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "quadratic growth"
-    name: fig-quadratic-growth
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time")
@@ -415,12 +389,6 @@ plt.show()
 ```
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "linear trend"
-    name: fig-linear-trend
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 2, 3, 4], lw=2)
 ax.set_xlabel("time")
@@ -430,12 +398,6 @@ plt.show()
 ### Missing line width (qe-fig-008)
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "growth pattern"
-    name: fig-growth-pattern
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time")
@@ -444,12 +406,6 @@ plt.show()
 ```
 
 ```{code-cell} ipython
----
-mystnb:
-  figure:
-    caption: "value progression"
-    name: fig-value-progression
----
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time")
@@ -488,12 +444,10 @@ $$ (production)
 Where $K$ is the capital stock and $L$ is labor.
 
 ```{code-cell} ipython
-def production_calc(K, L, alpha=0.3, beta=0.7):
+def production_calc(K, L, α=0.3, β=0.7):
     """Calculate output using Cobb-Douglas Production Function."""
-    start_time = time.time()
-    Y = K**alpha * L**beta
-    end_time = time.time()
-    print(f"Calculation Time: {end_time - start_time}")
+    with qe.Timer():
+        Y = K**α * L**β
     return Y
 ```
 
@@ -537,14 +491,11 @@ $$ (value-function)
 Where $k$ is capital and $c$ is consumption.
 
 ```{code-cell} ipython
-def solve_bellman(k, beta=0.95, alpha=0.3):
+def solve_bellman(k, β=0.95, α=0.3):
     """Solve the Bellman equation."""
-    import time
-    start = time.time()
-    # Solution code here
-    result = k**alpha * beta
-    end = time.time()
-    print(f"Time: {end-start}")
+    with qe.Timer():
+        # Solution code here
+        result = k**α * β
     return result
 ```
 
@@ -555,11 +506,11 @@ def solve_bellman(k, beta=0.95, alpha=0.3):
 
 This test lecture contains violations of the following rule categories:
 
-1. **Writing rules**: Multiple sentences per paragraph, unnecessary capitalization, wrong emphasis formatting, incorrect heading capitalization
+1. **Writing rules**: multiple sentences per paragraph, unnecessary capitalization, wrong emphasis formatting, incorrect heading capitalization
 2. **Mathematics rules**: LaTeX without delimiters, unicode in math, wrong transpose notation, wrong matrix brackets, bold matrices, wrong sequence notation, nested math environments, manual tags
-3. **Code rules**: Spelled-out Greek letters, missing package installation, manual timing, Jupyter magic timing
-4. **JAX rules**: In-place modifications, NumPy random instead of JAX random
-5. **Figure rules**: Embedded titles, wrong captions, missing names, uppercase labels, removed spines, missing line width
-6. **Citation rules**: Wrong citation style for context
+3. **Code rules**: spelled-out Greek letters, missing package installation, manual timing, Jupyter magic timing
+4. **JAX rules**: in-place modifications, NumPy random instead of JAX random
+5. **Figure rules**: embedded titles, wrong captions, missing names, uppercase labels, removed spines, missing line width
+6. **Citation rules**: wrong citation style for context
 
 This document should be used as input for automated style guide checking tools.

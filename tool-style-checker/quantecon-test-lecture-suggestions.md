@@ -83,7 +83,7 @@ This is a test document and should not be used as a reference for proper formatt
 ### qe-writing-006: Capitalize lecture titles properly
 **Location**: Line 62 / Section heading
 **Current**: "This Should Only Have First Word Capitalized."
-**Suggestion**: This appears to be a paragraph, not a heading, but follows wrong capitalization pattern
+**Suggestion**: This appears to be explanatory text but follows incorrect capitalization pattern
 **Fix**: "This should only have first word capitalized."
 
 ### qe-writing-001: Use one sentence per paragraph
@@ -96,7 +96,7 @@ This is a test document and should not be used as a reference for proper formatt
 The lecture structure is well-organized with clear sections for testing different rule categories. The use of code examples and mathematical notation provides good context for testing various style rules.
 
 ## Writing Summary
-The document contains systematic violations across all major writing style categories, which is appropriate for its purpose as a test document. The main areas requiring attention are paragraph structure (multiple sentences per paragraph), unnecessary capitalization of common nouns, incorrect use of emphasis formatting, and improper heading capitalization. Once corrected, the document would serve as a good example of proper QuantEcon writing style.
+The document contains systematic violations across all major writing style categories, which is appropriate for its purpose as a test document. The main areas requiring attention are paragraph structure (multiple sentences per paragraph), unnecessary capitalization of common nouns, incorrect emphasis formatting, and improper heading capitalization. Once corrected, the document would serve as a good example of proper QuantEcon writing style.
 
 
 ================================================================================
@@ -117,13 +117,11 @@ MATH CATEGORY REVIEW
 **Issue**: LaTeX commands used in narrative text without math delimiters
 **Fix**: `The parameter α controls the utility function, and β represents the discount factor.`
 
-### qe-math-001: Prefer UTF-8 unicode for simple parameter mentions, be consistent
 **Location**: Line 69 / Section "LaTeX commands without delimiters"
 **Current**: `We set \gamma = 2 for the risk aversion parameter.`
 **Issue**: LaTeX commands used in narrative text without math delimiters
 **Fix**: `We set γ = 2 for the risk aversion parameter.`
 
-### qe-math-001: Prefer UTF-8 unicode for simple parameter mentions, be consistent
 **Location**: Line 71 / Section "LaTeX commands without delimiters"
 **Current**: `The production function uses parameters \theta and \sigma.`
 **Issue**: LaTeX commands used in narrative text without math delimiters
@@ -131,9 +129,23 @@ MATH CATEGORY REVIEW
 
 ### qe-math-001: Prefer UTF-8 unicode for simple parameter mentions, be consistent
 **Location**: Lines 77-81 / Section "Unicode in math environments"
-**Current**: `$$u(c) = \frac{c^{1-α}}{1-α}$$` and `where α > 0`
-**Issue**: Unicode characters used inside math environment
-**Fix**: `$$u(c) = \frac{c^{1-\alpha}}{1-\alpha}$$` and `where $\alpha > 0$`
+**Current**: 
+```
+$$
+u(c) = \frac{c^{1-α}}{1-α}
+$$
+
+where α > 0 is the risk aversion parameter.
+```
+**Issue**: Unicode character α used inside math environment
+**Fix**: 
+```
+$$
+u(c) = \frac{c^{1-\alpha}}{1-\alpha}
+$$
+
+where α > 0 is the risk aversion parameter.
+```
 
 ### qe-math-002: Use \top for transpose notation
 **Location**: Line 85 / Section "Wrong transpose notation"
@@ -141,13 +153,11 @@ MATH CATEGORY REVIEW
 **Issue**: Using ^T instead of ^\top for transpose
 **Fix**: `The transpose of matrix $A$ is denoted $A^\top$.`
 
-### qe-math-002: Use \top for transpose notation
 **Location**: Line 87 / Section "Wrong transpose notation"
 **Current**: `The quadratic form is $x^T A x$ where $x$ is a vector.`
 **Issue**: Using ^T instead of ^\top for transpose
 **Fix**: `The quadratic form is $x^\top A x$ where $x$ is a vector.`
 
-### qe-math-002: Use \top for transpose notation
 **Location**: Line 89 / Section "Wrong transpose notation"
 **Current**: `We can write this as $y^{\prime} M y$ for the variance.`
 **Issue**: Using ^{\prime} instead of ^\top for transpose
@@ -155,32 +165,61 @@ MATH CATEGORY REVIEW
 
 ### qe-math-003: Use square brackets for matrix notation
 **Location**: Lines 93-98 / Section "Wrong matrix brackets"
-**Current**: `$$P = \begin{pmatrix} 0.9 & 0.1 \\ 0.2 & 0.8 \end{pmatrix}$$`
+**Current**: 
+```
+$$
+P = \begin{pmatrix}
+0.9 & 0.1 \\
+0.2 & 0.8
+\end{pmatrix}
+$$
+```
 **Issue**: Using pmatrix (parentheses) instead of bmatrix (square brackets)
-**Fix**: `$$P = \begin{bmatrix} 0.9 & 0.1 \\ 0.2 & 0.8 \end{bmatrix}$$`
+**Fix**: 
+```
+$$
+P = \begin{bmatrix}
+0.9 & 0.1 \\
+0.2 & 0.8
+\end{bmatrix}
+$$
+```
 
-### qe-math-003: Use square brackets for matrix notation
 **Location**: Lines 102-107 / Section "Wrong matrix brackets"
-**Current**: `$$I = \begin{Bmatrix} 1 & 0 \\ 0 & 1 \end{Bmatrix}$$`
+**Current**: 
+```
+$$
+I = \begin{Bmatrix}
+1 & 0 \\
+0 & 1
+\end{Bmatrix}
+$$
+```
 **Issue**: Using Bmatrix (curly brackets) instead of bmatrix (square brackets)
-**Fix**: `$$I = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$$`
+**Fix**: 
+```
+$$
+I = \begin{bmatrix}
+1 & 0 \\
+0 & 1
+\end{bmatrix}
+$$
+```
 
 ### qe-math-004: Do not use bold face for matrices or vectors
 **Location**: Line 111 / Section "Bold face matrices"
 **Current**: `Let $\mathbf{A}$ be the coefficient matrix and $\mathbf{x}$ be the state vector.`
-**Issue**: Using bold face formatting for matrices and vectors
+**Issue**: Using \mathbf for matrices and vectors
 **Fix**: `Let $A$ be the coefficient matrix and $x$ be the state vector.`
 
-### qe-math-004: Do not use bold face for matrices or vectors
 **Location**: Line 113 / Section "Bold face matrices"
 **Current**: `The solution is $\mathbf{y} = \mathbf{X} \boldsymbol{\beta}$.`
-**Issue**: Using bold face formatting for matrices and vectors
+**Issue**: Using \mathbf and \boldsymbol for matrices and vectors
 **Fix**: `The solution is $y = X \beta$.`
 
-### qe-math-004: Do not use bold face for matrices or vectors
 **Location**: Line 115 / Section "Bold face matrices"
 **Current**: `We need to solve $\mathbf{A} \mathbf{x} = \mathbf{b}$ for $\mathbf{x}$.`
-**Issue**: Using bold face formatting for matrices and vectors
+**Issue**: Using \mathbf for matrices and vectors
 **Fix**: `We need to solve $A x = b$ for $x$.`
 
 ### qe-math-005: Use curly brackets for sequences
@@ -189,7 +228,6 @@ MATH CATEGORY REVIEW
 **Issue**: Using square brackets instead of curly brackets for sequences
 **Fix**: `Consider the sequence $\{ x_t \}_{t=0}^{\infty}$ of state variables.`
 
-### qe-math-005: Use curly brackets for sequences
 **Location**: Line 121 / Section "Wrong sequence notation"
 **Current**: `The consumption sequence is denoted $[ c_t ]_{t=0}^{T}$.`
 **Issue**: Using square brackets instead of curly brackets for sequences
@@ -197,75 +235,143 @@ MATH CATEGORY REVIEW
 
 ### qe-math-006: Use aligned environment correctly for PDF compatibility
 **Location**: Lines 125-130 / Section "Nested math environments"
-**Current**: `$$\begin{align} x + y &= 5 \\ 2x - y &= 1 \end{align}$$`
+**Current**: 
+```
+$$
+\begin{align}
+x + y &= 5 \\
+2x - y &= 1
+\end{align}
+$$
+```
 **Issue**: Using align environment inside $$ creates nested math environments
-**Fix**: `$$\begin{aligned} x + y &= 5 \\ 2x - y &= 1 \end{aligned}$$`
+**Fix**: 
+```
+$$
+\begin{aligned}
+x + y &= 5 \\
+2x - y &= 1
+\end{aligned}
+$$
+```
 
-### qe-math-006: Use aligned environment correctly for PDF compatibility
 **Location**: Lines 134-139 / Section "Nested math environments"
-**Current**: `$$\begin{align} \alpha + \beta &= 1 \\ \gamma &= 2 \end{align}$$`
+**Current**: 
+```
+$$
+\begin{align}
+\alpha + \beta &= 1 \\
+\gamma &= 2
+\end{align}
+$$
+```
 **Issue**: Using align environment inside $$ creates nested math environments
-**Fix**: `$$\begin{aligned} \alpha + \beta &= 1 \\ \gamma &= 2 \end{aligned}$$`
+**Fix**: 
+```
+$$
+\begin{aligned}
+\alpha + \beta &= 1 \\
+\gamma &= 2
+\end{aligned}
+$$
+```
 
 ### qe-math-007: Use automatic equation numbering, not manual tags
-**Location**: Lines 143-146 / Section "Manual equation tags"
-**Current**: `$$V(x) = \max_{y} \{ u(x, y) + \beta V(y) \} \tag{1}$$`
+**Location**: Lines 145-147 / Section "Manual equation tags"
+**Current**: 
+```
+$$
+V(x) = \max_{y} \{ u(x, y) + \beta V(y) \} \tag{1}
+$$
+```
 **Issue**: Using manual \tag for equation numbering
-**Fix**: `$$V(x) = \max_{y} \{ u(x, y) + \beta V(y) \}$$ (bellman)`
+**Fix**: 
+```
+$$
+V(x) = \max_{y} \{ u(x, y) + \beta V(y) \}
+$$ (bellman)
+```
 
-### qe-math-007: Use automatic equation numbering, not manual tags
-**Location**: Lines 150-153 / Section "Manual equation tags"
-**Current**: `$$u'(c_t) = \beta u'(c_{t+1}) (1 + r) \tag{2}$$`
+**Location**: Lines 151-153 / Section "Manual equation tags"
+**Current**: 
+```
+$$
+u'(c_t) = \beta u'(c_{t+1}) (1 + r) \tag{2}
+$$
+```
 **Issue**: Using manual \tag for equation numbering
-**Fix**: `$$u'(c_t) = \beta u'(c_{t+1}) (1 + r)$$ (euler)`
+**Fix**: 
+```
+$$
+u'(c_t) = \beta u'(c_{t+1}) (1 + r)
+$$ (euler)
+```
 
 ### qe-math-001: Prefer UTF-8 unicode for simple parameter mentions, be consistent
-**Location**: Line 334 / Section "Additional mixed violations"
+**Location**: Line 350 / Section "Additional mixed violations"
 **Current**: `The production function uses parameters \alpha and \beta.`
 **Issue**: LaTeX commands used in narrative text without math delimiters
 **Fix**: `The production function uses parameters α and β.`
 
-### qe-math-001: Prefer UTF-8 unicode for simple parameter mentions, be consistent
-**Location**: Line 338 / Section "Additional mixed violations"
+**Location**: Line 354 / Section "Additional mixed violations"
 **Current**: `The parameter values are typically set with alpha = 0.3 representing capital share.`
-**Issue**: Should use consistent notation (either unicode or inline math)
+**Issue**: Should use consistent unicode notation
 **Fix**: `The parameter values are typically set with α = 0.3 representing capital share.`
 
 ### qe-math-002: Use \top for transpose notation
-**Location**: Line 342 / Section "Additional mixed violations"
-**Current**: `$$Y = K^\alpha L^{\beta} \tag{3}$$`
-**Issue**: Manual tag usage (also violates qe-math-007)
-**Fix**: `$$Y = K^\alpha L^{\beta}$$ (production)`
+**Location**: Lines 356-358 / Section "Additional mixed violations"
+**Current**: 
+```
+$$
+Y = K^\alpha L^{\beta} \tag{3}
+$$
+```
+**Issue**: Manual \tag usage (also violates qe-math-007)
+**Fix**: 
+```
+$$
+Y = K^\alpha L^{\beta}
+$$ (production)
+```
 
 ### qe-math-004: Do not use bold face for matrices or vectors
-**Location**: Line 345 / Section "Additional mixed violations"
+**Location**: Line 360 / Section "Additional mixed violations"
 **Current**: `Where $\mathbf{K}$ is the capital stock and $\mathbf{L}$ is labor.`
-**Issue**: Using bold face formatting for variables
+**Issue**: Using \mathbf for variables
 **Fix**: `Where $K$ is the capital stock and $L$ is labor.`
 
 ### qe-math-007: Use automatic equation numbering, not manual tags
-**Location**: Lines 378-381 / Exercise solution
-**Current**: `$$V(k) = \max_{c} \{ u(c) + \beta V(k') \} \tag{4}$$`
+**Location**: Lines 395-397 / Exercise solution
+**Current**: 
+```
+$$
+V(k) = \max_{c} \{ u(c) + \beta V(k') \} \tag{4}
+$$
+```
 **Issue**: Using manual \tag for equation numbering
-**Fix**: `$$V(k) = \max_{c} \{ u(c) + \beta V(k') \}$$ (value-function)`
+**Fix**: 
+```
+$$
+V(k) = \max_{c} \{ u(c) + \beta V(k') \}
+$$ (value-function)
+```
 
 ### qe-math-004: Do not use bold face for matrices or vectors
-**Location**: Line 383 / Exercise solution
+**Location**: Line 399 / Exercise solution
 **Current**: `Where $\mathbf{k}$ is capital and $\mathbf{c}$ is consumption.`
-**Issue**: Using bold face formatting for variables
+**Issue**: Using \mathbf for variables
 **Fix**: `Where $k$ is capital and $c$ is consumption.`
 
 ## Math Style Suggestions
 
-### qe-math-008: Explain special notation (vectors/matrices)
-**Location**: Throughout document
-**Suggestion**: If using $\mathbb{1}$ notation for vectors/matrices of ones, ensure it's explained when first introduced.
+### qe-math-009: Choose simplicity in mathematical notation
+The mathematical notation throughout the document is generally appropriate in complexity level. The use of standard variable names like $K$, $L$, $c$, $k$ for economic variables is good practice and maintains simplicity.
 
 ## Positive Observations
-The document demonstrates good understanding of mathematical LaTeX syntax in general, with proper use of display math environments and basic equation formatting.
+The document demonstrates good understanding of mathematical typesetting concepts, even though it contains intentional violations. The mathematical expressions are generally well-structured and readable once the notation issues are corrected.
 
 ## Mathematical Notation Summary
-The document contains systematic violations across all major mathematical notation rules. The most frequent issues are inconsistent parameter notation (mixing LaTeX commands in text with math environments), incorrect transpose notation, wrong matrix bracket types, inappropriate bold formatting, and manual equation numbering. These violations significantly impact consistency and PDF compatibility. The corrections focus on establishing consistent unicode usage in narrative text, proper LaTeX commands within math environments, and adherence to QuantEcon's specific notation standards.
+The document contains systematic violations across all major mathematical notation rules, which is expected given its purpose as a test document. The main areas requiring correction are: consistent parameter notation (unicode vs LaTeX), proper transpose notation, correct matrix brackets, removal of bold formatting, proper sequence notation, aligned environments instead of nested align, and automatic equation numbering. Once corrected, the mathematical content will be properly formatted according to QuantEcon standards.
 
 
 ================================================================================
@@ -302,41 +408,50 @@ ax.plot([1, 2, 3], [1, 4, 9], lw=2)
 ```
 
 ### qe-fig-003: No matplotlib embedded titles
-**Location**: Line 184-190 / Second figure with suptitle
+**Location**: Line 185-190 / Second figure with suptitle
 **Current**: 
 ```python
 fig, (ax1, ax2) = plt.subplots(1, 2)
 fig.suptitle("Comparison of Models")
 ```
 **Issue**: Using `fig.suptitle()` to embed titles in matplotlib figures
-**Fix**: Remove `fig.suptitle()` and add title using mystnb metadata
+**Fix**: Remove `fig.suptitle()` and add title using mystnb metadata:
+```python
+---
+mystnb:
+  figure:
+    caption: "comparison of models"
+    name: fig-model-comparison
+---
+fig, (ax1, ax2) = plt.subplots(1, 2)
+```
 
 ### qe-fig-004: Caption formatting conventions
-**Location**: Line 195-205 / Figure with long caption
+**Location**: Line 196-205 / Long verbose caption
 **Current**: `caption: "A Very Long And Verbose Caption That Describes The Entire Figure In Great Detail"`
-**Issue**: Caption exceeds 6 words maximum and uses Title Case
+**Issue**: Caption is too long (>6 words) and uses Title Case
 **Fix**: `caption: "figure description"`
 
 ### qe-fig-004: Caption formatting conventions
-**Location**: Line 210-220 / Figure with Title Case caption
+**Location**: Line 213-222 / Title case caption
 **Current**: `caption: "Title Case Caption For GDP"`
 **Issue**: Caption uses Title Case instead of lowercase
 **Fix**: `caption: "GDP trends"`
 
 ### qe-fig-005: Descriptive figure names for cross-referencing
-**Location**: Line 225-235 / Figure missing name field
+**Location**: Line 227-235 / Missing figure name
 **Current**: Figure has caption but no `name` field
 **Issue**: Missing `name` field for cross-referencing
 **Fix**: Add `name: fig-convergence-path`
 
 ### qe-fig-005: Descriptive figure names for cross-referencing
-**Location**: Line 237-247 / Figure with generic name
+**Location**: Line 238-247 / Generic figure name
 **Current**: `name: fig1`
-**Issue**: Generic name that's not descriptive
+**Issue**: Generic, non-descriptive name
 **Fix**: `name: fig-simulation-results`
 
 ### qe-fig-006: Lowercase axis labels
-**Location**: Line 252-258 / Figure with uppercase axis labels
+**Location**: Line 252-257 / Uppercase axis labels
 **Current**: 
 ```python
 ax.set_xlabel("Time Period")
@@ -350,7 +465,7 @@ ax.set_ylabel("GDP per capita")
 ```
 
 ### qe-fig-006: Lowercase axis labels
-**Location**: Line 260-266 / Another figure with uppercase labels
+**Location**: Line 261-266 / More uppercase labels
 **Current**: 
 ```python
 ax.set_xlabel("Year")
@@ -364,52 +479,57 @@ ax.set_ylabel("value")
 ```
 
 ### qe-fig-007: Keep figure box and spines
-**Location**: Line 271-277 / Figure with removed spines
+**Location**: Line 271-277 / Removed spines
 **Current**: 
 ```python
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ```
 **Issue**: Removing spines without justification
-**Fix**: Remove the spine removal code entirely
+**Fix**: Remove these lines to keep default spines
 
 ### qe-fig-007: Keep figure box and spines
-**Location**: Line 279-286 / Figure with all spines removed
+**Location**: Line 281-287 / All spines removed
 **Current**: 
 ```python
 for spine in ax.spines.values():
     spine.set_visible(False)
 ```
 **Issue**: Removing all spines
-**Fix**: Remove the spine removal code entirely
+**Fix**: Remove this loop to keep default spines
 
 ### qe-fig-008: Use lw=2 for line charts
-**Location**: Line 291-297 / Figure missing line width
+**Location**: Line 292-297 / Missing line width
 **Current**: `ax.plot([1, 2, 3, 4], [1, 4, 9, 16])`
-**Issue**: Missing `lw=2` parameter for line visibility
+**Issue**: Missing `lw` parameter
 **Fix**: `ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)`
 
 ### qe-fig-008: Use lw=2 for line charts
-**Location**: Line 299-305 / Figure with wrong line width
+**Location**: Line 301-306 / Wrong line width
 **Current**: `ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=1)`
-**Issue**: Using `lw=1` instead of standard `lw=2`
+**Issue**: Line width is 1 instead of 2
 **Fix**: `ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)`
 
-### qe-fig-003: No matplotlib embedded titles (Exercise Exception)
-**Location**: Line 360-362 / Figure in exercise with title
-**Current**: `ax.set_title("Production Possibilities Frontier")`
-**Issue**: This figure has embedded title but is NOT within exercise/solution directives, so rule applies
-**Fix**: Remove embedded title and use mystnb metadata
+### qe-fig-008: Use lw=2 for line charts
+**Location**: Line 355-363 / Multiple missing line widths in final figure
+**Current**: `ax.plot([0, 1, 2, 3, 4], [4, 3, 2, 1, 0])`
+**Issue**: Missing `lw` parameter
+**Fix**: `ax.plot([0, 1, 2, 3, 4], [4, 3, 2, 1, 0], lw=2)`
+
+This pattern of missing `lw=2` occurs throughout the document in multiple figures.
 
 ## Figure Style Suggestions
 
-This pattern of missing `lw=2` and incorrect capitalization occurs throughout the document in multiple figures.
+### qe-fig-001: Do not set figure size unless necessary
+**Location**: Line 355 / Final figure with explicit figsize
+**Current**: `fig, ax = plt.subplots(figsize=(10, 6))`
+**Suggestion**: Remove explicit figsize unless there's a specific layout requirement: `fig, ax = plt.subplots()`
 
 ## Positive Observations
-Some figures correctly use `lw=2` parameter and have proper lowercase axis labels in places.
+Several figures correctly use `lw=2` parameter and proper lowercase axis labels in some instances.
 
 ## Figure Presentation Summary
-The document has systematic issues with figure formatting including embedded titles, improper caption formatting, missing cross-reference names, incorrect axis label capitalization, unnecessary spine removal, and inconsistent line width usage. All figures need to be updated to follow QuantEcon standards for visual consistency and proper cross-referencing capability.
+The document contains systematic violations across all major figure formatting rules. The most critical issues are embedded titles (violating qe-fig-003), inconsistent line widths, and improper caption formatting. All figures need proper mystnb metadata with descriptive names for cross-referencing. The document would benefit from consistent application of figure formatting standards throughout.
 
 
 ================================================================================
@@ -425,41 +545,41 @@ REFERENCES CATEGORY REVIEW
 ## Critical Reference Issues
 
 ### qe-ref-001: Use correct citation style
-**Location**: Line 358 / Citation violations section
+**Location**: Line 346 (Citation violations section)
 **Current**: `This result was proven by {cite}`StokeyLucas1989`.`
 **Issue**: Using `{cite}` when author name is part of sentence structure - should use `{cite:t}` for in-text citations
 **Fix**: `This result was proven by {cite:t}`StokeyLucas1989`.`
 
 ### qe-ref-001: Use correct citation style
-**Location**: Line 360 / Citation violations section
+**Location**: Line 348 (Citation violations section)
 **Current**: `The work of {cite}`Sargent1987` shows that rational expectations matter.`
 **Issue**: Using `{cite}` when author name is part of sentence structure - should use `{cite:t}` for in-text citations
 **Fix**: `The work of {cite:t}`Sargent1987` shows that rational expectations matter.`
 
 ### qe-ref-001: Use correct citation style
-**Location**: Line 362 / Citation violations section
+**Location**: Line 350 (Citation violations section)
 **Current**: `Dynamic programming was introduced by Bellman (1957) {cite}`Bellman1957`.`
 **Issue**: Manual year formatting in text combined with citation - should use only `{cite:t}` for in-text citations
 **Fix**: `Dynamic programming was introduced by {cite:t}`Bellman1957`.`
 
 ### qe-ref-001: Use correct citation style
-**Location**: Line 364 / Citation violations section
+**Location**: Line 352 (Citation violations section)
 **Current**: `As shown in the literature {cite:t}`Ljungqvist2012`, this approach is standard.`
-**Issue**: Using `{cite:t}` for parenthetical citation - should use `{cite}` for standard citations
+**Issue**: Using `{cite:t}` for parenthetical citation at end of clause - should use `{cite}` for standard citations
 **Fix**: `As shown in the literature {cite}`Ljungqvist2012`, this approach is standard.`
 
 ## Reference Style Suggestions
 
 ### qe-ref-001: Use correct citation style
-**Location**: Line 374 / Additional mixed violations section
+**Location**: Line 358 (Additional mixed violations section)
 **Current**: `This is based on work by {cite}`Solow1956`.`
-**Suggestion**: This appears to be using correct citation style for a parenthetical reference, but verify that `Solow1956` reference exists in the bibliography.
+**Suggestion**: Consider using `{cite:t}` if the author name should be part of the sentence flow, or restructure to use standard citation format. Current usage is acceptable but could be improved for clarity.
 
 ## Positive Observations
-The lecture demonstrates awareness of MyST citation syntax and uses the correct `{cite}` and `{cite:t}` directives, though they are applied incorrectly in the test violations section.
+The lecture demonstrates awareness of MyST citation syntax and uses proper citation keys that follow academic conventions.
 
 ## Bibliography Summary
-No bibliography section was found in the document. For a complete academic document, a bibliography section with properly formatted references should be added to support all citations used throughout the text.
+The lecture uses proper MyST citation syntax but contains several context-inappropriate citation styles. The main issue is confusion between when to use `{cite}` (for parenthetical citations) versus `{cite:t}` (for in-text citations where author names are part of sentence structure). All citations need bibliography entries to be complete, but the focus here is on citation syntax within the text.
 
 
 ================================================================================
@@ -474,19 +594,25 @@ LINKS CATEGORY REVIEW
 
 ## Critical Link Issues
 
-No critical link issues found.
+None found.
 
 ## Link Style Suggestions
 
-No link style suggestions needed.
+None found.
 
 ## Positive Observations
 
-This document contains no hyperlinks, so there are no link-related violations to report. The document focuses on testing other style guide categories (writing, mathematics, code, JAX, figures, and citations) but does not include any hyperlink examples or cross-references to other lectures.
+This document contains no hyperlinks, cross-references to other lectures, or external web links, so there are no link-related style violations to report. All content is self-contained within this single test document.
 
 ## Link Usage Summary
 
-The document does not contain any hyperlinks or cross-references to other QuantEcon lectures, external websites, or documentation. While this is not necessarily a violation, educational content typically benefits from strategic linking to related materials, background concepts, or additional resources. Consider adding relevant cross-references where appropriate to enhance the learning experience.
+The document does not utilize any linking patterns covered by the QuantEcon link style rules (qe-link-001 and qe-link-002). There are no:
+- Markdown links to other lectures in the same series
+- Cross-series references using {doc} links
+- External URLs or web references
+- Intersphinx references
+
+This is appropriate for a self-contained test document, though in a real lecture series, you would typically expect to see some cross-references to related lectures or external resources.
 
 
 ================================================================================
@@ -502,7 +628,7 @@ ADMONITIONS CATEGORY REVIEW
 ## Critical Admonition Issues
 
 ### qe-admon-001: Use gated syntax for executable code in exercises
-**Location**: Line 456-475
+**Location**: Line 456-477
 **Current**: 
 ```markdown
 ```{solution} test-ex-1
@@ -568,18 +694,209 @@ def solve_bellman(k, beta=0.95, alpha=0.3):
 ```{solution} test-ex-1
 :class: dropdown
 ```
-**Issue**: Solution directive correctly references the exercise label, but when using gated syntax, should include explicit label for the solution
-**Fix**: Include `:label: test-ex-1-solution` in the solution-start directive (shown in fix above)
+**Issue**: Solution directive correctly references the exercise label, but when converted to gated syntax, needs proper label
+**Fix**: Already addressed in the gated syntax fix above with `:label: test-ex-1-solution`
 
 ## Admonition Style Suggestions
 
 ### qe-admon-002: Use dropdown class for solutions
 **Location**: Line 456
 **Current**: Solution already uses `:class: dropdown`
-**Suggestion**: This is correctly implemented - good practice to hide solutions by default to give readers time to think.
+**Suggestion**: This is correctly implemented - good practice for giving readers time to think before revealing the solution.
 
 ## Positive Observations
-The exercise and solution structure follows good pedagogical practices with proper labeling and the dropdown class is correctly applied to hide the solution initially.
+The exercise and solution structure follows good pedagogical practices with proper labeling and the solution appropriately uses the dropdown class to encourage student engagement before revealing answers.
 
 ## Admonition Usage Summary
-The document has minimal admonition usage with only one exercise-solution pair. The main issue is the use of regular solution syntax instead of gated syntax when executable code is present. The exercise labeling and solution referencing are handled correctly, but the gated syntax implementation needs correction for proper MyST parsing with nested directives.
+The document has minimal admonition usage with only one exercise-solution pair. The main issue is the use of regular solution syntax when executable code is present, which should use gated syntax for proper MyST parsing. The exercise labeling and solution referencing are handled correctly, and the dropdown class usage follows best practices.
+
+
+================================================================================
+CODE CATEGORY REVIEW
+================================================================================
+
+# Style Guide Review
+
+## Summary
+- Total code violations: 15 issues found
+- Critical issues: 8 issues require attention
+
+## Critical Code Issues
+
+### qe-code-002: Use Unicode symbols for Greek letters in code
+**Location**: Code Block 2
+**Current**: ```python
+def utility_function(c, alpha=0.5, beta=0.95, gamma=2.0):
+    """Utility function with discount factor."""
+    return (c**(1-alpha) - 1) / (1-alpha) * beta
+
+# Production function
+def production(k, theta=0.3, sigma=1.0):
+    return k**theta * sigma
+```
+**Issue**: Using spelled-out Greek letters instead of Unicode symbols
+**Fix**: ```python
+def utility_function(c, α=0.5, β=0.95, γ=2.0):
+    """Utility function with discount factor."""
+    return (c**(1-α) - 1) / (1-α) * β
+
+# Production function
+def production(k, θ=0.3, σ=1.0):
+    return k**θ * σ
+```
+
+### qe-code-003: Package installation at lecture top
+**Location**: Code Block 4 and 5
+**Current**: ```python
+# Using quantecon without installing it first
+mc = qe.MarkovChain([[0.9, 0.1], [0.2, 0.8]])
+
+# Later in the lecture:
+!pip install quantecon
+```
+**Issue**: Package installation missing at top and appearing in middle of lecture
+**Fix**: Add at the beginning of the lecture after imports:
+```python
+# At the top of the lecture
+!pip install quantecon
+```
+
+### qe-code-002: Use Unicode symbols for Greek letters in code
+**Location**: Code Block 12 (production_calc function)
+**Current**: ```python
+def production_calc(K, L, alpha=0.3, beta=0.7):
+    """Calculate output using Cobb-Douglas Production Function."""
+    start_time = time.time()
+    Y = K**alpha * L**beta
+    end_time = time.time()
+    print(f"Calculation Time: {end_time - start_time}")
+    return Y
+```
+**Issue**: Using spelled-out Greek letters instead of Unicode symbols
+**Fix**: ```python
+def production_calc(K, L, α=0.3, β=0.7):
+    """Calculate output using Cobb-Douglas Production Function."""
+    start_time = time.time()
+    Y = K**α * L**β
+    end_time = time.time()
+    print(f"Calculation Time: {end_time - start_time}")
+    return Y
+```
+
+### qe-code-002: Use Unicode symbols for Greek letters in code
+**Location**: Code Block 14 (solve_bellman function)
+**Current**: ```python
+def solve_bellman(k, beta=0.95, alpha=0.3):
+    """Solve the Bellman equation."""
+    import time
+    start = time.time()
+    # Solution code here
+    result = k**alpha * beta
+    end = time.time()
+    print(f"Time: {end-start}")
+    return result
+```
+**Issue**: Using spelled-out Greek letters instead of Unicode symbols
+**Fix**: ```python
+def solve_bellman(k, β=0.95, α=0.3):
+    """Solve the Bellman equation."""
+    import time
+    start = time.time()
+    # Solution code here
+    result = k**α * β
+    end = time.time()
+    print(f"Time: {end-start}")
+    return result
+```
+
+## Code Style Suggestions
+
+### qe-code-004: Use quantecon Timer context manager
+**Location**: Code Block 6
+**Current**: ```python
+import time
+
+start_time = time.time()
+result = sum([i**2 for i in range(1000000)])
+end_time = time.time()
+print(f"Elapsed: {end_time - start_time:.4f} seconds")
+```
+**Suggestion**: Replace manual timing with qe.Timer() context manager for cleaner, more consistent timing code.
+
+### qe-code-004: Use quantecon Timer context manager
+**Location**: Code Block 7
+**Current**: ```python
+def tic():
+    global start_time
+    start_time = time.time()
+
+def toc():
+    end_time = time.time()
+    print(f"Elapsed: {end_time - start_time:.4f} seconds")
+
+tic()
+result = sum([i**2 for i in range(1000000)])
+toc()
+```
+**Suggestion**: Replace legacy tic/toc pattern with modern qe.Timer() context manager.
+
+### qe-code-005: Use quantecon timeit for benchmarking
+**Location**: Code Block 8
+**Current**: ```python
+%timeit sum([i**2 for i in range(1000000)])
+```
+**Suggestion**: Replace Jupyter magic commands with qe.timeit() for consistent benchmarking across different environments.
+
+### qe-code-005: Use quantecon timeit for benchmarking
+**Location**: Code Block 9
+**Current**: ```python
+%%timeit
+result = []
+for i in range(1000):
+    result.append(i**2)
+```
+**Suggestion**: Replace Jupyter cell magic with qe.timeit() using lambda function for multi-line benchmarking.
+
+## Migration Opportunities
+
+### qe-code-004: Use quantecon Timer context manager
+**Location**: Multiple timing patterns throughout
+**Current**: Manual time.time() patterns and tic/toc functions
+**Modern Alternative**: 
+```python
+import quantecon as qe
+
+with qe.Timer():
+    result = sum([i**2 for i in range(1000000)])
+```
+
+### qe-code-005: Use quantecon timeit for benchmarking
+**Location**: Code blocks with %timeit magic
+**Current**: Jupyter magic commands for timing
+**Modern Alternative**: 
+```python
+import quantecon as qe
+
+# For simple function calls
+result = qe.timeit(lambda: sum([i**2 for i in range(1000000)]), number=100)
+
+# For more complex benchmarking
+def benchmark_function():
+    result = []
+    for i in range(1000):
+        result.append(i**2)
+    return result
+
+result = qe.timeit(benchmark_function, number=100)
+```
+
+## Positive Observations
+The lecture properly imports quantecon as qe and uses consistent import patterns. The code structure is generally well-organized with clear function definitions.
+
+## Code Style Summary
+The main areas for improvement are:
+1. **Greek letter consistency**: Replace all spelled-out Greek letters (alpha, beta, gamma, theta, sigma) with Unicode symbols (α, β, γ, θ, σ)
+2. **Modern timing patterns**: Migrate from manual timing and Jupyter magic to quantecon Timer and timeit functions
+3. **Package installation structure**: Ensure all required packages are installed at the top of the lecture
+
+These changes will improve code readability, maintain consistency with mathematical notation, and follow modern QuantEcon best practices.
