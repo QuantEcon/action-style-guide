@@ -37,6 +37,9 @@ import quantecon as qe
 import numpy as np
 import jax
 import jax.numpy as jnp
+import jax.random as jr
+from typing import NamedTuple
+from functools import partial
 ```
 
 In addition to what's in Anaconda, this lecture will need the following libraries:
@@ -190,16 +193,41 @@ $$ (euler)
 
 This section tests code-related violations.
 
-### Spelled-out greek letters (qe-code-002)
+### Model parameters with NamedTuple
 
 ```{code-cell} ipython
-def utility_function(c, α=0.5, β=0.95, γ=2.0):
-    """Utility function with discount factor."""
-    return (c**(1-α) - 1) / (1-α) * β
+class UtilityModel(NamedTuple):
+    α: float = 0.5
+    β: float = 0.95
+    γ: float = 2.0
 
-# Production function
-def production(k, θ=0.3, σ=1.0):
-    return k**θ * σ
+class ProductionModel(NamedTuple):
+    θ: float = 0.3
+    σ: float = 1.0
+
+def create_utility_model(α=0.5, β=0.95, γ=2.0):
+    """Create utility model with validation."""
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    return UtilityModel(α=α, β=β, γ=γ)
+
+def create_production_model(θ=0.3, σ=1.0):
+    """Create production model with validation."""
+    if not 0 < θ < 1:
+        raise ValueError("θ must be between 0 and 1")
+    return ProductionModel(θ=θ, σ=σ)
+
+@jax.jit
+def utility_function(c, model):
+    """Utility function with discount factor."""
+    return (c**(1-model.α) - 1) / (1-model.α) * model.β
+
+@jax.jit
+def production(k, model):
+    """Production function."""
+    return k**model.θ * model.σ
 ```
 
 ### Missing package installation (qe-code-003)
@@ -232,44 +260,53 @@ result = qe.timeit(lambda: sum([i**2 for i in range(1000000)]), number=100)
 ```
 
 ```{code-cell} ipython
+@jax.jit
 def benchmark_function():
-    result = []
-    for i in range(1000):
-        result.append(i**2)
-    return result
+    """JAX-optimized benchmark function."""
+    return jnp.arange(1000) ** 2
 
 result = qe.timeit(benchmark_function, number=100)
 ```
 
-## JAX violations
+## JAX violations corrected
 
-This section tests JAX-specific violations.
+This section shows corrected JAX patterns.
 
-### In-place array modifications (qe-jax-004)
+### Functional programming patterns (qe-jax-001, qe-jax-004, qe-jax-007)
 
 ```{code-cell} ipython
-def bad_update(state, shock):
-    """Violates functional programming - modifies input."""
-    state[0] = state[0] + shock
-    return state
+@jax.jit
+def state_update(current_state, time_step, shock):
+    """Pure function that updates state without modifying input."""
+    return current_state.at[0].add(shock)
 
-# Another violation
-def increment_array(arr):
-    arr += 1
-    return arr
+@jax.jit
+def array_increment_update(current_array, time_step):
+    """Returns new array instead of modifying input."""
+    return current_array + 1
+
+# Example usage with functional updates
+state = jnp.array([1.0, 2.0, 3.0])
+shock = 0.5
+new_state = state_update(state, 0, shock)
+
+arr = jnp.array([1, 2, 3, 4])
+new_arr = array_increment_update(arr, 0)
 ```
 
-### NumPy random instead of JAX random (qe-jax-006)
+### JAX random with explicit key management (qe-jax-006)
 
 ```{code-cell} ipython
-# Using NumPy random instead of JAX
-np.random.seed(42)
-shocks = np.random.normal(0, 1, 100)
-random_draws = np.random.uniform(0, 1, 50)
+# Using JAX random with explicit key management
+key = jr.PRNGKey(42)
+key, subkey1 = jr.split(key)
+shocks = jr.normal(subkey1, (100,))
+key, subkey2 = jr.split(key)
+random_draws = jr.uniform(subkey2, (50,))
 
-# Another violation
-np.random.seed(123)
-data = np.random.randn(1000)
+# For the second example
+key = jr.PRNGKey(123)
+data = jr.normal(key, (1000,))
 ```
 
 ## Figure violations
@@ -429,7 +466,7 @@ As shown in the literature {cite}`Ljungqvist2012`, this approach is standard.
 
 ## Additional mixed violations
 
-### Combining multiple violations
+### Combining multiple violations with corrected JAX patterns
 
 The production function uses parameters α and β.
 
@@ -444,11 +481,27 @@ $$ (production)
 Where $K$ is the capital stock and $L$ is labor.
 
 ```{code-cell} ipython
-def production_calc(K, L, α=0.3, β=0.7):
+class ProductionParameters(NamedTuple):
+    α: float = 0.3
+    β: float = 0.7
+
+def create_production_parameters(α=0.3, β=0.7):
+    """Create production parameters with validation."""
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    return ProductionParameters(α=α, β=β)
+
+@jax.jit
+def production_calc(K, L, model):
     """Calculate output using Cobb-Douglas Production Function."""
-    with qe.Timer():
-        Y = K**α * L**β
-    return Y
+    return K**model.α * L**model.β
+
+# Example usage
+params = create_production_parameters()
+with qe.Timer():
+    Y = production_calc(100.0, 50.0, params)
 ```
 
 ### Figure with multiple violations
@@ -491,12 +544,29 @@ $$ (value-function)
 Where $k$ is capital and $c$ is consumption.
 
 ```{code-cell} ipython
-def solve_bellman(k, β=0.95, α=0.3):
+class BellmanParameters(NamedTuple):
+    β: float = 0.95
+    α: float = 0.3
+
+def create_bellman_parameters(β=0.95, α=0.3):
+    """Create Bellman equation parameters with validation."""
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    return BellmanParameters(β=β, α=α)
+
+@jax.jit
+def solve_bellman(k, model):
     """Solve the Bellman equation."""
-    with qe.Timer():
-        # Solution code here
-        result = k**α * β
+    # Solution code here
+    result = k**model.α * model.β
     return result
+
+# Example usage
+params = create_bellman_parameters()
+with qe.Timer():
+    solution = solve_bellman(10.0, params)
 ```
 
 ```{solution-end}
@@ -509,7 +579,7 @@ This test lecture contains violations of the following rule categories:
 1. **Writing rules**: multiple sentences per paragraph, unnecessary capitalization, wrong emphasis formatting, incorrect heading capitalization
 2. **Mathematics rules**: LaTeX without delimiters, unicode in math, wrong transpose notation, wrong matrix brackets, bold matrices, wrong sequence notation, nested math environments, manual tags
 3. **Code rules**: spelled-out Greek letters, missing package installation, manual timing, Jupyter magic timing
-4. **JAX rules**: in-place modifications, NumPy random instead of JAX random
+4. **JAX rules**: in-place modifications, NumPy random instead of JAX random - now corrected with functional patterns, NamedTuple parameter management, and explicit PRNG key handling
 5. **Figure rules**: embedded titles, wrong captions, missing names, uppercase labels, removed spines, missing line width
 6. **Citation rules**: wrong citation style for context
 

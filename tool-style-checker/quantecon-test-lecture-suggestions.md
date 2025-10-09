@@ -687,6 +687,12 @@ def solve_bellman(k, beta=0.95, alpha=0.3):
 ```
 ````
 
+### qe-admon-003: Use tick count management for nested directives
+**Location**: Line 456-477
+**Current**: Solution directive contains nested code-cell with same tick count level
+**Issue**: The solution directive and nested code-cell both use 3 ticks, which can cause parsing issues
+**Fix**: When using gated syntax, the tick count management is handled automatically by the start/end pattern
+
 ### qe-admon-005: Link solutions to exercises
 **Location**: Line 456
 **Current**: 
@@ -694,21 +700,23 @@ def solve_bellman(k, beta=0.95, alpha=0.3):
 ```{solution} test-ex-1
 :class: dropdown
 ```
-**Issue**: Solution directive correctly references the exercise label, but when converted to gated syntax, needs proper label
-**Fix**: Already addressed in the gated syntax fix above with `:label: test-ex-1-solution`
+**Issue**: Solution correctly references the exercise label, but should include explicit label for the solution itself when using gated syntax
+**Fix**: Include `:label: test-ex-1-solution` in the solution directive (shown in the gated syntax fix above)
 
 ## Admonition Style Suggestions
 
 ### qe-admon-002: Use dropdown class for solutions
 **Location**: Line 456
 **Current**: Solution already uses `:class: dropdown`
-**Suggestion**: This is correctly implemented - good practice for giving readers time to think before revealing the solution.
+**Suggestion**: This is correctly implemented - good practice to hide solutions by default to give readers time to think.
 
 ## Positive Observations
-The exercise and solution structure follows good pedagogical practices with proper labeling and the solution appropriately uses the dropdown class to encourage student engagement before revealing answers.
+- The exercise uses proper labeling with `:label: test-ex-1`
+- The solution correctly uses `:class: dropdown` to hide content initially
+- The solution properly references the corresponding exercise
 
 ## Admonition Usage Summary
-The document has minimal admonition usage with only one exercise-solution pair. The main issue is the use of regular solution syntax when executable code is present, which should use gated syntax for proper MyST parsing. The exercise labeling and solution referencing are handled correctly, and the dropdown class usage follows best practices.
+The lecture has minimal admonition usage with only one exercise-solution pair. The main issue is the use of regular solution syntax instead of gated syntax when executable code is present. The solution correctly uses dropdown class and references the exercise, but needs to be converted to gated syntax format for proper MyST parsing with nested code cells.
 
 
 ================================================================================
@@ -871,9 +879,9 @@ with qe.Timer():
 ```
 
 ### qe-code-005: Use quantecon timeit for benchmarking
-**Location**: Code blocks with %timeit magic
-**Current**: Jupyter magic commands for timing
-**Modern Alternative**: 
+**Location**: Jupyter magic timing commands
+**Current**: %timeit and %%timeit magic commands
+**Modern Alternative**:
 ```python
 import quantecon as qe
 
@@ -891,12 +899,168 @@ result = qe.timeit(benchmark_function, number=100)
 ```
 
 ## Positive Observations
-The lecture properly imports quantecon as qe and uses consistent import patterns. The code structure is generally well-organized with clear function definitions.
+The lecture properly imports quantecon as qe and uses consistent import patterns. The code structure is generally well-organized with clear function definitions and docstrings.
 
 ## Code Style Summary
-The main areas for improvement are:
-1. **Greek letter consistency**: Replace all spelled-out Greek letters (alpha, beta, gamma, theta, sigma) with Unicode symbols (α, β, γ, θ, σ)
-2. **Modern timing patterns**: Migrate from manual timing and Jupyter magic to quantecon Timer and timeit functions
-3. **Package installation structure**: Ensure all required packages are installed at the top of the lecture
+The main code style issues are: (1) consistent use of spelled-out Greek letters instead of Unicode symbols throughout the codebase, (2) missing package installation at the lecture top, and (3) outdated timing patterns that should be migrated to modern QuantEcon utilities. The code would benefit from systematic replacement of Greek letter names with Unicode symbols and adoption of qe.Timer() and qe.timeit() for timing operations.
 
-These changes will improve code readability, maintain consistency with mathematical notation, and follow modern QuantEcon best practices.
+
+================================================================================
+JAX CATEGORY REVIEW
+================================================================================
+
+# JAX Code Style Review for test_lecture_violations.md
+
+## Summary
+- Total JAX violations: 4 issues found
+- Critical issues: 4 issues require attention
+
+## Critical JAX Issues
+
+### qe-jax-001: Use functional programming patterns
+**Location**: Code Block 8
+**Current**: ```python
+def bad_update(state, shock):
+    """Violates functional programming - modifies input."""
+    state[0] = state[0] + shock
+    return state
+
+# Another violation
+def increment_array(arr):
+    arr += 1
+    return arr
+```
+**Issue**: Functions modify input arrays, violating JAX's functional programming paradigm
+**Fix**: ```python
+def good_update(state, shock):
+    """Pure function that doesn't modify input."""
+    return state.at[0].add(shock)
+
+def increment_array(arr):
+    """Returns new array instead of modifying input."""
+    return arr + 1
+```
+
+### qe-jax-004: Use functional update patterns
+**Location**: Code Block 8
+**Current**: ```python
+state[0] = state[0] + shock
+arr += 1
+```
+**Issue**: In-place array modifications are not compatible with JAX's functional approach
+**Fix**: ```python
+state = state.at[0].add(shock)
+arr = arr + 1
+```
+
+### qe-jax-006: Explicit PRNG key management
+**Location**: Code Block 9
+**Current**: ```python
+# Using NumPy random instead of JAX
+np.random.seed(42)
+shocks = np.random.normal(0, 1, 100)
+random_draws = np.random.uniform(0, 1, 50)
+
+# Another violation
+np.random.seed(123)
+data = np.random.randn(1000)
+```
+**Issue**: NumPy random functions with implicit state are incompatible with JAX's functional approach and JIT compilation
+**Fix**: ```python
+# Using JAX random with explicit key management
+import jax.random as jr
+key = jr.PRNGKey(42)
+key, subkey1 = jr.split(key)
+shocks = jr.normal(subkey1, (100,))
+key, subkey2 = jr.split(key)
+random_draws = jr.uniform(subkey2, (50,))
+
+# For the second example
+key = jr.PRNGKey(123)
+data = jr.normal(key, (1000,))
+```
+
+### qe-jax-007: Use consistent function naming for updates
+**Location**: Code Block 8
+**Current**: ```python
+def bad_update(state, shock):
+def increment_array(arr):
+```
+**Issue**: Function names don't follow the descriptive `[quantity]_update` pattern and missing time step parameter
+**Fix**: ```python
+@jax.jit
+def state_update(current_state, time_step, shock):
+    """Update state with shock at given time step."""
+    return current_state.at[0].add(shock)
+
+@jax.jit
+def array_increment_update(current_array, time_step):
+    """Increment array values at given time step."""
+    return current_array + 1
+```
+
+## JAX Migration Opportunities
+
+### qe-jax-002: Use NamedTuple for model parameters
+**Location**: Code Blocks 2, 16, 17
+**Current**: Functions with multiple parameters passed individually
+**JAX Alternative**: ```python
+from typing import NamedTuple
+
+class ProductionModel(NamedTuple):
+    α: float = 0.3
+    β: float = 0.7
+    
+class UtilityModel(NamedTuple):
+    α: float = 0.5
+    β: float = 0.95
+    γ: float = 2.0
+
+def create_production_model(α=0.3, β=0.7):
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    return ProductionModel(α=α, β=β)
+
+@jax.jit
+def production_calc(K, L, model):
+    """Calculate output using Cobb-Douglas Production Function."""
+    return K**model.α * L**model.β
+```
+**Benefits**: Immutable parameter storage, better JIT compilation, cleaner function signatures
+
+## JAX Style Suggestions
+
+### qe-jax-005: Use jax.lax for control flow
+**Location**: Code Block 5 (qe.timeit usage)
+**Current**: ```python
+def benchmark_function():
+    result = []
+    for i in range(1000):
+        result.append(i**2)
+    return result
+```
+**Suggestion**: Replace imperative loop with JAX functional pattern for better performance:
+```python
+@jax.jit
+def benchmark_function():
+    return jnp.arange(1000) ** 2
+
+# Or if accumulation is needed:
+def benchmark_with_scan():
+    def step(carry, i):
+        return carry, i**2
+    _, result = jax.lax.scan(step, None, jnp.arange(1000))
+    return result
+```
+
+## Positive Observations
+The lecture correctly imports JAX and JAX NumPy, showing awareness of the JAX ecosystem.
+
+## JAX Code Summary
+The lecture contains several critical JAX violations that prevent effective use of JAX's functional programming model and JIT compilation. The main issues are:
+1. In-place array modifications that break JAX's functional paradigm
+2. NumPy random usage instead of JAX's explicit PRNG key management
+3. Missing NamedTuple patterns for parameter management
+4. Inconsistent function naming conventions
+
+Addressing these issues will enable proper JAX JIT compilation, improve performance, and align with JAX best practices for functional programming.
