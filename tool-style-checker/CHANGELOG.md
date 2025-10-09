@@ -1,8 +1,51 @@
 # Changelog
 
-All notable changes to the Claude Style Checker will be documented in this file.
+All notable changes to the QuantEcon Lecture Style Checker will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [2.0.0] - 2025-10-09
+
+### Major Simplification Release
+
+This version represents a complete architectural simplification, removing all backward compatibility and configuration options in favor of a single, focused workflow.
+
+### Removed
+- **Removed `--mode` option**: Tool now always outputs both files (`{lecture}-suggestions.md` and `{lecture}-corrected.md`)
+- **Removed `--quick` option**: All reviews now provide complete analysis (was redundant since corrected file was identical in both modes)
+- **Removed backward compatibility**: Deleted all legacy prompt and rule files
+- **Removed general prompts**: No more `claude-style-checker-prompt.md` or `style-guide-database.md`
+- **Removed documentation folder**: Deleted `docs/` directory (MODES-GUIDE.md, DOCUMENTATION.md)
+- **Removed archive folder**: Deleted `archive/` directory with old examples and docs
+- **Removed SIMPLIFICATION-SUMMARY.md**: No longer needed after cleanup
+
+### Added
+- **Category-focused architecture**: 8 specialized prompt/rule pairs for focused reviews
+  - `prompts/writing-prompt.md` + `rules/writing-rules.md` (11 rules)
+  - `prompts/math-prompt.md` + `rules/math-rules.md` (7 rules)
+  - `prompts/code-prompt.md` + `rules/code-rules.md` (10 rules)
+  - `prompts/jax-prompt.md` + `rules/jax-rules.md` (3 rules)
+  - `prompts/figures-prompt.md` + `rules/figures-rules.md` (8 rules)
+  - `prompts/references-prompt.md` + `rules/references-rules.md` (2 rules)
+  - `prompts/links-prompt.md` + `rules/links-rules.md` (1 rule)
+  - `prompts/admonitions-prompt.md` + `rules/admonitions-rules.md` (2 rules)
+- **Sequential multi-category processing**: Comma-separated categories process sequentially, each using previous category's corrections as input
+- **Fixed output naming**: Always creates `{lecture}-suggestions.md` and `{lecture}-corrected.md`
+
+### Changed
+- **Reduced from 354 lines to 291 lines** in `style_checker.py` (18% reduction)
+- **Reduced README from 311 lines to 270 lines** (13% reduction)
+- **Token efficiency**: 80% reduction vs checking all 42 rules at once
+- **Simplified CLI**: Only 3 arguments total (`lecture`, `--focus`, optional `--api-key`)
+- **Focus is now required**: Must specify at least one category
+- **Cost reduction**: $0.01-0.05 per focused check vs $0.08-0.20 for all-rules approach
+
+### Technical Details
+- 19 total files (down from 30+)
+- Single-purpose design: "Do one thing well"
+- No configuration files or modes
+- No optional behavior toggles
+- Predictable output every time
 
 ## [1.1.0] - 2025-10-03
 

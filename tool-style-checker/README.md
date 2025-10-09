@@ -1,306 +1,270 @@
 # QuantEcon Lecture Style Checker
 
-Automated style checking for QuantEcon lecture materials using Claude Sonnet 4.5.
+Focused style checking for QuantEcon lecture materials using Claude Sonnet 4.5.
 
 ## Overview
 
-This system automatically reviews QuantEcon lectures against your comprehensive style guide, providing:
+This tool provides **automated, category-focused** style checking for QuantEcon lectures. Each check focuses on specific categories (writing, math, code, etc.) with specialized prompts and relevant rules only.
 
-- ✅ **Automated checking** of all 8 rule categories (42 rules total)
-- ✅ **Structured feedback** with exact line numbers and specific fixes
-- ✅ **Actionable suggestions** - copy-paste ready corrections
-- ✅ **Flexible usage** - web interface, API, or command-line
-- ✅ **Cost-effective** - $0.02-0.20 per lecture
-
-📖 **Complete Documentation**: See [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) for full guide
+**Benefits:**
+- ✅ **Focused reviews** - Check one or multiple categories at a time
+- ✅ **Token efficient** - 80% reduction vs checking all 42 rules at once
+- ✅ **Always get both** - Suggestions AND corrected file in every run
+- ✅ **Fast** - Targeted analysis completes quickly
+- ✅ **Cost-effective** - $0.01-0.05 per focused check
 
 ## Quick Start
 
-### Method 1: Web Interface (No setup required)
-
-1. Go to [claude.ai](https://claude.ai)
-2. Upload three files:
-   - `claude-style-checker-prompt.md`
-   - `style-guide-database.md`
-   - Your lecture file
-3. Send: *"Please follow the prompt to review the lecture against the style guide"*
-
-### Method 2: Command Line (Best for automation)
+### Installation
 
 ```bash
-# One-time setup
 pip install anthropic
 export ANTHROPIC_API_KEY='your-api-key'
-
-# Check a lecture (get suggestions) - creates analysis.md
-python style_checker.py my-lecture.md
-
-# Get corrected file automatically - creates my-lecture-corrected.md
-python style_checker.py my-lecture.md --mode corrected
-
-# Get both review and corrected file - creates analysis.md + my-lecture-corrected.md
-python style_checker.py my-lecture.md --mode both
-
-# Common options
-python style_checker.py lecture.md --quick              # Critical only
-python style_checker.py lecture.md --focus writing math # Specific categories
-python style_checker.py lecture.md --exclude code jax   # Skip certain categories
-python style_checker.py --help                          # All options
 ```
 
-## Three Output Modes
-
-| Mode | Output Files | Use Case |
-|------|--------------|----------|
-| `suggestions` | `analysis.md` | Learning, selective fixes, understanding issues |
-| `corrected` | `{filename}-corrected.md` | Quick fixes, automation, batch processing |
-| `both` | `analysis.md` + `{filename}-corrected.md` | Verification, documentation, seeing before/after |
-
-**Consistent file naming:**
-- Analysis and suggestions always go to `analysis.md`
-- Corrected files always go to `{input-filename}-corrected.md`
-
-See [`docs/MODES-GUIDE.md`](docs/MODES-GUIDE.md) for detailed workflows and examples.
-
-## Common Usage Patterns
-
-### Review and Learn
+### Basic Usage
 
 ```bash
-# Get detailed suggestions - creates analysis.md
-python style_checker.py my-lecture.md
+# Single category - creates 2 files
+python style_checker.py my-lecture.md --focus writing
+# → Creates: my-lecture-suggestions.md + my-lecture-corrected.md
+
+# Multiple categories - sequential processing
+python style_checker.py my-lecture.md --focus writing,math,code
+# → Creates: my-lecture-suggestions.md + my-lecture-corrected.md
 ```
 
-### Test It
+## Output Files (Always Created)
+
+Every run creates **two files**:
+
+1. **`{lecture-name}-suggestions.md`** - Detailed review with:
+   - All violations found
+   - Exact line numbers
+   - Current vs. suggested text
+   - Explanations and fixes
+
+2. **`{lecture-name}-corrected.md`** - Fully corrected version:
+   - All violations fixed
+   - Ready to use
+   - Preserves all content and structure
+
+## Sequential Multi-Category Processing
+
+When you specify multiple categories (comma-separated), the tool processes them **sequentially**:
+
+1. Category 1 processes original lecture → produces corrected version + analysis
+2. Category 2 processes Category 1's corrected output → produces corrected version + analysis
+3. Category 3 processes Category 2's corrected output → produces final corrected version + analysis
+4. All analyses combined in `{lecture-name}-suggestions.md`
+5. Final corrected version saved in `{lecture-name}-corrected.md`
+
+### Examples
 
 ```bash
-# Run on test lecture with ~40+ intentional violations
-python style_checker.py quantecon-test-lecture.md
-```
-
-### Quick Fix
-
-```bash
-# Get corrected file directly - creates my-lecture-corrected.md
-python style_checker.py my-lecture.md --mode corrected
-
-# Review changes
-diff my-lecture.md my-lecture-corrected.md
-
-# Apply if satisfied
-mv my-lecture-corrected.md my-lecture.md
-```
-
-### Full Analysis
-
-```bash
-# Get review AND corrected file in one run
-python style_checker.py my-lecture.md --mode both
-
-# Creates:
-#   - analysis.md (full review)
-#   - my-lecture-corrected.md (corrected file)
-```
-
-### Focus on Specific Issues
-
-```bash
-# Check only writing style
+# Single category
 python style_checker.py lecture.md --focus writing
+# → Creates: lecture-suggestions.md + lecture-corrected.md
 
-# Check only math notation
+# Sequential corrections: writing → math → code
+python style_checker.py lecture.md --focus writing,math,code
+# → Creates: lecture-suggestions.md (3 category reviews)
+# → Creates: lecture-corrected.md (3 sequential corrections)
+```
+
+## Available Categories
+
+| Category | Rules | Focus Area |
+|----------|-------|------------|
+| `writing` | 11 | Writing style, grammar, clarity |
+| `math` | 7 | Mathematical notation and LaTeX |
+| `code` | 10 | Code blocks, syntax, structure |
+| `jax` | 3 | JAX library conventions |
+| `figures` | 8 | Plots, diagrams, visualizations |
+| `references` | 2 | Bibliography and citations |
+| `links` | 1 | Hyperlinks and URLs |
+| `admonitions` | 2 | Note/warning boxes |
+
+## Common Workflows
+
+### Single Category Review
+
+```bash
+# Check writing only
+python style_checker.py lecture.md --focus writing
+# → lecture-suggestions.md + lecture-corrected.md
+
+# Check math notation only
 python style_checker.py lecture.md --focus math
-
-# Check everything except code rules
-python style_checker.py lecture.md --exclude code
-
-# Check everything except code and JAX rules
-python style_checker.py lecture.md --exclude code jax
-
-# Quick check for critical issues
-python style_checker.py lecture.md --quick
+# → lecture-suggestions.md + lecture-corrected.md
 ```
 
-### Batch Processing
+### Multi-Category Comprehensive Review
 
 ```bash
-# Fix all lectures in a folder
-for lecture in lectures/*.md; do
-    python style_checker.py "$lecture" --mode corrected
-done
+# Check writing, then math, then code (sequential)
+python style_checker.py lecture.md --focus writing,math,code
+# → lecture-suggestions.md (all 3 reviews)
+# → lecture-corrected.md (writing fixes → math fixes → code fixes)
+
+# Full review across all categories
+python style_checker.py lecture.md --focus writing,math,code,figures,references
+# → Comprehensive review with sequential corrections
 ```
 
-## What You Get
-
-Claude provides structured feedback with:
-
-- Summary of all violations found
-- Critical issues organized by category (Writing, Math, Code, JAX, Figures, etc.)
-- Exact line numbers and quoted text
-- Specific, copy-paste ready corrections
-- Prioritized recommendations
-
-Example:
-
-```markdown
-### qe-writing-001: Use one sentence per paragraph
-Location: Lines 42-44
-Current: "Multiple sentences here. Second sentence."
-Issue: Paragraph contains 2 sentences
-Fix: [Provides corrected version with proper paragraph breaks]
-
-### qe-math-002: Use \top for transpose notation
-Location: Line 156
-Current: $$A^T B$$
-Fix: $$A^\top B$$
-```
-
-📖 **See [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md#example-interactions) for complete examples**
-
-## Command-Line Options
+### Test the Tool
 
 ```bash
-python style_checker.py <lecture.md> [options]
-
-Options:
-  --mode {suggestions,corrected,both}
-                        Output mode (default: suggestions)
-  --quick               Check critical issues only
-  --focus {writing,math,code,jax,figures,references,links,admonitions}
-                        Focus on specific categories
-  --exclude {writing,math,code,jax,figures,references,links,admonitions}
-                        Exclude specific categories from checking
-  --prompt FILE         Custom prompt file (default: claude-style-checker-prompt.md)
-  --style-guide FILE    Custom style guide (default: style-guide-database.md)
-  --api-key KEY         Claude API key (overrides ANTHROPIC_API_KEY)
-
-Output Files:
-  suggestions mode:     analysis.md
-  corrected mode:       {input-filename}-corrected.md  
-  both mode:            analysis.md + {input-filename}-corrected.md
+# Run on test lecture with intentional violations
+python style_checker.py quantecon-test-lecture.md --focus writing
+# → Creates quantecon-test-lecture-suggestions.md + quantecon-test-lecture-corrected.md
 ```
 
-## Files
+## Command Reference
 
-### Core System (3 files)
+```bash
+# Required
+python style_checker.py <lecture_file> --focus <category>[,<category>,...]
 
-| File | Description |
-|------|-------------|
-| **`style_checker.py`** | Command-line automation script |
-| **`claude-style-checker-prompt.md`** | Prompt that instructs Claude |
-| **`style-guide-database.md`** | Complete style guide (43KB, 42 rules) |
+# Options
+--api-key <key>    # Override ANTHROPIC_API_KEY env var
 
-### Documentation (2 files)
+# Examples
+python style_checker.py lecture.md --focus writing
+python style_checker.py lecture.md --focus writing,math,code
 
-| File | Description |
-|------|-------------|
-| **`docs/DOCUMENTATION.md`** | 📖 **Complete guide** - setup, usage, examples, troubleshooting |
-| **`docs/MODES-GUIDE.md`** | 🎯 **Output modes** - suggestions, corrected, or both |
-| **`README.md`** | This file - quick overview |
+# Help
+python style_checker.py --help
+```
 
-### Testing (1 file)
+**Category Order Matters:** Categories process sequentially, each using the previous category's corrected output as input.
 
-| File | Description |
-|------|-------------|
-| **`quantecon-test-lecture.md`** | Test lecture with intentional violations |
+## File Structure
 
-### Archive
+```
+tool-style-checker/
+├── style_checker.py              # Main script (single file, ~300 lines)
+├── quantecon-test-lecture.md     # Test file with intentional violations
+├── README.md                     # This file
+├── CHANGELOG.md                  # Version history
+├── prompts/                      # Category-specific prompts (8 files)
+│   ├── writing-prompt.md
+│   ├── math-prompt.md
+│   ├── code-prompt.md
+│   ├── jax-prompt.md
+│   ├── figures-prompt.md
+│   ├── references-prompt.md
+│   ├── links-prompt.md
+│   └── admonitions-prompt.md
+└── rules/                        # Category-specific rules (8 files)
+    ├── writing-rules.md          (11 rules)
+    ├── math-rules.md             (7 rules)
+    ├── code-rules.md             (10 rules)
+    ├── jax-rules.md              (3 rules)
+    ├── figures-rules.md          (8 rules)
+    ├── references-rules.md       (2 rules)
+    ├── links-rules.md            (1 rule)
+    └── admonitions-rules.md      (2 rules)
+```
 
-| Folder | Description |
-|--------|-------------|
-| **`archive/`** | Old experimental prompts and previous multi-file docs |
+**Total: 19 files** - Simple and focused!
 
-## Style Guide Coverage
+## Why Focused Categories?
 
-The style checker enforces **42 rules** across **8 categories**:
+**Single category checks:**
+- Small, targeted prompt (low token cost)  
+- Specialized instructions per category
+- Clear, actionable feedback
+- Faster and more accurate
+- **Always get both suggestions AND corrected file**
 
-- **Writing Style** (9 rules): Language, contractions, pronouns, tense, voice
-- **Mathematical Notation** (7 rules): LaTeX formatting, equation formatting, conventions
-- **Code Blocks** (8 rules): Syntax highlighting, output blocks, naming
-- **JAX Code** (4 rules): Random keys, JIT usage, NumPy compatibility
-- **Figures** (4 rules): Naming, captions, accessibility
-- **References** (4 rules): Citations, bibliography format
-- **Links** (3 rules): URL format, descriptions
-- **Admonitions** (3 rules): Note/warning box usage
+**Multi-category sequential processing:**
+- Combine multiple focused checks in one command
+- Each category uses optimized prompt and rules
+- Progressive corrections build on each other
+- Comprehensive review with category-specific analysis
+- **One command, complete results**
 
-See [`style-guide-database.md`](style-guide-database.md) for complete rule details.
+**vs Traditional all-at-once approach:**
+- Large prompt with all 42 rules (high token cost)
+- Mixed feedback across unrelated areas
+- Harder to focus on specific improvements
+- Less accurate due to prompt complexity
+- **Must choose between suggestions OR corrections**
+
+## Output Files
+
+Every run creates exactly **two files**:
+
+### {lecture-name}-suggestions.md
+Detailed review with:
+- Rule violations with line numbers
+- Current vs suggested text
+- Explanations and context
+- Priority ranking
+- All categories combined (if multiple)
+
+### {lecture-name}-corrected.md
+Fully corrected version of your lecture:
+- All violations fixed
+- Sequential corrections applied (if multiple categories)
+- Ready to review and use
+- Preserves all technical content
+
+## Cost Estimate
+
+**Per single category check** (typical lecture):
+- **Short lecture** (~2000 words): $0.01-0.02
+- **Medium lecture** (~5000 words): $0.02-0.04  
+- **Long lecture** (~10000 words): $0.04-0.05
+
+**Multi-category sequential processing** (3 categories):
+- Each category is a separate LLM call
+- Total cost = (single category cost) × (number of categories)
+- Example: 3 categories on medium lecture = $0.06-0.12
+
+Compare to checking all 42 rules at once: $0.08-0.20 per check (and less accurate!)
 
 ## Requirements
 
-**Web Interface:**
-- No installation required
-- Just a browser
-
-**Command Line:**
 - Python 3.7+
-- `pip install anthropic`
-- Claude API key from [console.anthropic.com](https://console.anthropic.com/)
+- `anthropic` package
+- Claude API key
+- Internet connection
 
-## Features
+## Getting Claude API Access
 
-✅ **Comprehensive** - 42 rules across 8 categories  
-✅ **Accurate** - Context-aware, ~95% accuracy on strict rules  
-✅ **Actionable** - Exact fixes, not just complaints  
-✅ **Flexible** - Multiple usage methods and focus modes  
-✅ **Cost-effective** - $0.02-0.20 per typical lecture  
+1. Go to [console.anthropic.com](https://console.anthropic.com/)
+2. Create account and get API key
+3. Set environment variable:
+```bash
+export ANTHROPIC_API_KEY='your-key-here'
+```
 
 ## Tips
 
-✅ **Start with suggestions mode** to understand what needs fixing  
-✅ **Use `both` mode** when you want to verify changes  
-✅ **Use corrected mode** for automated workflows  
-✅ **Always review diffs** before accepting automated corrections  
-✅ **Use `--focus`** to target specific areas when learning  
-✅ **Use `--quick`** for fast critical-only checks  
+1. **Always get both outputs** - Review suggestions before using corrected file
+2. **Start with writing** - Foundation for all other improvements  
+3. **Check diffs** - `diff my-lecture.md my-lecture-corrected.md` to see what changed
+4. **Multi-category for comprehensive** - `--focus writing,math,code` for full review
+5. **Category order matters** - Suggested: writing → math → code → figures → others
+6. **Test on examples first** - Use `quantecon-test-lecture.md` to see how it works
 
-## Documentation
+## Troubleshooting
 
-Everything you need is in [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md):
-
-- ✅ **Quick Start** - Get running in 5 minutes
-- ✅ **Installation** - Step-by-step setup for both methods
-- ✅ **Usage Guide** - All commands and options explained
-- ✅ **Example Interactions** - Real conversations with Claude
-- ✅ **Architecture** - How the system works
-- ✅ **Customization** - Adapt to your needs
-- ✅ **Troubleshooting** - Solutions to common issues
-- ✅ **FAQ** - Frequently asked questions
-
-## Support
-
-- 📖 **Full Documentation**: [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md)
-- 🎯 **Modes Guide**: [`docs/MODES-GUIDE.md`](docs/MODES-GUIDE.md)
-- 🧪 **Test File**: `quantecon-test-lecture.md`
-- ❓ **Troubleshooting**: See [DOCUMENTATION.md#troubleshooting](docs/DOCUMENTATION.md#troubleshooting)
-
----
-
-## Project Structure
-
-```
-.
-├── style_checker.py                 # Main script
-├── claude-style-checker-prompt.md   # Claude prompt
-├── style-guide-database.md          # Complete style rules (42 rules)
-├── quantecon-test-lecture.md        # Test lecture with violations
-├── README.md                        # This file
-├── CHANGELOG.md                     # Version history
-├── docs/
-│   ├── DOCUMENTATION.md             # Complete user guide
-│   └── MODES-GUIDE.md               # Output modes guide
-└── archive/                         # Old experimental files
+**Error: ANTHROPIC_API_KEY not set**
+```bash
+export ANTHROPIC_API_KEY='your-key-here'
 ```
 
-## Version
+**Error: File not found**
+- Check file path is correct
+- Use relative or absolute paths
 
-**Current Version**: 1.1.0 (2025-10-03)  
-**Status**: ✅ Production Ready  
-**Last Updated**: October 3, 2025  
+**Error: Category not found**  
+- Check category name spelling
+- Use one of: writing, math, code, jax, figures, references, links, admonitions
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+## License
 
----
-
-**Claude Model**: `claude-sonnet-4-20250514`  
-**Format**: MyST Markdown (Jupyter Book)  
-**License**: [Add your license]
+QuantEcon Project

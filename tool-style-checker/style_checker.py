@@ -2,16 +2,15 @@
 """
 QuantEcon Lecture Style Checker using Claude API
 
-This script automates the process of checking a lecture against the 
-QuantEcon style guide using Claude Sonnet 4.5.
+A focused style checking tool that reviews lectures against specific QuantEcon 
+style guide categories using Claude Sonnet 4.5.
 
 Usage:
-    python style_checker.py <lecture_file.md>
-    python style_checker.py <lecture_file.md> --output review.md
-    python style_checker.py <lecture_file.md> --mode corrected
-    python style_checker.py <lecture_file.md> --mode both
-    python style_checker.py <lecture_file.md> --focus writing,math
-    python style_checker.py <lecture_file.md> --quick
+    python style_checker.py <lecture_file.md> --focus <category>
+    python style_checker.py <lecture_file.md> --focus writing --mode corrected
+    python style_checker.py <lecture_file.md> --focus math --mode both
+
+Available categories: writing, math, code, jax, figures, references, links, admonitions
 
 Requirements:
     pip install anthropic
@@ -47,38 +46,29 @@ def load_file(filepath):
 
 
 def check_lecture_style(
-    lecture_path,
-    prompt_path="claude-style-checker-prompt.md",
-    style_guide_path="style-guide-database.md",
-    focus_areas=None,
-    quick_mode=False,
-    output_mode="suggestions",
+    lecture_content,
+    category,
     api_key=None
 ):
     """
     Check a lecture against the style guide using Claude.
     
     Args:
-        lecture_path: Path to the lecture file to check
-        prompt_path: Path to the prompt file
-        style_guide_path: Path to the style guide database
-        focus_areas: List of rule categories to focus on (e.g., ['writing', 'math'])
-        quick_mode: If True, only report critical violations
-        output_mode: Output type - 'suggestions' (default), 'corrected', or 'both'
+        lecture_content: Content of the lecture to check (string)
+        category: Single category to focus on (e.g., 'writing', 'math', 'code')
         api_key: Claude API key (if not provided, uses ANTHROPIC_API_KEY env var)
     
     Returns:
-        String containing Claude's output (review, corrected file, or both)
+        String containing Claude's output (both review and corrected file)
     """
-    # Load files
-    print(f"Loading lecture: {lecture_path}")
-    lecture = load_file(lecture_path)
+    # Load focused prompt and rules for the specified category
+    prompt_path = f"prompts/{category}-prompt.md"
+    rules_path = f"rules/{category}-rules.md"
     
-    print(f"Loading prompt: {prompt_path}")
+    print(f"  Using focused prompt: {prompt_path}")
     prompt = load_file(prompt_path)
-    
-    print(f"Loading style guide: {style_guide_path}")
-    style_guide = load_file(style_guide_path)
+    print(f"  Using focused rules: {rules_path}")
+    style_guide = load_file(rules_path)
     
     # Get API key
     if api_key is None:
@@ -92,60 +82,30 @@ def check_lecture_style(
     # Build the message
     message_parts = [prompt]
     
-    # Add focus instructions if specified
-    if focus_areas:
-        focus_text = ", ".join([f"qe-{area}-*" for area in focus_areas])
-        message_parts.append(
-            f"\n\n**SPECIAL INSTRUCTIONS**: Please focus your review on these "
-            f"rule categories: {focus_text}. You may skip other categories.\n"
-        )
-    
-    # Add quick mode instructions if specified
-    if quick_mode:
-        message_parts.append(
-            "\n\n**QUICK MODE**: Please provide only a summary and the most "
-            "critical violations (rule category). Skip minor style suggestions "
-            "and positive observations to save time.\n"
-        )
-    
-    # Add output mode instructions
-    if output_mode == "corrected":
-        message_parts.append(
-            "\n\n**OUTPUT MODE: CORRECTED FILE**\n\n"
-            "Please provide ONLY the fully corrected version of the lecture file with "
-            "all violations fixed. Do NOT include the review, explanations, or violation "
-            "list. Just output the corrected markdown file content that can be directly "
-            "saved as the new lecture file.\n\n"
-            "Apply ALL rule violations fixes while preserving:\n"
-            "- All technical content and accuracy\n"
-            "- All code blocks and their functionality\n"
-            "- All MyST markdown syntax\n"
-            "- The overall structure and organization\n"
-        )
-    elif output_mode == "both":
-        message_parts.append(
-            "\n\n**OUTPUT MODE: BOTH**\n\n"
-            "Please provide TWO sections in your response:\n\n"
-            "1. First, provide the complete style review as usual (with violations, "
-            "issues, and recommendations)\n\n"
-            "2. Then, after a clear separator line, provide the fully corrected version "
-            "of the lecture file with all violations fixed.\n\n"
-            "Format your response like this:\n"
-            "```\n"
-            "# Style Guide Review\n"
-            "[... your full review here ...]\n\n"
-            "================================================================================\n"
-            "CORRECTED LECTURE FILE\n"
-            "================================================================================\n\n"
-            "[... complete corrected lecture content ...]\n"
-            "```\n"
-        )
+    # Always request both analysis and corrected output
+    message_parts.append(
+        "\n\n**OUTPUT FORMAT**\n\n"
+        "Please provide TWO sections in your response:\n\n"
+        "1. First, provide the complete style review (with violations, "
+        "issues, and recommendations)\n\n"
+        "2. Then, after a clear separator line, provide the fully corrected version "
+        "of the lecture file with all violations fixed.\n\n"
+        "Format your response like this:\n"
+        "```\n"
+        "# Style Guide Review\n"
+        "[... your full review here ...]\n\n"
+        "================================================================================\n"
+        "CORRECTED LECTURE FILE\n"
+        "================================================================================\n\n"
+        "[... complete corrected lecture content ...]\n"
+        "```\n"
+    )
     
     message_parts.extend([
         "\n\n## Style Guide Database\n\n",
         style_guide,
         "\n\n## Lecture to Review\n\n",
-        lecture
+        lecture_content
     ])
     
     full_message = "".join(message_parts)
@@ -181,17 +141,38 @@ def check_lecture_style(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Check a QuantEcon lecture against the style guide using Claude",
+        description="Check a QuantEcon lecture against a specific style guide category using Claude",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python style_checker.py my_lecture.md
-  python style_checker.py my_lecture.md --output review.md
-  python style_checker.py my_lecture.md --mode corrected
-  python style_checker.py my_lecture.md --mode both --output combined.md
-  python style_checker.py my_lecture.md --focus writing math
-  python style_checker.py my_lecture.md --quick
-  python style_checker.py my_lecture.md --prompt custom_prompt.md
+  # Single category - creates lecture-suggestions.md and lecture-corrected.md
+  python style_checker.py my_lecture.md --focus writing
+  python style_checker.py my_lecture.md --focus math
+  python style_checker.py my_lecture.md --focus code
+  
+  # Multiple categories (sequential processing)
+  python style_checker.py my_lecture.md --focus writing,math
+  python style_checker.py my_lecture.md --focus writing,math,code
+
+Available categories:
+  writing     - Writing style and grammar
+  math        - Mathematical notation
+  code        - Code formatting and structure
+  jax         - JAX library specific conventions
+  figures     - Figure and visualization formatting
+  references  - Bibliography and citations
+  links       - Hyperlink formatting
+  admonitions - Note/warning boxes
+  
+Output files (always created):
+  {lecture-name}-suggestions.md  - Detailed review with violations and fixes
+  {lecture-name}-corrected.md    - Fully corrected version of the lecture
+  
+Sequential processing (multiple categories):
+  - Categories are processed in the order specified
+  - Each category's corrections feed into the next category
+  - All analyses are combined in {lecture-name}-suggestions.md
+  - Final corrected version saved to {lecture-name}-corrected.md
         """
     )
     
@@ -201,39 +182,9 @@ Examples:
     )
     
     parser.add_argument(
-        "-o", "--output",
-        help="Save review to this file (default: print to stdout)"
-    )
-    
-    parser.add_argument(
-        "--prompt",
-        default="claude-style-checker-prompt.md",
-        help="Path to the prompt file (default: claude-style-checker-prompt.md)"
-    )
-    
-    parser.add_argument(
-        "--style-guide",
-        default="style-guide-database.md",
-        help="Path to the style guide database (default: style-guide-database.md)"
-    )
-    
-    parser.add_argument(
-        "--focus",
-        nargs="+",
-        help="Focus on specific rule categories (e.g., writing math code)"
-    )
-    
-    parser.add_argument(
-        "--mode",
-        choices=["suggestions", "corrected", "both"],
-        default="suggestions",
-        help="Output mode: 'suggestions' (default - review only), 'corrected' (fixed file only), 'both' (review + fixed file)"
-    )
-    
-    parser.add_argument(
-        "--quick",
-        action="store_true",
-        help="Quick mode: only report critical violations"
+        "-f", "--focus",
+        required=True,
+        help="Category/categories to focus on (comma-separated). Available: writing, math, code, jax, figures, references, links, admonitions"
     )
     
     parser.add_argument(
@@ -248,70 +199,90 @@ Examples:
         print(f"Error: Lecture file not found: {args.lecture}")
         sys.exit(1)
     
-    # Run the style check
-    review = check_lecture_style(
-        lecture_path=args.lecture,
-        prompt_path=args.prompt,
-        style_guide_path=args.style_guide,
-        focus_areas=args.focus,
-        quick_mode=args.quick,
-        output_mode=args.mode,
-        api_key=args.api_key
-    )
+    # Parse categories from comma-separated list
+    categories = [cat.strip() for cat in args.focus.split(',')]
     
-    # Handle output based on mode
-    if args.mode == "corrected":
-        # Output is the corrected lecture file
-        if args.output:
-            with open(args.output, 'w', encoding='utf-8') as f:
-                f.write(review)
-            print(f"\n✓ Corrected lecture saved to: {args.output}")
-        else:
-            # Suggest saving to file
-            print("\n" + "="*80)
-            print("CORRECTED LECTURE FILE")
-            print("="*80 + "\n")
-            print(review)
-            print("\n" + "="*80)
-            print("TIP: Save to file with: --output corrected-lecture.md")
-            print("="*80)
+    # Validate all categories
+    valid_categories = ["writing", "math", "code", "jax", "figures", "references", "links", "admonitions"]
+    for cat in categories:
+        if cat not in valid_categories:
+            print(f"Error: Invalid category '{cat}'")
+            print(f"Valid categories: {', '.join(valid_categories)}")
+            sys.exit(1)
     
-    elif args.mode == "both":
-        # Output contains both review and corrected file
-        if args.output:
-            with open(args.output, 'w', encoding='utf-8') as f:
-                f.write(review)
-            print(f"\n✓ Review and corrected file saved to: {args.output}")
-            
-            # Also try to extract and save the corrected portion separately
-            if "CORRECTED LECTURE FILE" in review:
-                separator = "="*80 + "\nCORRECTED LECTURE FILE\n" + "="*80
-                parts = review.split(separator)
-                if len(parts) == 2:
-                    corrected_only = parts[1].strip()
-                    # Name corrected file after the input lecture, not the output file
-                    lecture_base = args.lecture.rsplit('.', 1)[0]
-                    corrected_file = f"{lecture_base}-corrected.md"
-                    with open(corrected_file, 'w', encoding='utf-8') as f:
-                        f.write(corrected_only)
-                    print(f"✓ Corrected lecture also saved to: {corrected_file}")
-        else:
-            print("\n" + "="*80)
-            print("REVIEW AND CORRECTED FILE")
-            print("="*80 + "\n")
-            print(review)
+    # Load original lecture content
+    print(f"Loading lecture: {args.lecture}")
+    original_lecture = load_file(args.lecture)
     
-    else:  # suggestions mode (default)
-        # Output the review
-        if args.output:
-            with open(args.output, 'w', encoding='utf-8') as f:
-                f.write(review)
-            print(f"\n✓ Review saved to: {args.output}")
+    # Get base filename for output files
+    lecture_base = args.lecture.rsplit('.', 1)[0]
+    suggestions_file = f"{lecture_base}-suggestions.md"
+    corrected_file = f"{lecture_base}-corrected.md"
+    
+    # Initialize variables for sequential processing
+    current_content = original_lecture
+    all_analyses = []
+    
+    # Process each category sequentially
+    print(f"\nProcessing {len(categories)} categor{'y' if len(categories) == 1 else 'ies'}: {', '.join(categories)}\n")
+    
+    for idx, category in enumerate(categories, 1):
+        print(f"{'='*80}")
+        print(f"Processing category {idx}/{len(categories)}: {category}")
+        print(f"{'='*80}")
+        
+        # Use progressively corrected content for sequential processing
+        content_to_check = current_content
+        
+        # Run the style check for this category (always gets both analysis and corrected)
+        review = check_lecture_style(
+            lecture_content=content_to_check,
+            category=category,
+            api_key=args.api_key
+        )
+        
+        # Extract corrected portion and analysis
+        corrected_only = None
+        if "CORRECTED LECTURE FILE" in review:
+            separator = "="*80 + "\nCORRECTED LECTURE FILE\n" + "="*80
+            parts = review.split(separator)
+            if len(parts) == 2:
+                analysis_part = parts[0].strip()
+                corrected_only = parts[1].strip()
+                
+                # Store analysis with category header
+                category_header = f"\n{'='*80}\n{category.upper()} CATEGORY REVIEW\n{'='*80}\n\n"
+                all_analyses.append(category_header + analysis_part)
+                
+                # Update current_content for next category
+                current_content = corrected_only
+                print(f"  ✓ Category '{category}' analysis and corrections complete")
+            else:
+                all_analyses.append(review)
+                print(f"  ⚠️ Could not extract corrected content for '{category}'")
         else:
-            print("\n" + "="*80)
-            print("STYLE REVIEW")
-            print("="*80 + "\n")
-            print(review)
+            all_analyses.append(review)
+            print(f"  ⚠️ No corrected content found for '{category}'")
+        
+        print()  # Blank line between categories
+    
+    # Save both output files
+    print(f"{'='*80}")
+    print("Saving results...")
+    print(f"{'='*80}\n")
+    
+    # Save combined analysis
+    combined_analysis = "\n\n".join(all_analyses)
+    with open(suggestions_file, 'w', encoding='utf-8') as f:
+        f.write(combined_analysis)
+    print(f"✓ Suggestions saved to: {suggestions_file}")
+    print(f"  ({len(categories)} category review{'s' if len(categories) > 1 else ''})")
+    
+    # Save final corrected content
+    with open(corrected_file, 'w', encoding='utf-8') as f:
+        f.write(current_content)
+    print(f"✓ Corrected lecture saved to: {corrected_file}")
+    print(f"  ({len(categories)} sequential correction{'s' if len(categories) > 1 else ''} applied)")
     
     print("\n✓ Style check complete!")
 
