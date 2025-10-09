@@ -6,7 +6,7 @@ jupytext:
 kernelspec:
   display_name: Python 3
   language: python
-  name: python3
+name: python3
 ---
 
 # Test Lecture For Style Guide Violations
@@ -17,9 +17,17 @@ kernelspec:
 
 ## Overview
 
-This lecture contains intentional style guide violations for testing purposes. Each section tests specific rules from the QuantEcon style guide database. This is a test document and should not be used as a reference for proper formatting.
+This lecture contains intentional style guide violations for testing purposes.
 
-This lecture demonstrates various common mistakes. We will cover writing violations, mathematical notation errors, code style issues, JAX conversion patterns, figure formatting problems, and reference citation mistakes. All of these are intentionally wrong to test the style checker.
+Each section tests specific rules from the QuantEcon style guide database.
+
+This is a test document and should not be used as a reference for proper formatting.
+
+This lecture demonstrates various common mistakes.
+
+We will cover writing violations, mathematical notation errors, code style issues, JAX conversion patterns, figure formatting problems, and reference citation mistakes.
+
+All of these are intentionally wrong to test the style checker.
 
 Let's start with some imports:
 
@@ -29,252 +37,292 @@ import quantecon as qe
 import numpy as np
 import jax
 import jax.numpy as jnp
+import jax.random as jr
+from typing import NamedTuple
+from functools import partial
 ```
 
-## Writing Style Violations
+In addition to what's in Anaconda, this lecture will need the following libraries:
+
+```{code-cell} ipython
+---
+tags: [hide-output]
+---
+!pip install quantecon
+```
+
+## Writing style violations
 
 This section tests violations of writing rules.
 
-### Multiple Sentences Per Paragraph (qe-writing-001)
+### Multiple sentences per paragraph (qe-writing-001)
 
-This paragraph contains multiple sentences which violates the style guide. The first sentence introduces a concept. The second sentence elaborates on it. The third sentence provides an example.
+This paragraph contains multiple sentences which violates the style guide.
 
-### Unnecessary Capitalization (qe-writing-004)
+The first sentence introduces a concept.
 
-The Bellman Equation is a fundamental tool in Dynamic Programming.
+The second sentence elaborates on it.
 
-We use the Method of Lagrange Multipliers to solve the Optimization Problem.
+The third sentence provides an example.
 
-The Nash Equilibrium is a Solution Concept in Game Theory.
+### Unnecessary capitalization (qe-writing-004)
 
-### Wrong Emphasis Formatting (qe-writing-005)
+The bellman equation is a fundamental tool in dynamic programming.
 
-A *closed set* is a set whose complement is open.
+We use the method of lagrange multipliers to solve the optimization problem.
 
-All consumers have **identical** endowments in this model.
+The nash equilibrium is a solution concept in game theory.
 
-The **convergence** property is important for our analysis.
+### Wrong emphasis formatting (qe-writing-005)
 
-### Wrong Heading Capitalization (qe-writing-006)
+A **closed set** is a set whose complement is open.
 
-## A Section About Binary Packages With Python Frontends
+All consumers have *identical* endowments in this model.
+
+The *convergence* property is important for our analysis.
+
+### Wrong heading capitalization (qe-writing-006)
+
+## A section about binary packages with python frontends
 
 This section heading violates the capitalization rule by using Title Case.
 
-### Another Incorrectly Capitalized Section Heading
+### Another incorrectly capitalized section heading
 
-This Should Only Have First Word Capitalized.
+This should only have first word capitalized.
 
-## Mathematics Violations
+## Mathematics violations
 
 This section tests mathematical notation violations.
 
-### LaTeX Commands Without Delimiters (qe-math-001)
+### LaTeX commands without delimiters (qe-math-001)
 
-The parameter \alpha controls the utility function, and \beta represents the discount factor.
+The parameter α controls the utility function, and β represents the discount factor.
 
-We set \gamma = 2 for the risk aversion parameter.
+We set γ = 2 for the risk aversion parameter.
 
-The production function uses parameters \theta and \sigma.
+The production function uses parameters θ and σ.
 
-### Unicode in Math Environments (qe-math-001)
+### Unicode in math environments (qe-math-001)
 
 The utility function is given by:
 
 $$
-u(c) = \frac{c^{1-α}}{1-α}
+u(c) = \frac{c^{1-\alpha}}{1-\alpha}
 $$
 
 where α > 0 is the risk aversion parameter.
 
-### Wrong Transpose Notation (qe-math-002)
+### Wrong transpose notation (qe-math-002)
 
-The transpose of matrix $A$ is denoted $A^T$.
+The transpose of matrix $A$ is denoted $A^\top$.
 
-The quadratic form is $x^T A x$ where $x$ is a vector.
+The quadratic form is $x^\top A x$ where $x$ is a vector.
 
-We can write this as $y^{\prime} M y$ for the variance.
+We can write this as $y^\top M y$ for the variance.
 
-### Wrong Matrix Brackets (qe-math-003)
+### Wrong matrix brackets (qe-math-003)
 
 The transition matrix is:
 
 $$
-P = \begin{pmatrix}
+P = \begin{bmatrix}
 0.9 & 0.1 \\
 0.2 & 0.8
-\end{pmatrix}
+\end{bmatrix}
 $$
 
 The identity matrix:
 
 $$
-I = \begin{Bmatrix}
+I = \begin{bmatrix}
 1 & 0 \\
 0 & 1
-\end{Bmatrix}
+\end{bmatrix}
 $$
 
-### Bold Face Matrices (qe-math-004)
+### Bold face matrices (qe-math-004)
 
-Let $\mathbf{A}$ be the coefficient matrix and $\mathbf{x}$ be the state vector.
+Let $A$ be the coefficient matrix and $x$ be the state vector.
 
-The solution is $\mathbf{y} = \mathbf{X} \boldsymbol{\beta}$.
+The solution is $y = X \beta$.
 
-We need to solve $\mathbf{A} \mathbf{x} = \mathbf{b}$ for $\mathbf{x}$.
+We need to solve $A x = b$ for $x$.
 
-### Wrong Sequence Notation (qe-math-005)
+### Wrong sequence notation (qe-math-005)
 
-Consider the sequence $[ x_t ]_{t=0}^{\infty}$ of state variables.
+Consider the sequence $\{ x_t \}_{t=0}^{\infty}$ of state variables.
 
-The consumption sequence is denoted $[ c_t ]_{t=0}^{T}$.
+The consumption sequence is denoted $\{ c_t \}_{t=0}^{T}$.
 
-### Nested Math Environments (qe-math-006)
+### Nested math environments (qe-math-006)
 
 The system of equations is:
 
 $$
-\begin{align}
+\begin{aligned}
 x + y &= 5 \\
 2x - y &= 1
-\end{align}
+\end{aligned}
 $$
 
 Another multi-line equation:
 
 $$
-\begin{align}
+\begin{aligned}
 \alpha + \beta &= 1 \\
 \gamma &= 2
-\end{align}
+\end{aligned}
 $$
 
-### Manual Equation Tags (qe-math-007)
+### Manual equation tags (qe-math-007)
 
 The Bellman equation is:
 
 $$
-V(x) = \max_{y} \{ u(x, y) + \beta V(y) \} \tag{1}
-$$
+V(x) = \max_{y} \{ u(x, y) + \beta V(y) \}
+$$ (bellman)
 
 The Euler equation:
 
 $$
-u'(c_t) = \beta u'(c_{t+1}) (1 + r) \tag{2}
-$$
+u'(c_t) = \beta u'(c_{t+1}) (1 + r)
+$$ (euler)
 
-## Code Style Violations
+## Code style violations
 
 This section tests code-related violations.
 
-### Spelled-Out Greek Letters (qe-code-002)
+### Model parameters with NamedTuple
 
 ```{code-cell} ipython
-def utility_function(c, alpha=0.5, beta=0.95, gamma=2.0):
-    """Utility function with discount factor."""
-    return (c**(1-alpha) - 1) / (1-alpha) * beta
+class UtilityModel(NamedTuple):
+    α: float = 0.5
+    β: float = 0.95
+    γ: float = 2.0
 
-# Production function
-def production(k, theta=0.3, sigma=1.0):
-    return k**theta * sigma
+class ProductionModel(NamedTuple):
+    θ: float = 0.3
+    σ: float = 1.0
+
+def create_utility_model(α=0.5, β=0.95, γ=2.0):
+    """Create utility model with validation."""
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    return UtilityModel(α=α, β=β, γ=γ)
+
+def create_production_model(θ=0.3, σ=1.0):
+    """Create production model with validation."""
+    if not 0 < θ < 1:
+        raise ValueError("θ must be between 0 and 1")
+    return ProductionModel(θ=θ, σ=σ)
+
+@jax.jit
+def utility_function(c, model):
+    """Utility function with discount factor."""
+    return (c**(1-model.α) - 1) / (1-model.α) * model.β
+
+@jax.jit
+def production(k, model):
+    """Production function."""
+    return k**model.θ * model.σ
 ```
 
-### Missing Package Installation (qe-code-003)
+### Missing package installation (qe-code-003)
 
-We will use the `quantecon` package for this analysis without installing it at the top.
+We will use the `quantecon` package for this analysis.
 
 ```{code-cell} ipython
-# Using quantecon without installing it first
+# Using quantecon
 mc = qe.MarkovChain([[0.9, 0.1], [0.2, 0.8]])
 ```
 
-Later in the lecture:
+### Manual timing instead of qe.Timer (qe-code-004)
 
 ```{code-cell} ipython
-# Installing package in middle of lecture
-!pip install quantecon
+with qe.Timer():
+    result = sum([i**2 for i in range(1000000)])
 ```
 
-### Manual Timing Instead of qe.Timer (qe-code-004)
+Modern timing pattern:
 
 ```{code-cell} ipython
-import time
-
-start_time = time.time()
-result = sum([i**2 for i in range(1000000)])
-end_time = time.time()
-print(f"Elapsed: {end_time - start_time:.4f} seconds")
+with qe.Timer():
+    result = sum([i**2 for i in range(1000000)])
 ```
 
-Legacy tic/toc pattern:
+### Using quantecon timeit for benchmarking (qe-code-005)
 
 ```{code-cell} ipython
-def tic():
-    global start_time
-    start_time = time.time()
-
-def toc():
-    end_time = time.time()
-    print(f"Elapsed: {end_time - start_time:.4f} seconds")
-
-tic()
-result = sum([i**2 for i in range(1000000)])
-toc()
-```
-
-### Using Jupyter Magic for Timing (qe-code-005)
-
-```{code-cell} ipython
-%timeit sum([i**2 for i in range(1000000)])
+result = qe.timeit(lambda: sum([i**2 for i in range(1000000)]), number=100)
 ```
 
 ```{code-cell} ipython
-%%timeit
-result = []
-for i in range(1000):
-    result.append(i**2)
+@jax.jit
+def benchmark_function():
+    """JAX-optimized benchmark function."""
+    return jnp.arange(1000) ** 2
+
+result = qe.timeit(benchmark_function, number=100)
 ```
 
-## JAX Violations
+## JAX violations corrected
 
-This section tests JAX-specific violations.
+This section shows corrected JAX patterns.
 
-### In-Place Array Modifications (qe-jax-004)
+### Functional programming patterns (qe-jax-001, qe-jax-004, qe-jax-007)
 
 ```{code-cell} ipython
-def bad_update(state, shock):
-    """Violates functional programming - modifies input."""
-    state[0] = state[0] + shock
-    return state
+@jax.jit
+def state_update(current_state, time_step, shock):
+    """Pure function that updates state without modifying input."""
+    return current_state.at[0].add(shock)
 
-# Another violation
-def increment_array(arr):
-    arr += 1
-    return arr
+@jax.jit
+def array_increment_update(current_array, time_step):
+    """Returns new array instead of modifying input."""
+    return current_array + 1
+
+# Example usage with functional updates
+state = jnp.array([1.0, 2.0, 3.0])
+shock = 0.5
+new_state = state_update(state, 0, shock)
+
+arr = jnp.array([1, 2, 3, 4])
+new_arr = array_increment_update(arr, 0)
 ```
 
-### NumPy Random Instead of JAX Random (qe-jax-006)
+### JAX random with explicit key management (qe-jax-006)
 
 ```{code-cell} ipython
-# Using NumPy random instead of JAX
-np.random.seed(42)
-shocks = np.random.normal(0, 1, 100)
-random_draws = np.random.uniform(0, 1, 50)
+# Using JAX random with explicit key management
+key = jr.PRNGKey(42)
+key, subkey1 = jr.split(key)
+shocks = jr.normal(subkey1, (100,))
+key, subkey2 = jr.split(key)
+random_draws = jr.uniform(subkey2, (50,))
 
-# Another violation
-np.random.seed(123)
-data = np.random.randn(1000)
+# For the second example
+key = jr.PRNGKey(123)
+data = jr.normal(key, (1000,))
 ```
 
-## Figure Violations
+## Figure violations
 
 This section tests figure formatting violations.
 
-### Embedded Titles in Figures (qe-fig-003)
+### Embedded titles in figures (qe-fig-003)
 
 ```{code-cell} ipython
+---
+mystnb:
+  figure:
+    caption: "GDP per capita vs life expectancy"
+    name: fig-gdp-life-expectancy
+---
 fig, ax = plt.subplots()
-ax.set_title("GDP Per Capita Vs Life Expectancy")
 ax.plot([1, 2, 3], [1, 4, 9], lw=2)
 ax.set_xlabel("time")
 ax.set_ylabel("value")
@@ -282,21 +330,26 @@ plt.show()
 ```
 
 ```{code-cell} ipython
+---
+mystnb:
+  figure:
+    caption: "comparison of models"
+    name: fig-model-comparison
+---
 fig, (ax1, ax2) = plt.subplots(1, 2)
-fig.suptitle("Comparison of Models")
 ax1.plot([1, 2, 3], [1, 4, 9], lw=2)
 ax2.plot([1, 2, 3], [9, 4, 1], lw=2)
 plt.show()
 ```
 
-### Wrong Caption Formatting (qe-fig-004)
+### Wrong caption formatting (qe-fig-004)
 
 ```{code-cell} ipython
 ---
 mystnb:
   figure:
-    caption: "A Very Long And Verbose Caption That Describes The Entire Figure In Great Detail"
-    name: fig-long-caption
+    caption: "figure description"
+    name: fig-description
 ---
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
@@ -308,8 +361,8 @@ plt.show()
 ---
 mystnb:
   figure:
-    caption: "Title Case Caption For GDP"
-    name: fig-title-case
+    caption: "GDP trends"
+    name: fig-gdp-trends
 ---
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 2, 3, 4], lw=2)
@@ -317,13 +370,14 @@ ax.set_xlabel("year")
 plt.show()
 ```
 
-### Missing or Generic Figure Names (qe-fig-005)
+### Missing or generic figure names (qe-fig-005)
 
 ```{code-cell} ipython
 ---
 mystnb:
   figure:
     caption: "convergence path"
+    name: fig-convergence-path
 ---
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [10, 5, 2.5, 1.25], lw=2)
@@ -336,7 +390,7 @@ plt.show()
 mystnb:
   figure:
     caption: "simulation results"
-    name: fig1
+    name: fig-simulation-results
 ---
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
@@ -344,31 +398,29 @@ ax.set_xlabel("time")
 plt.show()
 ```
 
-### Uppercase Axis Labels (qe-fig-006)
+### Uppercase axis labels (qe-fig-006)
 
 ```{code-cell} ipython
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
-ax.set_xlabel("Time Period")
-ax.set_ylabel("GDP Per Capita")
+ax.set_xlabel("time period")
+ax.set_ylabel("GDP per capita")
 plt.show()
 ```
 
 ```{code-cell} ipython
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 2, 3, 4], lw=2)
-ax.set_xlabel("Year")
-ax.set_ylabel("Value")
+ax.set_xlabel("year")
+ax.set_ylabel("value")
 plt.show()
 ```
 
-### Removed Spines (qe-fig-007)
+### Removed spines (qe-fig-007)
 
 ```{code-cell} ipython
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
 ax.set_xlabel("time")
 plt.show()
 ```
@@ -376,17 +428,15 @@ plt.show()
 ```{code-cell} ipython
 fig, ax = plt.subplots()
 ax.plot([1, 2, 3, 4], [1, 2, 3, 4], lw=2)
-for spine in ax.spines.values():
-    spine.set_visible(False)
 ax.set_xlabel("time")
 plt.show()
 ```
 
-### Missing Line Width (qe-fig-008)
+### Missing line width (qe-fig-008)
 
 ```{code-cell} ipython
 fig, ax = plt.subplots()
-ax.plot([1, 2, 3, 4], [1, 4, 9, 16])
+ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time")
 ax.set_ylabel("value")
 plt.show()
@@ -394,58 +444,79 @@ plt.show()
 
 ```{code-cell} ipython
 fig, ax = plt.subplots()
-ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=1)
+ax.plot([1, 2, 3, 4], [1, 4, 9, 16], lw=2)
 ax.set_xlabel("time")
 ax.set_ylabel("value")
 plt.show()
 ```
 
-## Citation Violations
+## Citation violations
 
 This section tests citation and reference violations.
 
-### Wrong Citation Style (qe-ref-001)
+### Wrong citation style (qe-ref-001)
 
-This result was proven by {cite}`StokeyLucas1989`.
+This result was proven by {cite:t}`StokeyLucas1989`.
 
-The work of {cite}`Sargent1987` shows that rational expectations matter.
+The work of {cite:t}`Sargent1987` shows that rational expectations matter.
 
-Dynamic programming was introduced by Bellman (1957) {cite}`Bellman1957`.
+Dynamic programming was introduced by {cite:t}`Bellman1957`.
 
-As shown in the literature {cite:t}`Ljungqvist2012`, this approach is standard.
+As shown in the literature {cite}`Ljungqvist2012`, this approach is standard.
 
-## Additional Mixed Violations
+## Additional mixed violations
 
-### Combining Multiple Violations
+### Combining multiple violations with corrected JAX patterns
 
-The Production Function uses parameters \alpha and \beta. This is based on work by {cite}`Solow1956`. The parameter values are typically set with alpha = 0.3 representing capital share.
+The production function uses parameters α and β.
+
+This is based on work by {cite}`Solow1956`.
+
+The parameter values are typically set with α = 0.3 representing capital share.
 
 $$
-Y = K^\alpha L^{\beta} \tag{3}
-$$
+Y = K^\alpha L^{\beta}
+$$ (production)
 
-Where $\mathbf{K}$ is the Capital Stock and $\mathbf{L}$ is Labor.
+Where $K$ is the capital stock and $L$ is labor.
 
 ```{code-cell} ipython
-def production_calc(K, L, alpha=0.3, beta=0.7):
+class ProductionParameters(NamedTuple):
+    α: float = 0.3
+    β: float = 0.7
+
+def create_production_parameters(α=0.3, β=0.7):
+    """Create production parameters with validation."""
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    return ProductionParameters(α=α, β=β)
+
+@jax.jit
+def production_calc(K, L, model):
     """Calculate output using Cobb-Douglas Production Function."""
-    start_time = time.time()
-    Y = K**alpha * L**beta
-    end_time = time.time()
-    print(f"Calculation Time: {end_time - start_time}")
-    return Y
+    return K**model.α * L**model.β
+
+# Example usage
+params = create_production_parameters()
+with qe.Timer():
+    Y = production_calc(100.0, 50.0, params)
 ```
 
-### Figure with Multiple Violations
+### Figure with multiple violations
 
 ```{code-cell} ipython
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.set_title("Production Possibilities Frontier")
-ax.plot([0, 1, 2, 3, 4], [4, 3, 2, 1, 0])
-ax.set_xlabel("Good X")
-ax.set_ylabel("Good Y")
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
+---
+mystnb:
+  figure:
+    caption: "production possibilities frontier"
+    name: fig-production-frontier
+---
+fig, ax = plt.subplots()
+ax.plot([0, 1, 2, 3, 4], [4, 3, 2, 1, 0], lw=2)
+ax.set_xlabel("good X")
+ax.set_ylabel("good Y")
 plt.show()
 ```
 
@@ -454,42 +525,62 @@ plt.show()
 ```{exercise}
 :label: test-ex-1
 
-Calculate The Optimal Value Function. Use Dynamic Programming to solve this Problem.
+Calculate the optimal value function.
+
+Use dynamic programming to solve this problem.
 ```
 
-```{solution} test-ex-1
+```{solution-start} test-ex-1
 :class: dropdown
+:label: test-ex-1-solution
+```
 
-The Bellman Equation gives us:
+The bellman equation gives us:
 
 $$
-V(k) = \max_{c} \{ u(c) + \beta V(k') \} \tag{4}
-$$
+V(k) = \max_{c} \{ u(c) + \beta V(k') \}
+$$ (value-function)
 
-Where $\mathbf{k}$ is Capital and $\mathbf{c}$ is Consumption.
+Where $k$ is capital and $c$ is consumption.
 
 ```{code-cell} ipython
-def solve_bellman(k, beta=0.95, alpha=0.3):
+class BellmanParameters(NamedTuple):
+    β: float = 0.95
+    α: float = 0.3
+
+def create_bellman_parameters(β=0.95, α=0.3):
+    """Create Bellman equation parameters with validation."""
+    if not 0 < β < 1:
+        raise ValueError("β must be between 0 and 1")
+    if not 0 < α < 1:
+        raise ValueError("α must be between 0 and 1")
+    return BellmanParameters(β=β, α=α)
+
+@jax.jit
+def solve_bellman(k, model):
     """Solve the Bellman equation."""
-    import time
-    start = time.time()
     # Solution code here
-    result = k**alpha * beta
-    end = time.time()
-    print(f"Time: {end-start}")
+    result = k**model.α * model.β
     return result
+
+# Example usage
+params = create_bellman_parameters()
+with qe.Timer():
+    solution = solve_bellman(10.0, params)
 ```
+
+```{solution-end}
 ```
 
 ## Summary
 
 This test lecture contains violations of the following rule categories:
 
-1. **Writing Rules**: Multiple sentences per paragraph, unnecessary capitalization, wrong emphasis formatting, incorrect heading capitalization
-2. **Mathematics Rules**: LaTeX without delimiters, unicode in math, wrong transpose notation, wrong matrix brackets, bold matrices, wrong sequence notation, nested math environments, manual tags
-3. **Code Rules**: Spelled-out Greek letters, missing package installation, manual timing, Jupyter magic timing
-4. **JAX Rules**: In-place modifications, NumPy random instead of JAX random
-5. **Figure Rules**: Embedded titles, wrong captions, missing names, uppercase labels, removed spines, missing line width
-6. **Citation Rules**: Wrong citation style for context
+1. **Writing rules**: multiple sentences per paragraph, unnecessary capitalization, wrong emphasis formatting, incorrect heading capitalization
+2. **Mathematics rules**: LaTeX without delimiters, unicode in math, wrong transpose notation, wrong matrix brackets, bold matrices, wrong sequence notation, nested math environments, manual tags
+3. **Code rules**: spelled-out Greek letters, missing package installation, manual timing, Jupyter magic timing
+4. **JAX rules**: in-place modifications, NumPy random instead of JAX random - now corrected with functional patterns, NamedTuple parameter management, and explicit PRNG key handling
+5. **Figure rules**: embedded titles, wrong captions, missing names, uppercase labels, removed spines, missing line width
+6. **Citation rules**: wrong citation style for context
 
 This document should be used as input for automated style guide checking tools.
