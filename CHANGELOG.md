@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2025-10-10
+
 ### Changed
 
 - **Updated qe-writing-001** - Clarified paragraph block definition to prevent false positives
@@ -16,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added "Key distinction" section explaining blank lines vs line breaks
   - Updated implementation note to emphasize paragraph blocks are defined by blank lines
   - Fixes issue where LLM incorrectly flagged already-correct text as violations
+
+### Fixed
+
+- **qe-writing-001 false positives** - LLM now correctly understands paragraph block boundaries
+  - Previously flagged correct text (sentences separated by blank lines) as violations
+  - Added clearer examples and stronger language about blank lines vs line breaks
 
 ## [0.3.6] - 2025-10-10
 
