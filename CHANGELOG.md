@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.9] - 2025-10-10
+
 ### Changed
 
 - **Added action version to PR description** - PR body now includes version number in summary section
+
+### Fixed
+
+- **Fixed PR body length error** - Exceeded GitHub's 65KB limit for PR descriptions
+  - Changed from listing all violation details to summarizing by rule
+  - Groups violations by rule and shows first 2 examples only
+  - Shows count of occurrences per rule (e.g., "15 occurrences")
+  - Includes automatic truncation at 60KB with warning if still too long
+  - Reduces PR body size by ~90% for large violation counts
+  - Users can still see all details in the diff
 
 ## [0.3.8] - 2025-10-10
 
