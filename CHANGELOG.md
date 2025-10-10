@@ -7,40 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **Detailed review reports as PR comments** - Full violation details now posted as collapsible PR comment
-  - Complete details for every violation: location, current text, suggested fix, explanation
-  - Posted as collapsible `<details>` block - click to expand
-  - No repository clutter (not committed to branch)
-  - Never expires (unlike workflow artifacts)
-  - Solves GitHub's 65KB PR body limit while preserving all debugging information
-  - Concise PR summary shows only statistics and rule counts
-  - Best of both worlds: scannable PR description + detailed debugging info in comment
+## [0.3.10] - 2025-10-10
 
 ### Changed
 
-- **Added debug output for rule evaluation order** - Shows LLM's original violation order
-  - Helps diagnose whether LLM is respecting the mandatory rule sequence
-  - Displays first 10 rule IDs in the order LLM identified them
-  - Note: Fix application order (by document position) may differ from identification order
+- **BREAKING: Renumbered writing rules to match evaluation priority** - LLM was ignoring STEP-by-STEP order
+  - `qe-writing-001`: Whitespace formatting (was 008) - STEP 1
+  - `qe-writing-002`: Paragraph structure (was 001) - STEP 2
+  - `qe-writing-003`: Capitalization (was 004) - STEP 3
+  - `qe-writing-004`: Title capitalization (was 006) - STEP 4
+  - `qe-writing-005`: Bold/italic formatting (unchanged) - STEP 5
+  - `qe-writing-006`: Clarity and conciseness (was 002) - STEP 6
+  - `qe-writing-007`: Logical flow (was 003) - STEP 7
+  - `qe-writing-008`: Visual elements (was 007) - STEP 8
+  - **Rationale**: Testing revealed LLM was completely ignoring STEP instructions and always checking rule 001 first (29 violations for 001, zero for 008 despite explicit STEP 1: check 008 first). Hypothesis: LLM is biased toward checking lower-numbered rules first. By aligning rule numbers with evaluation priority, we work with this behavior instead of fighting it.
+  - Rules now match their evaluation order: 001 is checked in STEP 1, 002 in STEP 2, etc.
 
-- **Strengthened sequential rule evaluation instruction** - Made it absolutely explicit
-  - Changed from numbered list to STEP-by-STEP format
-  - Each step explicitly states: "Check the ENTIRE document for ALL instances"
-  - Added "CRITICAL" note: "You MUST complete scanning the entire document for one rule before starting the next"
-  - More verbose but clearer: LLM should report all 008s, then all 001s, then all 004s, etc.
-  - Previous version was being ignored - LLM was interleaving violations from different rules
+### Added
 
-- **Added prompt version detection** - Displays whether using updated or old prompt
-  - Helps verify GitHub Actions cache is using latest code
-  - Shows "✓ Using UPDATED writing prompt" or "⚠️ Using OLD writing prompt"
-
-- **Improved PR body format** - More concise statistics-focused summary
-  - Shows total issues by category
-  - Shows count per rule (not individual locations)
-  - Much shorter and more scannable
-  - Link to full detailed report for complete information
+- **Prompt version tracking** - Added version comment to prompts for better debugging
+  - Format: `<!-- Prompt Version: 0.3.10 | Last Updated: 2025-10-10 | Description -->`
+  - Displayed in logs: "✓ Using writing prompt v0.3.10"
+  - Helps verify correct prompt is loaded (important for GitHub Actions cache)
+  - Replaces previous "SEQUENTIAL RULE EVALUATION" detection check
 
 ## [0.3.9] - 2025-10-10
 

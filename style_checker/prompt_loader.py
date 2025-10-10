@@ -8,6 +8,7 @@ Uses the same approach as tool-style-checker:
 """
 
 from pathlib import Path
+import re
 from typing import List, Optional
 
 
@@ -97,9 +98,14 @@ class PromptLoader:
         with open(prompt_file, 'r') as f:
             prompt = f.read()
         
-        # Debug: Check if we have the SEQUENTIAL RULE EVALUATION instruction
+        # Debug: Check prompt version
         if category == "writing":
-            if "SEQUENTIAL RULE EVALUATION" in prompt:
+            # Check for version comment
+            version_match = re.search(r'<!-- Prompt Version: ([\d.]+)', prompt)
+            if version_match:
+                version = version_match.group(1)
+                print(f"    ✓ Using writing prompt v{version}")
+            elif "SEQUENTIAL RULE EVALUATION" in prompt:
                 print("    ✓ Using UPDATED writing prompt (SEQUENTIAL RULE EVALUATION)")
             else:
                 print("    ⚠️  Using OLD writing prompt (missing SEQUENTIAL RULE EVALUATION)")
