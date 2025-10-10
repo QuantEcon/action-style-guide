@@ -48,39 +48,83 @@ Each rule is categorized as either:
 
 ## Output Format
 
-Structure your response as follows:
+**CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
 
 ```markdown
-# Mathematical Notation Review for [filename]
+# Review Results
 
 ## Summary
-- Total math violations: [number] issues found
-- Critical issues: [number] issues require attention
+[Brief 1-2 sentence summary of your findings]
 
-## Critical Math Issues
+## Issues Found
+[JUST THE NUMBER - e.g., 8]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Equation "[quoted equation]"
-**Current**: `[exact mathematical expression]`
-**Issue**: [brief explanation]
-**Fix**: `[corrected mathematical expression]`
+## Violations
 
-[Continue for all critical issues...]
+### Violation 1: [rule-code] - [Rule Title]
+- **Severity:** error
+- **Location:** Line [X-Y] / Equation "[context]"
+- **Description:** [Brief explanation of the violation]
+- **Current text:**
+```
+[Exact quote of the problematic math expression/equation]
+```
+- **Suggested fix:**
+```
+[The corrected version with proper LaTeX]
+```
+- **Explanation:** [Why this change improves the notation]
 
-## Math Style Suggestions
+### Violation 2: [rule-code] - [Rule Title]
+- **Severity:** warning
+- **Location:** Line [X] / Section "[Section Name]"
+- **Description:** [Brief explanation]
+- **Current text:**
+```
+[Problematic math text]
+```
+- **Suggested fix:**
+```
+[Corrected math text]
+```
+- **Explanation:** [Reasoning for the change]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Equation "[quoted equation]"
-**Current**: `[exact mathematical expression]`
-**Suggestion**: [explanation and recommended improvement]
+[Continue for ALL violations found...]
 
-[Continue for style suggestions...]
+## Corrected Content
 
-## Positive Observations
-[Brief note on well-formatted mathematical sections, if any]
-
-## Mathematical Notation Summary
-[Overall assessment of the mathematical notation quality and main areas for improvement]
+```markdown
+[The COMPLETE corrected lecture file with ALL violations fixed.
+Include the entire file from beginning to end, not just excerpts.]
+```
 ```
 
-**Important**: Provide specific, actionable feedback. Every suggestion should include the exact mathematical expression to change and the recommended replacement with proper LaTeX formatting.
+**CRITICAL FORMATTING RULES:**
+
+1. **Issues Found**: Must contain ONLY a number (e.g., `8`, not `8 issues found`)
+2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
+3. **Severity levels**: Use `error`, `warning`, or `info`
+4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
+5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+6. **Do NOT deviate** from this structure - the parser depends on it
+
+**Important**: If NO violations are found, still use this format:
+```markdown
+# Review Results
+
+## Summary
+No mathematical notation violations found. The lecture follows all math guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+[Leave empty]
+
+## Corrected Content
+
+```markdown
+[Include the original lecture content unchanged]
+```
+```

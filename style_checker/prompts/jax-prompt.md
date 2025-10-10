@@ -48,57 +48,83 @@ Each rule is categorized as either:
 
 ## Output Format
 
-Structure your response as follows:
+**CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
 
 ```markdown
-# JAX Code Style Review for [filename]
+# Review Results
 
 ## Summary
-- Total JAX violations: [number] issues found
-- Critical issues: [number] issues require attention
+[Brief 1-2 sentence summary of your findings]
 
-## Critical JAX Issues
+## Issues Found
+[JUST THE NUMBER - e.g., 6]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: ```python
-[exact problematic code]
+## Violations
+
+### Violation 1: [rule-code] - [Rule Title]
+- **Severity:** error
+- **Location:** Line [X-Y] / Code cell "[context]"
+- **Description:** [Brief explanation of the violation]
+- **Current text:**
 ```
-**Issue**: [brief explanation of JAX problem]
-**Fix**: ```python
-[corrected JAX code]
+[Exact quote of the problematic JAX code]
 ```
-
-[Continue for all critical issues...]
-
-## JAX Migration Opportunities
-
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: [NumPy/imperative pattern description]
-**JAX Alternative**: ```python
-[recommended JAX pattern with examples]
+- **Suggested fix:**
 ```
-**Benefits**: [performance, JIT-compilation, etc.]
-
-[Continue for migration suggestions...]
-
-## JAX Style Suggestions
-
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: ```python
-[functional but suboptimal JAX code]
+[The corrected version with proper JAX patterns]
 ```
-**Suggestion**: [explanation and recommended JAX improvement]
+- **Explanation:** [Why this change improves the JAX code]
 
-[Continue for style suggestions...]
+### Violation 2: [rule-code] - [Rule Title]
+- **Severity:** warning
+- **Location:** Line [X] / Section "[Section Name]"
+- **Description:** [Brief explanation]
+- **Current text:**
+```
+[Problematic JAX text]
+```
+- **Suggested fix:**
+```
+[Corrected JAX text]
+```
+- **Explanation:** [Reasoning for the change]
 
-## Positive Observations
-[Brief note on well-implemented JAX patterns, if any]
+[Continue for ALL violations found...]
 
-## JAX Code Summary
-[Overall assessment of JAX usage and main areas for improvement]
+## Corrected Content
+
+```markdown
+[The COMPLETE corrected lecture file with ALL violations fixed.
+Include the entire file from beginning to end, not just excerpts.]
+```
 ```
 
-**Important**: Focus on JAX-specific improvements. Provide specific, actionable feedback with proper JAX syntax. Every suggestion should demonstrate clear JAX benefits (performance, JIT-compilation, functional programming, etc.).
+**CRITICAL FORMATTING RULES:**
+
+1. **Issues Found**: Must contain ONLY a number (e.g., `6`, not `6 issues found`)
+2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
+3. **Severity levels**: Use `error`, `warning`, or `info`
+4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
+5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+6. **Do NOT deviate** from this structure - the parser depends on it
+
+**Important**: If NO violations are found, still use this format:
+```markdown
+# Review Results
+
+## Summary
+No JAX-specific violations found. The lecture follows all JAX guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+[Leave empty]
+
+## Corrected Content
+
+```markdown
+[Include the original lecture content unchanged]
+```
+```

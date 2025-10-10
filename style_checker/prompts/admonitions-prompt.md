@@ -48,39 +48,83 @@ Each rule is categorized as either:
 
 ## Output Format
 
-Structure your response as follows:
+**CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
 
 ```markdown
-# Admonition Style Review for [filename]
+# Review Results
 
 ## Summary
-- Total admonition violations: [number] issues found
-- Critical issues: [number] issues require attention
+[Brief 1-2 sentence summary of your findings]
 
-## Critical Admonition Issues
+## Issues Found
+[JUST THE NUMBER - e.g., 3]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] 
-**Current**: [exact problematic admonition syntax]
-**Issue**: [brief explanation]
-**Fix**: [specific corrected admonition format]
+## Violations
 
-[Continue for all critical issues...]
+### Violation 1: [rule-code] - [Rule Title]
+- **Severity:** error
+- **Location:** Line [X-Y] / Admonition "[context]"
+- **Description:** [Brief explanation of the violation]
+- **Current text:**
+```
+[Exact quote of the problematic admonition]
+```
+- **Suggested fix:**
+```
+[The corrected version with proper MyST syntax]
+```
+- **Explanation:** [Why this change improves the admonition]
 
-## Admonition Style Suggestions
+### Violation 2: [rule-code] - [Rule Title]
+- **Severity:** warning
+- **Location:** Line [X] / Section "[Section Name]"
+- **Description:** [Brief explanation]
+- **Current text:**
+```
+[Problematic admonition text]
+```
+- **Suggested fix:**
+```
+[Corrected admonition text]
+```
+- **Explanation:** [Reasoning for the change]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X]
-**Current**: [current admonition approach]
-**Suggestion**: [explanation and recommended improvement]
+[Continue for ALL violations found...]
 
-[Continue for style suggestions...]
+## Corrected Content
 
-## Positive Observations
-[Brief note on well-formatted admonitions, if any]
-
-## Admonition Usage Summary
-[Overall assessment of admonition quality and main areas for improvement]
+```markdown
+[The COMPLETE corrected lecture file with ALL violations fixed.
+Include the entire file from beginning to end, not just excerpts.]
+```
 ```
 
-**Important**: Provide specific, actionable feedback. Every suggestion should include exact MyST syntax and demonstrate improved pedagogical presentation.
+**CRITICAL FORMATTING RULES:**
+
+1. **Issues Found**: Must contain ONLY a number (e.g., `3`, not `3 issues found`)
+2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
+3. **Severity levels**: Use `error`, `warning`, or `info`
+4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
+5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+6. **Do NOT deviate** from this structure - the parser depends on it
+
+**Important**: If NO violations are found, still use this format:
+```markdown
+# Review Results
+
+## Summary
+No admonition formatting violations found. The lecture follows all admonition guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+[Leave empty]
+
+## Corrected Content
+
+```markdown
+[Include the original lecture content unchanged]
+```
+```

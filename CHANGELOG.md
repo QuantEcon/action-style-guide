@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-10-10
+
+### Fixed
+
+- **CRITICAL BUG FIX**: Parser format mismatch causing 100% failure in violation detection
+  - **Issue**: v0.3.0 and v0.3.1 reported "No issues found" even when violations existed
+  - **Root Cause**: Prompts requested free-form format but parser expected structured format
+  - **Impact**: Parser couldn't extract violations from Claude responses → always reported 0 issues
+  - **Solution**: Updated all 8 prompt files to request parser-compatible output format
+  - Prompts now explicitly request `## Issues Found\n[NUMBER]` with structured violations
+  - Parser can now successfully extract violation count and details
+  - Fixes complete failure of violation detection in v0.3.0 and v0.3.1
+  - See `BUG-REPORT-PARSER-FORMAT-MISMATCH.md` for detailed analysis
+
+### Changed
+
+- All prompt files now include explicit, detailed output format specifications
+- Format matches what `parse_markdown_response()` expects for reliable parsing
+
 ## [0.3.1] - 2025-10-10
 
 ### Fixed

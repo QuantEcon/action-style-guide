@@ -45,39 +45,83 @@ Each rule is categorized as either:
 
 ## Output Format
 
-Structure your response as follows:
+**CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
 
 ```markdown
-# Writing Style Review for [filename]
+# Review Results
 
 ## Summary
-- Total writing violations: [number] issues found
-- Critical issues: [number] issues require attention
+[Brief 1-2 sentence summary of your findings]
 
-## Critical Writing Issues
+## Issues Found
+[JUST THE NUMBER - e.g., 15]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Section "[Section Name]"
-**Current**: "[exact quoted text]"
-**Issue**: [brief explanation]
-**Fix**: [specific corrected version]
+## Violations
 
-[Continue for all critical issues...]
+### Violation 1: [rule-code] - [Rule Title]
+- **Severity:** error
+- **Location:** Line [X-Y] / Section "[Section Name]"
+- **Description:** [Brief explanation of the violation]
+- **Current text:**
+```
+[Exact quote of the problematic text - can be multiple lines]
+```
+- **Suggested fix:**
+```
+[The corrected version of the text]
+```
+- **Explanation:** [Why this change improves the writing]
 
-## Writing Style Suggestions
+### Violation 2: [rule-code] - [Rule Title]
+- **Severity:** warning
+- **Location:** Line [X] / Section "[Section Name]"
+- **Description:** [Brief explanation]
+- **Current text:**
+```
+[Problematic text]
+```
+- **Suggested fix:**
+```
+[Corrected text]
+```
+- **Explanation:** [Reasoning for the change]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Section "[Section Name]"
-**Current**: "[exact quoted text]"
-**Suggestion**: [explanation and recommended improvement]
+[Continue for ALL violations found...]
 
-[Continue for style suggestions...]
+## Corrected Content
 
-## Positive Observations
-[Brief note on well-written sections, if any]
-
-## Writing Summary
-[Overall assessment of the writing quality and main areas for improvement]
+```markdown
+[The COMPLETE corrected lecture file with ALL violations fixed.
+Include the entire file from beginning to end, not just excerpts.]
+```
 ```
 
-**Important**: Provide specific, actionable feedback. Every suggestion should include the exact text to change and the recommended replacement.
+**CRITICAL FORMATTING RULES:**
+
+1. **Issues Found**: Must contain ONLY a number (e.g., `15`, not `15 issues found`)
+2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
+3. **Severity levels**: Use `error`, `warning`, or `info`
+4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
+5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+6. **Do NOT deviate** from this structure - the parser depends on it
+
+**Important**: If NO violations are found, still use this format:
+```markdown
+# Review Results
+
+## Summary
+No writing style violations found. The lecture follows all writing guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+[Leave empty]
+
+## Corrected Content
+
+```markdown
+[Include the original lecture content unchanged]
+```
+```

@@ -48,54 +48,83 @@ Each rule is categorized as either:
 
 ## Output Format
 
-Structure your response as follows:
+**CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
 
 ```markdown
-# Code Style Review for [filename]
+# Review Results
 
 ## Summary
-- Total code violations: [number] issues found
-- Critical issues: [number] issues require attention
+[Brief 1-2 sentence summary of your findings]
 
-## Critical Code Issues
+## Issues Found
+[JUST THE NUMBER - e.g., 12]
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: ```python
-[exact problematic code]
+## Violations
+
+### Violation 1: [rule-code] - [Rule Title]
+- **Severity:** error
+- **Location:** Line [X-Y] / Code block starting with "[first line]"
+- **Description:** [Brief explanation of the violation]
+- **Current text:**
 ```
-**Issue**: [brief explanation]
-**Fix**: ```python
-[corrected code]
+[Exact quote of the problematic code block]
+```
+- **Suggested fix:**
+```
+[The corrected version with proper syntax highlighting]
+```
+- **Explanation:** [Why this change improves the code presentation]
+
+### Violation 2: [rule-code] - [Rule Title]
+- **Severity:** warning
+- **Location:** Line [X] / Section "[Section Name]"
+- **Description:** [Brief explanation]
+- **Current text:**
+```
+[Problematic code text]
+```
+- **Suggested fix:**
+```
+[Corrected code text]
+```
+- **Explanation:** [Reasoning for the change]
+
+[Continue for ALL violations found...]
+
+## Corrected Content
+
+```markdown
+[The COMPLETE corrected lecture file with ALL violations fixed.
+Include the entire file from beginning to end, not just excerpts.]
+```
 ```
 
-[Continue for all critical issues...]
+**CRITICAL FORMATTING RULES:**
 
-## Code Style Suggestions
+1. **Issues Found**: Must contain ONLY a number (e.g., `12`, not `12 issues found`)
+2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
+3. **Severity levels**: Use `error`, `warning`, or `info`
+4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
+5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+6. **Do NOT deviate** from this structure - the parser depends on it
 
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: ```python
-[exact problematic code]
+**Important**: If NO violations are found, still use this format:
+```markdown
+# Review Results
+
+## Summary
+No code formatting violations found. The lecture follows all code guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+[Leave empty]
+
+## Corrected Content
+
+```markdown
+[Include the original lecture content unchanged]
 ```
-**Suggestion**: [explanation and recommended improvement]
-
-[Continue for style suggestions...]
-
-## Migration Opportunities
-
-### [Rule Code]: [Rule Title]
-**Location**: Line [X] / Code Block [N]
-**Current**: [legacy pattern description]
-**Modern Alternative**: [recommended modern approach with examples]
-
-[Continue for migration suggestions...]
-
-## Positive Observations
-[Brief note on well-formatted code sections, if any]
-
-## Code Style Summary
-[Overall assessment of the code quality and main areas for improvement]
 ```
-
-**Important**: Provide specific, actionable feedback. Every suggestion should include the exact code to change and the recommended replacement with proper Python formatting.
