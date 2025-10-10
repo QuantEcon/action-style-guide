@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Updated qe-writing-001** - Clarified line break handling
+  - Added clarification that sentences can span multiple lines in markdown source
+  - Rule focuses on logical paragraph structure (one sentence per paragraph block), not physical line breaks
+  - Added example showing single sentence spanning multiple lines
+  - Updated implementation note to explain paragraph definition
+
 ## [0.3.4] - 2025-10-10
 
 ### Added

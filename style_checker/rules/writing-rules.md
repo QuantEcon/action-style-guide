@@ -15,6 +15,8 @@ This document contains only the **writing-focused rules** for QuantEcon lecture 
 **Description:**  
 Each paragraph should contain only one sentence. This improves readability and helps readers digest information in clear, focused chunks.
 
+A single sentence may span multiple lines in the markdown source file - this rule concerns logical paragraph structure (one sentence per paragraph block), not physical line breaks.
+
 **Check for:**
 - Paragraphs containing multiple sentences separated by periods
 - Run-on text blocks without paragraph breaks
@@ -33,10 +35,18 @@ This section introduces dynamic programming.
 Dynamic programming is a powerful method for solving optimization problems with recursive structure.
 
 We will use it throughout the lecture series.
+
+<!-- ✅ Also correct: Single sentence spanning multiple lines -->
+This section introduces dynamic programming.
+
+Dynamic programming is a powerful method for solving optimization problems 
+with recursive structure.
+
+We will use it throughout the lecture series.
 ```
 
 **Implementation note:**  
-Can be checked by counting sentences (periods followed by space/newline) within paragraph blocks (text between blank lines). Whitespace formatting between words is handled by qe-writing-008.
+Can be checked by counting sentences (periods followed by space/newline) within paragraph blocks (text between blank lines). A paragraph is defined by blank lines, not line breaks within the text. Whitespace formatting between words is handled by qe-writing-008.
 
 ---
 
