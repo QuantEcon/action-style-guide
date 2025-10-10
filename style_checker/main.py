@@ -87,10 +87,6 @@ def review_single_lecture(
         gh_handler.create_branch(branch_name)
         print(f"✓ Created branch: {branch_name}")
         
-        # Generate detailed report
-        detailed_report = gh_handler.format_detailed_report(review_result, lecture_name)
-        report_filename = f".github/style-reports/{lecture_name}-{timestamp}.md"
-        
         # Commit changes
         commit_msg = gh_handler.format_commit_message(
             review_result.get('violations', []),
@@ -104,22 +100,9 @@ def review_single_lecture(
         )
         print(f"✓ Committed changes")
         
-        # Commit detailed report
-        gh_handler.commit_file(
-            report_filename,
-            detailed_report,
-            f"Add detailed style review report for {lecture_name}",
-            branch_name
-        )
-        print(f"✓ Added detailed report: {report_filename}")
-        
-        # Create PR with link to detailed report
-        # The report will be accessible via the PR's branch
-        repo_name = gh_handler.repository
-        report_url = f"https://github.com/{repo_name}/blob/{branch_name}/{report_filename}"
-        
+        # Create PR with concise summary
         pr_title = f"[{lecture_name}] Style guide review"
-        pr_body = gh_handler.format_pr_body(review_result, lecture_name, report_url)
+        pr_body = gh_handler.format_pr_body(review_result, lecture_name)
         pr_number, pr_url = gh_handler.create_pull_request(
             title=pr_title,
             body=pr_body,
@@ -127,11 +110,14 @@ def review_single_lecture(
             labels=['automated', 'style-guide', 'review']
         )
         print(f"✓ Created PR #{pr_number}: {pr_url}")
-        print(f"📄 Detailed report: {report_url}")
+        
+        # Add detailed report as a collapsible comment
+        detailed_report = gh_handler.format_detailed_report(review_result, lecture_name)
+        gh_handler.add_comment_to_pr(pr_number, detailed_report)
+        print(f"✓ Added detailed report as PR comment")
         
         review_result['pr_number'] = pr_number
         review_result['pr_url'] = pr_url
-        review_result['report_url'] = report_url
     elif create_pr and issues_found == 0:
         print(f"✅ No issues found - no PR needed")
     

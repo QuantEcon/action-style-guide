@@ -378,18 +378,21 @@ class GitHubHandler:
     def format_detailed_report(self, review_result: Dict[str, Any], lecture_name: str) -> str:
         """
         Format detailed review report with all violation details.
-        This is saved as an artifact file for debugging and improvement purposes.
+        This is posted as a PR comment (collapsible) for easy access without cluttering.
         
         Args:
             review_result: Review results dictionary
             lecture_name: Name of the lecture
             
         Returns:
-            Detailed markdown report with all violations
+            Detailed markdown report with all violations (wrapped in <details>)
         """
         from . import __version__
         
-        report = f"# Detailed Style Guide Review Report\n\n"
+        # Wrap in collapsible details block
+        report = f"<details>\n<summary><b>📊 Detailed Style Review Report</b> (click to expand)</summary>\n\n"
+        
+        report += f"# Detailed Style Guide Review Report\n\n"
         report += f"**Lecture:** {lecture_name}\n"
         report += f"**Action Version:** {__version__}\n"
         report += f"**Provider:** {review_result.get('provider', 'N/A')}\n"
@@ -406,54 +409,54 @@ class GitHubHandler:
         
         if not violations:
             report += "*No violations found.*\n"
-            return report
-        
-        # Group by category for organization
-        by_category = {}
-        for v in violations:
-            rule_id = v.get('rule_id', 'unknown')
-            category = rule_id.split('-')[1] if '-' in rule_id else 'other'
-            if category not in by_category:
-                by_category[category] = []
-            by_category[category].append(v)
-        
-        # Output each violation with full details
-        for category, items in sorted(by_category.items()):
-            report += f"### {category.title()} ({len(items)} issues)\n\n"
+        else:
+            # Group by category for organization
+            by_category = {}
+            for v in violations:
+                rule_id = v.get('rule_id', 'unknown')
+                category = rule_id.split('-')[1] if '-' in rule_id else 'other'
+                if category not in by_category:
+                    by_category[category] = []
+                by_category[category].append(v)
             
-            for i, v in enumerate(items, 1):
-                report += f"#### {i}. {v.get('rule_id')} - {v.get('rule_title')}\n\n"
-                report += f"**Location:** {v.get('location', 'Unknown')}\n\n"
-                report += f"**Severity:** {v.get('severity', 'N/A')}\n\n"
+            # Output each violation with full details
+            for category, items in sorted(by_category.items()):
+                report += f"### {category.title()} ({len(items)} issues)\n\n"
                 
-                if v.get('description'):
-                    report += f"**Description:** {v.get('description')}\n\n"
-                
-                if v.get('current_text'):
-                    report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
-                
-                if v.get('suggested_fix'):
-                    report += f"**Suggested fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
-                
-                if v.get('explanation'):
-                    report += f"**Explanation:** {v.get('explanation')}\n\n"
-                
-                report += "---\n\n"
+                for i, v in enumerate(items, 1):
+                    report += f"#### {i}. {v.get('rule_id')} - {v.get('rule_title')}\n\n"
+                    report += f"**Location:** {v.get('location', 'Unknown')}\n\n"
+                    report += f"**Severity:** {v.get('severity', 'N/A')}\n\n"
+                    
+                    if v.get('description'):
+                        report += f"**Description:** {v.get('description')}\n\n"
+                    
+                    if v.get('current_text'):
+                        report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                    
+                    if v.get('suggested_fix'):
+                        report += f"**Suggested fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                    
+                    if v.get('explanation'):
+                        report += f"**Explanation:** {v.get('explanation')}\n\n"
+                    
+                    report += "---\n\n"
+        
+        report += "\n</details>"
         
         return report
 
-    def format_pr_body(self, review_result: Dict[str, Any], lecture_name: str, 
-                       detailed_report_url: Optional[str] = None) -> str:
+    def format_pr_body(self, review_result: Dict[str, Any], lecture_name: str) -> str:
         """
-        Format concise PR body with summary statistics and link to detailed report.
+        Format concise PR body with summary statistics.
+        Detailed report is added as a separate PR comment.
         
         Args:
             review_result: Review results dictionary
             lecture_name: Name of the lecture
-            detailed_report_url: URL to detailed report file in PR
             
         Returns:
-            Concise PR body with summary and link to detailed report
+            Concise PR body with summary
         """
         from . import __version__
         
@@ -508,22 +511,13 @@ class GitHubHandler:
             body += f"- **{rule_id}** - {data['title']}: {count} occurrence{'s' if count != 1 else ''}\n"
         body += "\n"
         
-        # Add link to detailed report if available
-        if detailed_report_url:
-            body += "### 📄 Detailed Report\n\n"
-            body += f"For complete details including all violation explanations, current text, and suggested fixes, see:\n\n"
-            body += f"**➡️ [View Full Review Report]({detailed_report_url})**\n\n"
-        
         # Add LLM summary if available
         if review_result.get('summary'):
             body += f"### 💬 Review Summary\n\n{review_result.get('summary')}\n\n"
         
         body += "---\n\n"
         body += "*🤖 This PR was automatically generated by the QuantEcon Style Guide Checker*\n"
-        if detailed_report_url:
-            body += "*📊 Full violation details are available in the detailed report linked above*\n"
-        else:
-            body += "*📚 Review the changes in the diff for complete details*\n"
+        body += "*📊 See the comment below for complete violation details*\n"
         
         return body
 

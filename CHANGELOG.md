@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Detailed review reports** - Full violation details now saved as artifact in PR
-  - Creates `.github/style-reports/[lecture]-[timestamp].md` file in PR branch
-  - Contains complete details for every violation: location, current text, suggested fix, explanation
-  - PR description includes direct link to view the full report
+- **Detailed review reports as PR comments** - Full violation details now posted as collapsible PR comment
+  - Complete details for every violation: location, current text, suggested fix, explanation
+  - Posted as collapsible `<details>` block - click to expand
+  - No repository clutter (not committed to branch)
+  - Never expires (unlike workflow artifacts)
   - Solves GitHub's 65KB PR body limit while preserving all debugging information
   - Concise PR summary shows only statistics and rule counts
-  - Best of both worlds: scannable PR + detailed debugging info
+  - Best of both worlds: scannable PR description + detailed debugging info in comment
 
 ### Changed
 
