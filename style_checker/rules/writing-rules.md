@@ -13,45 +13,58 @@ This document contains only the **writing-focused rules** for QuantEcon lecture 
 **Title:** Use one sentence per paragraph
 
 **Description:**  
-Each paragraph should contain only one sentence. This improves readability and helps readers digest information in clear, focused chunks.
+Each paragraph block (text separated by blank lines) must contain exactly one sentence. This improves readability and helps readers digest information in clear, focused chunks.
 
-A single sentence may span multiple lines in the markdown source file - this rule concerns logical paragraph structure (one sentence per paragraph block), not physical line breaks.
+**Important:** A paragraph is defined as text between blank lines in the markdown source. Line breaks within text (without blank lines) do NOT create new paragraphs. A single sentence may span multiple lines.
 
 **Check for:**
-- Paragraphs containing multiple sentences separated by periods
-- Run-on text blocks without paragraph breaks
+- Paragraph blocks containing multiple sentences (identified by multiple periods)
+- Multiple complete sentences within the same block of text (between blank lines)
 
 **Associated rules:**  
 This rule focuses on sentence structure and paragraph organization. For whitespace formatting issues (multiple spaces between words), see qe-writing-008.
 
 **Examples:**
+
 ```markdown
-<!-- ❌ Avoid: Multiple sentences in one paragraph -->
+<!-- ❌ VIOLATION: Multiple sentences in one paragraph block -->
 This section introduces the concept of dynamic programming. Dynamic programming is a powerful method for solving optimization problems. We will use it throughout the lecture series.
 
-<!-- ✅ Prefer: One sentence per paragraph -->
+<!-- ❌ VIOLATION: Multiple sentences even with line breaks (no blank lines between) -->
+This section introduces the concept of dynamic programming. Dynamic programming 
+is a powerful method for solving optimization problems. We will use it throughout 
+the lecture series.
+
+<!-- ✅ CORRECT: Each sentence in its own paragraph block (separated by blank lines) -->
 This section introduces dynamic programming.
 
 Dynamic programming is a powerful method for solving optimization problems with recursive structure.
 
 We will use it throughout the lecture series.
 
-<!-- ✅ Also correct: Single sentence spanning multiple lines -->
-This section introduces dynamic programming.
-
+<!-- ✅ CORRECT: Single sentence spanning multiple lines (no blank lines within) -->
 Dynamic programming is a powerful method for solving optimization problems 
 with recursive structure.
 
-We will use it throughout the lecture series.
+<!-- ✅ CORRECT: Already following the rule (each block has one sentence) -->
+Many economic time series display persistent growth that prevents them from being asymptotically stationary and ergodic.
+
+For example, outputs, prices, and dividends typically display irregular but persistent growth.
+
+Asymptotic stationarity and ergodicity are key assumptions needed to make it possible to learn by applying statistical methods.
 ```
 
 **Implementation note:**  
-Can be checked by counting sentences (periods followed by space/newline) within paragraph blocks (text between blank lines). A paragraph is defined by blank lines, not line breaks within the text. Whitespace formatting between words is handled by qe-writing-008.
+Check by counting sentences (periods followed by space/capital or newline) within each paragraph block. Paragraph blocks are defined by blank lines—text separated by blank lines forms distinct paragraphs. Line breaks (without blank lines) within a paragraph do not create new paragraphs. Whitespace formatting between words is handled by qe-writing-008.
+
+**Key distinction:**  
+- **Blank line** = Creates new paragraph (required between sentences)
+- **Line break** = Does not create new paragraph (allowed within sentences)
 
 ---
 
 ### Rule: qe-writing-002
-**Category:** style  
+**Category:** rule  
 **Title:** Keep writing clear, concise, and valuable
 
 **Description:**  
