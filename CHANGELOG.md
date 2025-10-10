@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Displays first 10 rule IDs in the order LLM identified them
   - Note: Fix application order (by document position) may differ from identification order
 
+- **Strengthened sequential rule evaluation instruction** - Made it absolutely explicit
+  - Changed from numbered list to STEP-by-STEP format
+  - Each step explicitly states: "Check the ENTIRE document for ALL instances"
+  - Added "CRITICAL" note: "You MUST complete scanning the entire document for one rule before starting the next"
+  - More verbose but clearer: LLM should report all 008s, then all 001s, then all 004s, etc.
+  - Previous version was being ignored - LLM was interleaving violations from different rules
+
 ## [0.3.9] - 2025-10-10
 
 ### Changed

@@ -18,17 +18,41 @@ Each rule is categorized as either:
 
 2. **Read the entire lecture carefully** to understand its context, topic, and flow before identifying violations.
 
-3. **CRITICAL: Apply rules in this EXACT order** - Do NOT skip ahead or check rules out of sequence:
-   1. **qe-writing-008** - Whitespace formatting (mechanical cleanup)
-   2. **qe-writing-001** - Paragraph structure (foundational organization)
-   3. **qe-writing-004** - Capitalization (mechanical correction)
-   4. **qe-writing-006** - Title capitalization (mechanical correction)
-   5. **qe-writing-005** - Bold/italic formatting (contextual formatting)
-   6. **qe-writing-002** - Clarity and conciseness (editorial judgment)
-   7. **qe-writing-003** - Logical flow (editorial judgment)
-   8. **qe-writing-007** - Visual elements (creative enhancement)
+3. **CRITICAL: SEQUENTIAL RULE EVALUATION - Complete each rule ENTIRELY before moving to the next**:
    
-   **This sequence is MANDATORY, not optional.** Check each rule in order before moving to the next. Each rule benefits from the corrections made by earlier rules in the sequence.
+   **STEP 1:** Check the ENTIRE document for ALL instances of **qe-writing-008** (Whitespace formatting)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 2
+   
+   **STEP 2:** Check the ENTIRE document for ALL instances of **qe-writing-001** (Paragraph structure)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 3
+   
+   **STEP 3:** Check the ENTIRE document for ALL instances of **qe-writing-004** (Capitalization)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 4
+   
+   **STEP 4:** Check the ENTIRE document for ALL instances of **qe-writing-006** (Title capitalization)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 5
+   
+   **STEP 5:** Check the ENTIRE document for ALL instances of **qe-writing-005** (Bold/italic formatting)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 6
+   
+   **STEP 6:** Check the ENTIRE document for ALL instances of **qe-writing-002** (Clarity and conciseness)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 7
+   
+   **STEP 7:** Check the ENTIRE document for ALL instances of **qe-writing-003** (Logical flow)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them before proceeding to Step 8
+   
+   **STEP 8:** Check the ENTIRE document for ALL instances of **qe-writing-007** (Visual elements)
+   - Find EVERY occurrence of this violation throughout the document
+   - Report ALL of them
+   
+   **CRITICAL**: You MUST complete scanning the entire document for one rule before starting the next rule. Do NOT interleave violations from different rules. The output should show all 008s, then all 001s, then all 004s, etc.
 
 4. **Check systematically** against writing rules (qe-writing-*):
    - Sentence structure and paragraph organization
