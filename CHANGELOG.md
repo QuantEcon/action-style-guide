@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Action now fails on errors** - Exit with code 1 when LLM errors occur
+  - Previously printed error but continued with exit code 0
+  - Now properly exits with failure code when errors detected
+  - Helps catch issues like "Overloaded" API errors
+  - Both single and bulk modes now fail appropriately on errors
+
 ## [0.3.7] - 2025-10-10
 
 ### Changed

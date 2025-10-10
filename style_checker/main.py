@@ -74,6 +74,7 @@ def review_single_lecture(
     
     if 'error' in review_result:
         print(f"❌ Error during review: {review_result['error']}")
+        print(f"❌ Review failed - exiting with error")
         return review_result
     
     # Create PR if requested
@@ -360,7 +361,9 @@ def main():
                 print(f"Status: ⚠️  Issues found but no PR created")
             
             if 'error' in result:
-                print(f"Error: {result['error']}")
+                print(f"❌ Error: {result['error']}")
+                print(f"{'='*60}\n")
+                sys.exit(1)  # Exit with failure code
             print(f"{'='*60}\n")
             
         else:  # bulk mode
@@ -401,7 +404,9 @@ def main():
                 print(f"Status: ⚠️  Issues found but no PR created")
             
             if 'error' in result:
-                print(f"Error: {result['error']}")
+                print(f"❌ Error: {result['error']}")
+                print(f"{'='*60}\n")
+                sys.exit(1)  # Exit with failure code
             print(f"{'='*60}\n")
         
         print(f"\n{'='*60}")
