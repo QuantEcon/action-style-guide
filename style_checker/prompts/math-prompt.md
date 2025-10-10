@@ -1,4 +1,4 @@
-wq# QuantEcon Mathematics Style Checker Prompt
+# QuantEcon Mathematics Style Checker Prompt
 
 You are an expert technical writing editor specializing in QuantEcon lecture materials. Your task is to review a lecture document for **mathematical notation violations only** and provide specific, actionable suggestions for improvement.
 
@@ -66,13 +66,13 @@ Each rule is categorized as either:
 - **Location:** Line [X-Y] / Equation "[context]"
 - **Description:** [Brief explanation of the violation]
 - **Current text:**
-```
+~~~markdown
 [Exact quote of the problematic math expression/equation]
-```
+~~~
 - **Suggested fix:**
-```
+~~~markdown
 [The corrected version with proper LaTeX]
-```
+~~~
 - **Explanation:** [Why this change improves the notation]
 
 ### Violation 2: [rule-code] - [Rule Title]
@@ -80,13 +80,13 @@ Each rule is categorized as either:
 - **Location:** Line [X] / Section "[Section Name]"
 - **Description:** [Brief explanation]
 - **Current text:**
-```
+~~~markdown
 [Problematic math text]
-```
+~~~
 - **Suggested fix:**
-```
+~~~markdown
 [Corrected math text]
-```
+~~~
 - **Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
@@ -102,6 +102,7 @@ Each rule is categorized as either:
 6. **Do NOT deviate** from this structure - the parser depends on it
 
 **Important**: If NO violations are found, still use this format:
+
 ```markdown
 # Review Results
 

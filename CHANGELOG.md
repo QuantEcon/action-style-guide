@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.17] - 2025-10-11
+
+### Changed
+
+- **LLM prompt output format** - Updated all prompts to use tilde fences in output examples
+  - Changed from triple backticks to `~~~markdown` for "Current text" and "Suggested fix" blocks in prompt templates
+  - LLM now generates responses that match GitHub handler's tilde fence format
+  - Ensures consistency between what LLM is instructed to output and what GitHub handler expects
+  - Affects all 8 category prompts: writing, math, code, jax, figures, references, links, admonitions
+  - Completes migration from 4-backtick approach (v0.3.15) to tilde fence standard (v0.3.16)
+
+## [0.3.16] - 2025-10-10
+
+### Changed
+
+- **PR comment fence markers** - Use tilde (`~~~`) fences instead of backticks for markdown blocks
+  - Changed all PR comment code blocks from ` ````markdown` to `~~~markdown`
+  - Uses tildes for outer fences, preserving backticks for MyST Markdown content
+  - Prevents fence depth conflicts with nested directives (e.g., ` ```{code-cell}`, ` ```{note}`)
+  - More elegant solution per GitHub Flavored Markdown spec
+  - Updated all prompt files to instruct LLM to use tilde fences
+  - Updated tests to verify tilde fence usage
+
 ## [0.3.15] - 2025-10-10
 
 ### Changed

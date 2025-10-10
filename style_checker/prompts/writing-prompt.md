@@ -65,13 +65,13 @@ Each rule is categorized as either:
 - **Location:** Line [X-Y] / Section "[Section Name]"
 - **Description:** [Brief explanation of the violation]
 - **Current text:**
-```markdown
+~~~markdown
 [Exact quote of the problematic text - can be multiple lines]
-```
+~~~
 - **Suggested fix:**
-```markdown
+~~~markdown
 [The corrected version of the text]
-```
+~~~
 - **Explanation:** [Why this change improves the writing]
 
 ### Violation 2: [rule-code] - [Rule Title]
@@ -79,13 +79,13 @@ Each rule is categorized as either:
 - **Location:** Line [X] / Section "[Section Name]"
 - **Description:** [Brief explanation]
 - **Current text:**
-```markdown
+~~~markdown
 [Problematic text]
-```
+~~~
 - **Suggested fix:**
-```markdown
+~~~markdown
 [Corrected text]
-```
+~~~
 - **Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
@@ -101,6 +101,7 @@ Each rule is categorized as either:
 6. **Do NOT deviate** from this structure - the parser depends on it
 
 **Important**: If NO violations are found, still use this format:
+
 ```markdown
 # Review Results
 

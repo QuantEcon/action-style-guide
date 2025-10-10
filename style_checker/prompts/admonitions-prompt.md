@@ -66,13 +66,13 @@ Each rule is categorized as either:
 - **Location:** Line [X-Y] / Admonition "[context]"
 - **Description:** [Brief explanation of the violation]
 - **Current text:**
-```
+~~~markdown
 [Exact quote of the problematic admonition]
-```
+~~~
 - **Suggested fix:**
-```
+~~~markdown
 [The corrected version with proper MyST syntax]
-```
+~~~
 - **Explanation:** [Why this change improves the admonition]
 
 ### Violation 2: [rule-code] - [Rule Title]
@@ -80,13 +80,13 @@ Each rule is categorized as either:
 - **Location:** Line [X] / Section "[Section Name]"
 - **Description:** [Brief explanation]
 - **Current text:**
-```
+~~~markdown
 [Problematic admonition text]
-```
+~~~
 - **Suggested fix:**
-```
+~~~markdown
 [Corrected admonition text]
-```
+~~~
 - **Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
@@ -102,6 +102,7 @@ Each rule is categorized as either:
 6. **Do NOT deviate** from this structure - the parser depends on it
 
 **Important**: If NO violations are found, still use this format:
+
 ```markdown
 # Review Results
 

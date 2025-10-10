@@ -27,8 +27,8 @@ def create_mock_handler():
     return handler
 
 
-def test_format_detailed_report_uses_four_backticks():
-    """Test that format_detailed_report uses 4 backticks for markdown blocks"""
+def test_format_detailed_report_uses_tilde_fences():
+    """Test that format_detailed_report uses ~~~ fences for markdown blocks"""
     handler = create_mock_handler()
     
     review_result = {
@@ -48,17 +48,17 @@ def test_format_detailed_report_uses_four_backticks():
     
     report = handler.format_detailed_report(review_result, 'test_lecture')
     
-    # Should use 4 backticks for markdown blocks
-    assert '````markdown' in report, "Report should use 4 backticks for markdown blocks"
-    # Should NOT use 3 backticks for markdown blocks
-    four_tick_count = report.count('````markdown')
-    three_tick_count = report.count('```markdown') - four_tick_count
-    assert three_tick_count == 0, f"Found {three_tick_count} three-backtick markdown blocks"
-    assert four_tick_count > 0, "Should have at least one four-backtick markdown block"
+    # Should use ~~~ (tilde) fences for markdown blocks
+    assert '~~~markdown' in report, "Report should use tilde fences for markdown blocks"
+    # Should NOT use ` ````markdown` (four backticks)
+    assert '````markdown' not in report, "Report should not use four-backtick markdown blocks"
+    # Count tilde fences
+    tilde_fence_count = report.count('~~~markdown')
+    assert tilde_fence_count > 0, "Should have at least one tilde-fenced markdown block"
 
 
-def test_format_applied_fixes_report_uses_four_backticks():
-    """Test that format_applied_fixes_report uses 4 backticks for markdown blocks"""
+def test_format_applied_fixes_report_uses_tilde_fences():
+    """Test that format_applied_fixes_report uses ~~~ fences for markdown blocks"""
     handler = create_mock_handler()
     
     review_result = {
@@ -75,17 +75,17 @@ def test_format_applied_fixes_report_uses_four_backticks():
     
     report = handler.format_applied_fixes_report(review_result, 'test_lecture')
     
-    # Should use 4 backticks for markdown blocks
-    assert '````markdown' in report, "Report should use 4 backticks for markdown blocks"
-    # Verify no 3-backtick markdown blocks
-    four_tick_count = report.count('````markdown')
-    three_tick_count = report.count('```markdown') - four_tick_count
-    assert three_tick_count == 0, f"Found {three_tick_count} three-backtick markdown blocks"
-    assert four_tick_count == 2, "Should have 2 four-backtick markdown blocks (current + fix)"
+    # Should use ~~~ (tilde) fences for markdown blocks
+    assert '~~~markdown' in report, "Report should use tilde fences for markdown blocks"
+    # Should NOT use four backticks
+    assert '````markdown' not in report, "Report should not use four-backtick markdown blocks"
+    # Should have 2 tilde fences (current + fix)
+    tilde_fence_count = report.count('~~~markdown')
+    assert tilde_fence_count == 2, "Should have 2 tilde-fenced markdown blocks (current + fix)"
 
 
-def test_format_style_suggestions_report_uses_four_backticks():
-    """Test that format_style_suggestions_report uses 4 backticks for markdown blocks"""
+def test_format_style_suggestions_report_uses_tilde_fences():
+    """Test that format_style_suggestions_report uses ~~~ fences for markdown blocks"""
     handler = create_mock_handler()
     
     review_result = {
@@ -103,17 +103,17 @@ def test_format_style_suggestions_report_uses_four_backticks():
     
     report = handler.format_style_suggestions_report(review_result, 'test_lecture')
     
-    # Should use 4 backticks for markdown blocks
-    assert '````markdown' in report, "Report should use 4 backticks for markdown blocks"
-    # Verify no 3-backtick markdown blocks
-    four_tick_count = report.count('````markdown')
-    three_tick_count = report.count('```markdown') - four_tick_count
-    assert three_tick_count == 0, f"Found {three_tick_count} three-backtick markdown blocks"
-    assert four_tick_count == 2, "Should have 2 four-backtick markdown blocks (current + fix)"
+    # Should use ~~~ (tilde) fences for markdown blocks
+    assert '~~~markdown' in report, "Report should use tilde fences for markdown blocks"
+    # Should NOT use four backticks
+    assert '````markdown' not in report, "Report should not use four-backtick markdown blocks"
+    # Should have 2 tilde fences (current + fix)
+    tilde_fence_count = report.count('~~~markdown')
+    assert tilde_fence_count == 2, "Should have 2 tilde-fenced markdown blocks (current + fix)"
 
 
-def test_four_backticks_handles_nested_code_blocks():
-    """Test that 4 backticks properly handle content with nested 3-backtick code blocks"""
+def test_tilde_fences_handle_nested_code_blocks():
+    """Test that ~~~ fences properly handle content with nested ```-backtick code blocks"""
     handler = create_mock_handler()
     
     # Content with nested 3-backtick code blocks (common in MyST Markdown directives)
@@ -144,27 +144,27 @@ This is a note
     
     report = handler.format_applied_fixes_report(review_result, 'test_lecture')
     
-    # The nested 3-backtick blocks should be preserved inside the 4-backtick fence
-    assert '````markdown' in report
+    # The nested 3-backtick blocks should be preserved inside the ~~~ fence
+    assert '~~~markdown' in report
     assert '```{code-cell} python' in report
     assert '```{note}' in report
-    # The outer fence should use 4 backticks
-    assert report.count('````markdown') == 2  # Opening for current_text and suggested_fix
+    # The outer fence should use tildes
+    assert report.count('~~~markdown') == 2  # Opening for current_text and suggested_fix
 
 
 if __name__ == '__main__':
     print("Testing GitHub handler PR comment formatting...\n")
     
-    test_format_detailed_report_uses_four_backticks()
-    print("✅ test_format_detailed_report_uses_four_backticks")
+    test_format_detailed_report_uses_tilde_fences()
+    print("✅ test_format_detailed_report_uses_tilde_fences")
     
-    test_format_applied_fixes_report_uses_four_backticks()
-    print("✅ test_format_applied_fixes_report_uses_four_backticks")
+    test_format_applied_fixes_report_uses_tilde_fences()
+    print("✅ test_format_applied_fixes_report_uses_tilde_fences")
     
-    test_format_style_suggestions_report_uses_four_backticks()
-    print("✅ test_format_style_suggestions_report_uses_four_backticks")
+    test_format_style_suggestions_report_uses_tilde_fences()
+    print("✅ test_format_style_suggestions_report_uses_tilde_fences")
     
-    test_four_backticks_handles_nested_code_blocks()
-    print("✅ test_four_backticks_handles_nested_code_blocks")
+    test_tilde_fences_handle_nested_code_blocks()
+    print("✅ test_tilde_fences_handle_nested_code_blocks")
     
     print("\n🎉 All tests passed!")

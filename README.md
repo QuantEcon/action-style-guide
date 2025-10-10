@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.3.15-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.3.17-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.3.15**: Four-backtick markdown formatting in PR comments to handle nested MyST directives!
+> 🚀 **Version 0.3.17**: LLM prompts now use tilde fences in output examples - complete consistency!
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
