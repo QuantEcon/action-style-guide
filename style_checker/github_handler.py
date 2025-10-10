@@ -432,10 +432,10 @@ class GitHubHandler:
                         report += f"**Description:** {v.get('description')}\n\n"
                     
                     if v.get('current_text'):
-                        report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                        report += f"**Current text:**\n````markdown\n{v.get('current_text')}\n````\n\n"
                     
                     if v.get('suggested_fix'):
-                        report += f"**Suggested fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                        report += f"**Suggested fix:**\n````markdown\n{v.get('suggested_fix')}\n````\n\n"
                     
                     if v.get('explanation'):
                         report += f"**Explanation:** {v.get('explanation')}\n\n"
@@ -498,10 +498,10 @@ class GitHubHandler:
                     report += f"**Description:** {v.get('description')}\n\n"
                 
                 if v.get('current_text'):
-                    report += f"**Original text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                    report += f"**Original text:**\n````markdown\n{v.get('current_text')}\n````\n\n"
                 
                 if v.get('suggested_fix'):
-                    report += f"**Applied fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                    report += f"**Applied fix:**\n````markdown\n{v.get('suggested_fix')}\n````\n\n"
                 
                 if v.get('explanation'):
                     report += f"**Explanation:** {v.get('explanation')}\n\n"
@@ -563,10 +563,10 @@ class GitHubHandler:
                     report += f"**Description:** {v.get('description')}\n\n"
                 
                 if v.get('current_text'):
-                    report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                    report += f"**Current text:**\n````markdown\n{v.get('current_text')}\n````\n\n"
                 
                 if v.get('suggested_fix'):
-                    report += f"**Suggested improvement:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                    report += f"**Suggested improvement:**\n````markdown\n{v.get('suggested_fix')}\n````\n\n"
                 
                 if v.get('explanation'):
                     report += f"**Explanation:** {v.get('explanation')}\n\n"

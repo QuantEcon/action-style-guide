@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.15] - 2025-10-10
+
+### Changed
+
+- **PR comment markdown formatting** - Use four backticks for code blocks
+  - Changed all PR comment markdown code blocks from ` ```markdown` to ` ````markdown`
+  - Prevents rendering issues when MyST Markdown content contains nested directives with three-backtick code blocks
+  - Affects `format_detailed_report()`, `format_applied_fixes_report()`, and `format_style_suggestions_report()`
+
 ## [0.3.14] - 2025-10-10
 
 ### Added
