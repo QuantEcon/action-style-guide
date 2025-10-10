@@ -26,10 +26,22 @@ def review_single_lecture(
     style_guide_path: str,
     lectures_path: str,
     create_pr: bool,
-    pr_branch_prefix: str
+    pr_branch_prefix: str,
+    categories: Optional[List[str]] = None
 ) -> dict:
     """
-    Review a single lecture and optionally create PR
+    Review a single lecture and optionally create PR.
+    
+    Args:
+        lecture_name: Name of the lecture to review
+        gh_handler: GitHub API handler
+        reviewer: LLM-based style reviewer
+        style_guide_path: Path to style guide database
+        lectures_path: Path to lectures directory
+        create_pr: Whether to create a PR with fixes
+        pr_branch_prefix: Prefix for PR branch name
+        categories: Optional list of categories to check (e.g., ["writing", "math"])
+                   If None or ["all"], uses smart semantic grouping
     
     Returns:
         Dictionary with review results and PR info
@@ -59,8 +71,14 @@ def review_single_lecture(
     print(f"✓ Loaded {len(style_guide.rules)} total rules")
     print(f"✓ Using {len(actionable_rules)} actionable rules (category='rule')")
     
-    # Perform review using smart semantic grouping strategy
-    review_result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
+    # Perform review
+    if not categories or categories == ['all']:
+        # Use smart semantic grouping strategy (default behavior)
+        review_result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
+    else:
+        # Use specific categories requested by user
+        print(f"🎯 Checking specific categories: {', '.join(categories)}")
+        review_result = reviewer.review_lecture(content, categories, lecture_name)
     
     issues_found = review_result.get('issues_found', 0)
     print(f"\n📊 Review complete: {issues_found} issues found")
@@ -309,12 +327,16 @@ def main():
     # Run review
     try:
         if args.mode == 'single':
-            # Extract lecture name from comment
+            # Extract lecture name and categories from comment
             if args.comment_body:
-                lecture_name = gh_handler.extract_lecture_from_comment(args.comment_body)
-                if not lecture_name:
+                result = gh_handler.extract_lecture_from_comment(args.comment_body)
+                if not result:
                     print("❌ Could not extract lecture name from comment")
                     sys.exit(1)
+                
+                lecture_name, categories = result
+                print(f"📝 Lecture: {lecture_name}")
+                print(f"🏷️  Categories: {', '.join(categories)}")
             else:
                 print("❌ --comment-body required for single mode")
                 sys.exit(1)
@@ -326,7 +348,8 @@ def main():
                 style_guide_path=args.style_guide,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
-                pr_branch_prefix=args.pr_branch_prefix
+                pr_branch_prefix=args.pr_branch_prefix,
+                categories=categories
             )
             
             # Set outputs for GitHub Actions (using environment file)

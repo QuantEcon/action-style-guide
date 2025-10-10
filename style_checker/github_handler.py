@@ -26,24 +26,32 @@ class GitHubHandler:
         self.repo = self.github.get_repo(repository)
         self.repository = repository
     
-    def extract_lecture_from_comment(self, comment_body: str) -> Optional[str]:
+    def extract_lecture_from_comment(self, comment_body: str) -> Optional[Tuple[str, List[str]]]:
         """
-        Extract lecture name from issue comment
+        Extract lecture name and categories from issue comment.
+        
+        Supports both old and new syntax:
+        - Old: @quantecon-style-guide lecture_name
+        - New: @qe-style-checker lecture_name writing,math
         
         Args:
             comment_body: Full comment text
             
         Returns:
-            Lecture name or None if not found
+            Tuple of (lecture_name, categories) or None if not found.
+            Categories is a list like ["writing", "math"] or ["all"] if not specified.
         """
-        # Match @quantecon-style-guide followed by lecture name
-        patterns = [
-            r'@quantecon-style-guide\s+(\S+)',  # Basic pattern
-            r'@quantecon-style-guide\s+`(\S+)`',  # With backticks
-            r'@quantecon-style-guide\s+lectures/(\S+)',  # With lectures/ prefix
+        # New syntax: @qe-style-checker lecture_name [categories]
+        new_patterns = [
+            r'@qe-style-checker\s+(\S+)\s+([\w,]+)',  # With categories
+            r'@qe-style-checker\s+`(\S+)`\s+([\w,]+)',  # With backticks and categories
+            r'@qe-style-checker\s+lectures/(\S+)\s+([\w,]+)',  # With lectures/ prefix and categories
+            r'@qe-style-checker\s+(\S+)',  # Without categories (default to "all")
+            r'@qe-style-checker\s+`(\S+)`',  # With backticks only
+            r'@qe-style-checker\s+lectures/(\S+)',  # With lectures/ prefix only
         ]
         
-        for pattern in patterns:
+        for pattern in new_patterns:
             match = re.search(pattern, comment_body)
             if match:
                 lecture = match.group(1)
@@ -51,7 +59,31 @@ class GitHubHandler:
                 lecture = lecture.replace('.md', '')
                 # Remove lectures/ prefix if present
                 lecture = lecture.replace('lectures/', '')
-                return lecture
+                
+                # Parse categories if provided (group 2)
+                if len(match.groups()) > 1 and match.group(2):
+                    categories = [cat.strip() for cat in match.group(2).split(',')]
+                else:
+                    categories = ['all']  # Default to all categories
+                
+                return (lecture, categories)
+        
+        # Fall back to old syntax for backward compatibility
+        old_patterns = [
+            r'@quantecon-style-guide\s+(\S+)',  # Basic pattern
+            r'@quantecon-style-guide\s+`(\S+)`',  # With backticks
+            r'@quantecon-style-guide\s+lectures/(\S+)',  # With lectures/ prefix
+        ]
+        
+        for pattern in old_patterns:
+            match = re.search(pattern, comment_body)
+            if match:
+                lecture = match.group(1)
+                # Remove .md extension if present
+                lecture = lecture.replace('.md', '')
+                # Remove lectures/ prefix if present
+                lecture = lecture.replace('lectures/', '')
+                return (lecture, ['all'])  # Old syntax defaults to all
         
         return None
     

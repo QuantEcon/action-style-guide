@@ -1,7 +1,8 @@
 name: Style Guide Comment Trigger
 
-# This workflow triggers when someone comments on an issue with @quantecon-style-guide
-# Also triggers on issue creation/editing to catch the trigger in the initial description
+# This workflow triggers when someone comments on an issue with @qe-style-checker
+# Also supports legacy @quantecon-style-guide trigger
+# Triggers on issue creation/editing to catch the trigger in the initial description
 on:
   issues:
     types: [opened, edited]
@@ -10,8 +11,8 @@ on:
 
 jobs:
   check-trigger:
-    # Only run if comment contains the trigger phrase
-    if: contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@quantecon-style-guide')
+    # Only run if comment contains the trigger phrase (new or legacy)
+    if: contains(github.event.comment.body, '@qe-style-checker') || contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@qe-style-checker') || contains(github.event.issue.body, '@quantecon-style-guide')
     runs-on: ubuntu-latest
     
     permissions:

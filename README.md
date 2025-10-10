@@ -1,27 +1,27 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
-[![Status](https://img.shields.io/badge/status-development-orange.svg)](https://github.com/QuantEcon/action-style-guide)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> ⚠️ **Development Release**: This is version 0.2.0 - currently in testing phase. Please report any issues or feedback!
+> ✨ **Version 0.2.1**: Now with simplified prompts and category-based reviews!
 
 A GitHub Action and bot for automated style guide compliance checking of QuantEcon lecture materials.
 
 ## Overview
 
-This action automatically reviews MyST Markdown lecture files against the comprehensive [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses AI-powered analysis to check 50+ style rules covering writing, formatting, mathematics, code, JAX patterns, and more.
+This action automatically reviews MyST Markdown lecture files against the comprehensive [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses AI-powered analysis with category-specific prompts to check 50+ style rules covering writing, formatting, mathematics, code, JAX patterns, and more.
 
 ## Features
 
-- 🤖 **AI-Powered Review**: Intelligent checking using LLM to understand context and suggest improvements
-- 📝 **Comprehensive Rule Coverage**: Checks all style guide rules from writing style to technical requirements
-- 🎯 **Single Lecture Reviews**: Trigger reviews via issue comments for focused, manageable PRs
-- 📅 **Scheduled Bulk Reviews**: Weekly automated reviews of all lectures with individual commits per file
-- 🔄 **Updatable Rules**: Style guide rules stored in Markdown format, easy to update and extend
-- 📊 **Category System**: Rules organized by category (`rule`, `style`, `migrate`) for targeted reviews
-- 🎯 **Actionable Rules**: Automatically applies only `rule` category fixes (clearly actionable improvements)
-- 🏷️ **Automated PR Management**: Creates properly labeled PRs with detailed change descriptions
+- 🤖 **AI-Powered Review**: Intelligent checking using Claude/GPT/Gemini to understand context
+- 🏷️ **Category-Based Reviews**: Target specific areas (writing, math, code, jax, figures, references, links, admonitions)
+- 📝 **Comprehensive Rule Coverage**: 50+ style rules from writing style to technical requirements
+- 🎯 **Single Lecture Reviews**: Trigger reviews via issue comments with optional category filtering
+- 📅 **Scheduled Bulk Reviews**: Weekly automated reviews of all lectures
+- 🔄 **Markdown-Based Prompts**: Easy-to-update prompt templates for each category
+- 🎯 **Actionable Rules**: Automatically applies only `rule` category fixes
+- 🏷️ **Automated PR Management**: Creates labeled PRs with detailed change descriptions
 
 ## Usage
 
@@ -30,20 +30,42 @@ This action automatically reviews MyST Markdown lecture files against the compre
 Comment on any issue in your lecture repository:
 
 ```
-@quantecon-style-guide aiyagari
+@qe-style-checker aiyagari
 ```
 
-or
+or with specific categories:
 
 ```
-@quantecon-style-guide lectures/aiyagari.md
+@qe-style-checker aiyagari writing,math
 ```
+
+or check all categories:
+
+```
+@qe-style-checker lectures/aiyagari.md all
+```
+
+**Available Categories:**
+- `writing` - Writing style and formatting
+- `math` - Mathematics notation and LaTeX
+- `code` - Python code style
+- `jax` - JAX-specific patterns
+- `figures` - Figure formatting and captions
+- `references` - Citations and bibliography
+- `links` - Hyperlinks and cross-references  
+- `admonitions` - Note/warning/tip blocks
+- `all` - Check all categories (default if not specified)
 
 This will:
-1. Review the specified lecture against all style guide rules
+1. Review the specified lecture against selected categories
 2. Open a PR titled `[aiyagari] Style guide review` 
 3. Apply labels: `automated`, `style-guide`, `review`
 4. Include detailed explanations of all suggested changes
+
+**Legacy Syntax** (still supported):
+```
+@quantecon-style-guide aiyagari
+```
 
 ### Scheduled Bulk Reviews
 
@@ -86,7 +108,7 @@ on:
 
 jobs:
   check-trigger:
-    if: contains(github.event.comment.body, '@quantecon-style-guide') || contains(github.event.issue.body, '@quantecon-style-guide')
+    if: contains(github.event.comment.body, '@qe-style-checker') || contains(github.event.comment.body, '@quantecon-style-guide')
     runs-on: ubuntu-latest
     steps:
       - uses: QuantEcon/action-style-guide@v0.2

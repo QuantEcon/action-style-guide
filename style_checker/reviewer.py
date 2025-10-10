@@ -3,6 +3,7 @@ LLM-based Style Checker
 Supports multiple LLM providers: OpenAI, Anthropic Claude, Google Gemini
 Uses Markdown format for LLM responses (more reliable than JSON for long content)
 Applies fixes programmatically instead of relying on LLM-generated corrected content
+Uses markdown-based prompt templates for simplicity and maintainability
 """
 
 import os
@@ -10,6 +11,7 @@ import re
 from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from .fix_applier import apply_fixes, validate_fix_quality
+from .prompt_loader import load_prompt
 
 if TYPE_CHECKING:
     from .parser_md import StyleGuideDatabase, StyleRule
@@ -156,8 +158,17 @@ class LLMProvider(ABC):
     """Abstract base class for LLM providers"""
     
     @abstractmethod
-    def check_style(self, content: str, rules: str, lecture_name: str) -> Dict[str, Any]:
-        """Check style and return structured results"""
+    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
+        """
+        Check style and return structured results.
+        
+        Args:
+            content: Lecture content to review
+            categories: List of style categories to check (e.g., ["writing", "math"])
+        
+        Returns:
+            Dictionary with parsed review results
+        """
         pass
 
 
@@ -173,83 +184,20 @@ class OpenAIProvider(LLMProvider):
         except ImportError:
             raise ImportError("openai package not installed. Run: pip install openai")
     
-    def check_style(self, content: str, rules: str, lecture_name: str) -> Dict[str, Any]:
+    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
         """Check style using OpenAI GPT-4"""
-        prompt = self._build_prompt(content, rules, lecture_name)
+        # Load prompt using category-specific templates
+        prompt = load_prompt(categories, content)
         
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": self._get_system_prompt()},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1
         )
         
         return parse_markdown_response(response.choices[0].message.content)
-    
-    def _get_system_prompt(self) -> str:
-        return """You are an expert QuantEcon style guide reviewer. Your task is to:
-
-1. Carefully review the provided lecture content against ALL style guide rules
-2. Identify EVERY violation, no matter how small
-3. Suggest specific fixes with exact text replacements
-4. Reference the specific rule ID for each issue
-
-IMPORTANT: You will ONLY receive rules with category='rule', which are actionable and should be fixed.
-Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
-
-Return your response in this EXACT Markdown format:
-
-# Review Results
-
-## Summary
-<Brief summary of issues found by category>
-
-## Issues Found
-<number>
-
-## Violations
-
-### Violation 1: <rule_id> - <rule_title>
-- **Severity:** <critical|mandatory|best_practice|preference>
-- **Location:** <Line X or section name>
-- **Description:** <What's wrong>
-- **Current text:**
-```
-<EXACT text that violates rule - must match content precisely>
-```
-- **Suggested fix:**
-```
-<EXACT replacement text>
-```
-- **Explanation:** <Why this change is needed>
-
-[Repeat for each violation...]
-
-CRITICAL INSTRUCTIONS:
-- For "Current text": Copy the EXACT text from the lecture that needs to be changed
-- For "Suggested fix": Provide the EXACT replacement text only (no explanations, no notes)
-- Do NOT include any commentary or notes in the suggested fixes
-- Be precise with quotes, spacing, and formatting
-- Each violation should be independently fixable
-
-Do NOT include a "Corrected Content" section - fixes will be applied programmatically."""
-    
-    def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
-        return f"""Review the following QuantEcon lecture for style guide compliance.
-
-**Lecture Name:** {lecture_name}
-
-**Style Guide Rules to Check:**
-{rules}
-
-**Lecture Content to Review:**
-```markdown
-{content}
-```
-
-Perform a comprehensive review checking ALL rules above. Identify every violation and provide specific fixes."""
 
 
 class AnthropicProvider(LLMProvider):
@@ -276,9 +224,10 @@ class AnthropicProvider(LLMProvider):
         except ImportError:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
-    def check_style(self, content: str, rules: str, lecture_name: str) -> Dict[str, Any]:
+    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
         """Check style using Anthropic Claude with streaming for long requests"""
-        prompt = self._build_prompt(content, rules, lecture_name)
+        # Load prompt using category-specific templates
+        prompt = load_prompt(categories, content)
         
         # Use streaming to avoid 10-minute timeout on long requests
         # See: https://docs.anthropic.com/en/docs/build-with-claude/streaming
@@ -289,7 +238,6 @@ class AnthropicProvider(LLMProvider):
             model=self.model,
             max_tokens=32000,  # Safe limit for all Claude 4+ models (Sonnet 4.5 supports up to 64K)
             temperature=0.1,
-            system=self._get_system_prompt(),
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -303,78 +251,10 @@ class AnthropicProvider(LLMProvider):
         # Check if response was truncated
         if stop_reason == "max_tokens":
             print(f"    ⚠️  Warning: Response truncated (hit max_tokens limit)")
-            print(f"    Consider using rule-categories to focus on specific rule types")
+            print(f"    Consider using specific categories to focus the review")
         
         # Parse the Markdown response
         return parse_markdown_response(full_response)
-    
-    def _get_system_prompt(self) -> str:
-        return """You are an expert QuantEcon style guide reviewer with deep knowledge of MyST Markdown, mathematics notation, Python code, and JAX patterns.
-
-Your task is to perform a comprehensive, thorough review of lecture content against the QuantEcon style guide rules. You must:
-
-1. Check EVERY rule carefully and completely
-2. Identify ALL violations, even minor ones
-3. Provide specific, actionable fixes with exact text replacements
-4. Reference the specific rule ID for each issue
-5. Provide exact text replacements for each violation
-
-IMPORTANT: You will ONLY receive rules with category='rule', which are clearly actionable and should be fixed.
-Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
-
-Return your response in this EXACT Markdown format:
-
-# Review Results
-
-## Summary
-<Brief summary of issues found by category>
-
-## Issues Found
-<number>
-
-## Violations
-
-### Violation 1: <rule_id> - <rule_title>
-- **Severity:** <critical|mandatory|best_practice|preference>
-- **Location:** <Line X or section name>
-- **Description:** <Clear description of the violation>
-- **Current text:**
-```
-<EXACT text that violates the rule - must match content precisely>
-```
-- **Suggested fix:**
-```
-<EXACT replacement text only - no notes or commentary>
-```
-- **Explanation:** <Why this change is needed per the rule>
-
-[Repeat for each violation...]
-
-CRITICAL INSTRUCTIONS:
-- For "Current text": Copy the EXACT text from the lecture (preserve all spacing, quotes, formatting)
-- For "Suggested fix": Provide ONLY the corrected text (no explanations, no notes, no commentary)
-- Do NOT include any notes, comments, or explanations within the suggested fixes
-- Be precise - fixes will be applied programmatically via text replacement
-- Each fix must be independently applicable
-
-Do NOT include a "Corrected Content" section - fixes will be applied programmatically.
-
-Be meticulous and thorough. This is a professional review for publication-quality lectures."""
-    
-    def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
-        return f"""Review this QuantEcon lecture for complete style guide compliance.
-
-**Lecture:** {lecture_name}
-
-**Style Guide Rules:**
-{rules}
-
-**Lecture Content:**
-```markdown
-{content}
-```
-
-Perform a comprehensive review. Check every single rule against the entire lecture content. Identify all violations and provide specific fixes."""
 
 
 class GeminiProvider(LLMProvider):
@@ -395,68 +275,13 @@ class GeminiProvider(LLMProvider):
         except ImportError:
             raise ImportError("google-generativeai package not installed. Run: pip install google-generativeai")
     
-    def check_style(self, content: str, rules: str, lecture_name: str) -> Dict[str, Any]:
+    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
         """Check style using Google Gemini"""
-        prompt = f"""{self._get_system_prompt()}
-
-{self._build_prompt(content, rules, lecture_name)}"""
+        # Load prompt using category-specific templates
+        prompt = load_prompt(categories, content)
         
         response = self.model.generate_content(prompt)
         return parse_markdown_response(response.text)
-    
-    def _get_system_prompt(self) -> str:
-        return """You are an expert QuantEcon style guide reviewer. Review lecture content against style guide rules comprehensively.
-
-IMPORTANT: You will ONLY receive rules with category='rule', which are clearly actionable and should be fixed.
-Do NOT provide suggestions for 'style' or 'migrate' categories - those are handled separately.
-
-Return your response in this EXACT Markdown format:
-
-# Review Results
-
-## Summary
-<Brief summary of changes>
-
-## Issues Found
-<number>
-
-## Violations
-
-### Violation 1: <rule_id> - <rule_title>
-- **Severity:** <critical|mandatory|best_practice|preference>
-- **Location:** <location>
-- **Description:** <description>
-- **Current text:**
-```
-<EXACT current text - must match content precisely>
-```
-- **Suggested fix:**
-```
-<EXACT replacement text only - no notes or commentary>
-```
-- **Explanation:** <explanation>
-
-[Repeat for each violation...]
-
-CRITICAL INSTRUCTIONS:
-- For "Current text": Copy EXACT text from lecture (preserve spacing, quotes, formatting)
-- For "Suggested fix": Provide ONLY corrected text (no explanations, no notes)
-- Be precise - fixes will be applied programmatically
-
-Do NOT include a "Corrected Content" section - fixes will be applied programmatically."""
-    
-    def _build_prompt(self, content: str, rules: str, lecture_name: str) -> str:
-        return f"""Review: {lecture_name}
-
-Rules:
-{rules}
-
-Content:
-```markdown
-{content}
-```
-
-Check all rules. Find all violations. Provide fixes."""
 
 
 class StyleReviewer:
@@ -499,22 +324,22 @@ class StyleReviewer:
     def review_lecture(
         self,
         content: str,
-        rules_text: str,
+        categories: List[str],
         lecture_name: str
     ) -> Dict[str, Any]:
         """
-        Review a lecture against style guide rules
+        Review a lecture against specified style categories.
         
         Args:
             content: Full lecture content
-            rules_text: Formatted rules text
+            categories: List of category names to check (e.g., ["writing", "math"] or ["all"])
             lecture_name: Name of the lecture
             
         Returns:
             Dictionary with review results and corrected content
         """
         try:
-            result = self.provider.check_style(content, rules_text, lecture_name)
+            result = self.provider.check_style(content, categories)
             result['provider'] = self.provider_name
             result['lecture_name'] = lecture_name
             
@@ -549,9 +374,9 @@ class StyleReviewer:
                 'issues_found': 0,
                 'violations': [],
                 'corrected_content': content,  # Return original on error
-            'provider': self.provider_name,
-            'lecture_name': lecture_name
-        }
+                'provider': self.provider_name,
+                'lecture_name': lecture_name
+            }
     
     def review_lecture_smart(
         self,
@@ -686,23 +511,25 @@ class StyleReviewer:
         lecture_name: str
     ) -> Dict[str, Any]:
         """
-        Review lecture content against a single semantic group of rules
+        Review lecture content against a single semantic group of rules.
+        
+        Now uses markdown-based category prompts instead of programmatic formatting.
         
         Args:
             content: Full lecture content
             group_name: Name of the semantic group (e.g., 'WRITING', 'MATH')
-            rules: List of StyleRule objects in this group
+            rules: List of StyleRule objects in this group (not used - kept for compatibility)
             lecture_name: Name of the lecture file
             
         Returns:
             Dictionary with violations found for this group
         """
-        # Format rules for prompt
-        rules_text = self._format_rules_for_prompt(rules)
+        # Convert group name to category (e.g., "WRITING" -> "writing")
+        category = group_name.lower()
         
-        # Review using the standard method
+        # Review using category-specific prompt
         try:
-            result = self.provider.check_style(content, rules_text, f"{lecture_name}:{group_name}")
+            result = self.provider.check_style(content, [category])
             result['group'] = group_name
             return result
         except Exception as e:
@@ -711,28 +538,3 @@ class StyleReviewer:
                 'violations': [],
                 'group': group_name
             }
-    
-    def _format_rules_for_prompt(self, rules: List['StyleRule']) -> str:
-        """
-        Format rules for inclusion in LLM prompt
-        
-        Args:
-            rules: List of StyleRule objects
-            
-        Returns:
-            Formatted string for LLM prompt
-        """
-        formatted = []
-        for rule in rules:
-            formatted.append(rule.to_prompt_format())
-        
-        return "\n---\n\n".join(formatted)
-    
-    def _estimate_tokens(self, text: str) -> int:
-        """
-        Rough token estimation (1 token ≈ 4 characters)
-        
-        This is an approximation. Actual tokenization varies by model.
-        """
-        return len(text) // 4
-
