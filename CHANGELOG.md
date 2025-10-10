@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2025-10-10
+
 ### Added
 
 - **New writing rule: qe-writing-008** - Whitespace linting
@@ -19,9 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Updated qe-writing-001** - Clarified scope
-  - Added note that whitespace formatting is handled by qe-writing-008
+  - Added "Associated rules" section referencing qe-writing-008 for whitespace issues
   - Updated implementation note to reference the new whitespace rule
   - Focuses on sentence structure and paragraph organization
+- **Updated writing prompt** - Added whitespace formatting to checklist
 
 ## [0.3.3] - 2025-10-10
 
