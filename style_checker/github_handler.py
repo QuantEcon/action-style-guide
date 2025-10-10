@@ -271,6 +271,8 @@ class GitHubHandler:
         Returns:
             Formatted PR body
         """
+        from . import __version__
+        
         body = f"## 📋 Style Guide Review: {lecture_name}\n\n"
         body += f"This PR addresses style guide compliance issues found in the `{lecture_name}` lecture.\n\n"
         
@@ -283,6 +285,7 @@ class GitHubHandler:
         body += f"### 📊 Summary\n\n"
         body += f"- **Issues Found:** {issues_found}\n"
         body += f"- **Provider:** {review_result.get('provider', 'N/A')}\n"
+        body += f"- **Action Version:** {__version__}\n"
         body += f"- **Review Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n\n"
         
         # Group violations by category

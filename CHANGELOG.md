@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Added action version to PR description** - PR body now includes version number in summary section
+
 ## [0.3.8] - 2025-10-10
 
 ### Changed
