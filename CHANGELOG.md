@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2025-10-10
+
 ### Changed
 
 - **Updated qe-writing-001** - Clarified line break handling
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rule focuses on logical paragraph structure (one sentence per paragraph block), not physical line breaks
   - Added example showing single sentence spanning multiple lines
   - Updated implementation note to explain paragraph definition
+  - Paragraphs are defined by blank lines, not line breaks within the text
 
 ## [0.3.4] - 2025-10-10
 
