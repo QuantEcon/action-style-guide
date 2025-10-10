@@ -18,7 +18,19 @@ Each rule is categorized as either:
 
 2. **Read the entire lecture carefully** to understand its context, topic, and flow before identifying violations.
 
-3. **Check systematically** against writing rules (qe-writing-*):
+3. **Apply rules in the following order** for optimal results:
+   - **qe-writing-008** - Whitespace formatting (mechanical cleanup)
+   - **qe-writing-001** - Paragraph structure (foundational organization)
+   - **qe-writing-004** - Capitalization (mechanical correction)
+   - **qe-writing-006** - Title capitalization (mechanical correction)
+   - **qe-writing-005** - Bold/italic formatting (contextual formatting)
+   - **qe-writing-002** - Clarity and conciseness (editorial judgment)
+   - **qe-writing-003** - Logical flow (editorial judgment)
+   - **qe-writing-007** - Visual elements (creative enhancement)
+   
+   This sequence progresses from mechanical fixes to structural organization to stylistic improvements. Each rule benefits from the corrections made by earlier rules.
+
+4. **Check systematically** against writing rules (qe-writing-*):
    - Sentence structure and paragraph organization
    - Clarity, conciseness, and word choice
    - Logical flow and transitions
@@ -27,14 +39,14 @@ Each rule is categorized as either:
    - Pronoun usage and contractions
    - Whitespace formatting (multiple spaces between words)
 
-4. **For each violation found**, provide:
+5. **For each violation found**, provide:
    - **Rule Code and Title**: e.g., `qe-writing-001: Use one sentence per paragraph`
    - **Location**: Line number(s) or section heading where the violation occurs
    - **Current Text**: Quote the problematic text exactly as it appears
    - **Issue**: Brief explanation of why this violates the rule
    - **Suggested Fix**: Specific corrected version of the text
 
-5. **Prioritize actionable feedback**:
+6. **Prioritize actionable feedback**:
    - Focus on `rule` category violations first (these are clear-cut)
    - Include `style` category suggestions when they significantly impact readability
    - For style suggestions, explain your reasoning clearly

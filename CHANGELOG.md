@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Order of Evaluation** - Added rule evaluation sequence to writing prompt
+  - Added explicit evaluation order to writing-prompt.md (instruction #3)
+  - Rules now processed from mechanical fixes → structural → stylistic → creative
+  - Sequence: whitespace → paragraph structure → capitalization → titles → formatting → clarity → flow → visual
+  - Improves consistency and quality of LLM-generated suggestions
+  - Each rule benefits from corrections made by earlier rules in the sequence
+  - Kept in prompt only (single source of truth, easier maintenance)
+
+- **Version Display** - Action now prints version at startup
+  - Shows full version number in GitHub Action output (e.g., "v0.3.6")
+  - Helps identify which version is running when using floating tags like `@v0.3`
+  - Version defined in `style_checker/__init__.py`
+
+### Changed
+
+- **Version bumped** to 0.3.6
+
 ## [0.3.5] - 2025-10-10
 
 ### Changed

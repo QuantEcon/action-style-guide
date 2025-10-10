@@ -16,6 +16,7 @@ sys.path.insert(0, str(action_path))
 
 from style_checker.reviewer import StyleReviewer
 from style_checker.github_handler import GitHubHandler
+from style_checker import __version__
 
 
 def review_single_lecture(
@@ -267,6 +268,12 @@ def format_bulk_pr_body(results: List[dict], total_issues: int) -> str:
 
 def main():
     """Main entry point"""
+    # Print version information
+    print("=" * 70)
+    print(f"📋 QuantEcon Style Guide Checker v{__version__}")
+    print("=" * 70)
+    print()
+    
     parser = argparse.ArgumentParser(description='QuantEcon Style Guide Checker')
     parser.add_argument('--mode', required=True, choices=['single', 'bulk'],
                        help='Review mode: single lecture or bulk')
