@@ -97,6 +97,13 @@ class PromptLoader:
         with open(prompt_file, 'r') as f:
             prompt = f.read()
         
+        # Debug: Check if we have the SEQUENTIAL RULE EVALUATION instruction
+        if category == "writing":
+            if "SEQUENTIAL RULE EVALUATION" in prompt:
+                print("    ✓ Using UPDATED writing prompt (SEQUENTIAL RULE EVALUATION)")
+            else:
+                print("    ⚠️  Using OLD writing prompt (missing SEQUENTIAL RULE EVALUATION)")
+        
         # Load rules (detailed specifications)
         rules_file = self.rules_dir / f"{category}-rules.md"
         if not rules_file.exists():
