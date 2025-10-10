@@ -10,40 +10,6 @@ This document contains only the **writing-focused rules** for QuantEcon lecture 
 
 ### Rule: qe-writing-001
 **Category:** rule  
-**Title:** Remove excessive whitespace between words
-
-**Description:**  
-MyST Markdown source files should contain only single spaces between words. Multiple consecutive spaces between words should be reduced to a single space for clean, consistent formatting.
-
-**Check for:**
-- Two or more consecutive spaces between words in narrative text
-- Extra spacing in headings, list items, or inline text
-- Inconsistent spacing patterns
-
-**Examples:**
-```markdown
-<!-- ❌ Incorrect: Multiple spaces between words -->
-This is  an  example with    excessive spacing.
-
-The bellman equation  is a fundamental  tool.
-
-## Section  Heading  With  Extra  Spaces
-
-<!-- ✅ Correct: Single space between words -->
-This is an example with excessive spacing.
-
-The bellman equation is a fundamental tool.
-
-## Section Heading With Extra Spaces
-```
-
-**Important exceptions:**
-- Code blocks (indented or fenced) - preserve all spacing
-- Inline code spans - preserve all spacing
-- Math blocks and inline math - preserve all spacing
-- Intentional formatting like tables or aligned content
-### Rule: qe-writing-002
-**Category:** rule  
 **Title:** Use one sentence per paragraph
 
 **Description:**  
@@ -56,7 +22,7 @@ Each paragraph block (text separated by blank lines) must contain exactly one se
 - Multiple complete sentences within the same block of text (between blank lines)
 
 **Associated rules:**  
-This rule focuses on sentence structure and paragraph organization. For whitespace formatting issues (multiple spaces between words), see qe-writing-001.
+This rule focuses on sentence structure and paragraph organization. For whitespace formatting issues (multiple spaces between words), see qe-writing-008.
 
 **Examples:**
 
@@ -89,7 +55,7 @@ Asymptotic stationarity and ergodicity are key assumptions needed to make it pos
 ```
 
 **Implementation note:**  
-Check by counting sentences (periods followed by space/capital or newline) within each paragraph block. Paragraph blocks are defined by blank lines—text separated by blank lines forms distinct paragraphs. Line breaks (without blank lines) within a paragraph do not create new paragraphs. Whitespace formatting between words is handled by qe-writing-001.
+Check by counting sentences (periods followed by space/capital or newline) within each paragraph block. Paragraph blocks are defined by blank lines—text separated by blank lines forms distinct paragraphs. Line breaks (without blank lines) within a paragraph do not create new paragraphs. Whitespace formatting between words is handled by qe-writing-008.
 
 **Key distinction:**  
 - **Blank line** = Creates new paragraph (required between sentences)
@@ -98,7 +64,48 @@ Check by counting sentences (periods followed by space/capital or newline) withi
 ---
 
 
+
+### Rule: qe-writing-002
+**Category:** rule  
+**Title:** Keep writing clear, concise, and valuable
+
+**Description:**  
+Keep sentences short and clear. Minimize unnecessary words. The value of a lecture equals the importance and clarity of information divided by word count.
+
+**Check for:**
+- Overly long sentences that reduce clarity (>30-40 words as a rough guideline)
+- Unnecessary verbosity that doesn't add value
+- Complex sentence structures where simpler ones would work
+- Redundant phrases or explanations
+
+**Guidance:**  
+This is a judgment call that requires understanding context and content value. Focus on whether every word serves a purpose.
+
+---
+
+
+
 ### Rule: qe-writing-003
+**Category:** style  
+**Title:** Maintain logical flow
+
+**Description:**  
+Ensure lectures have good logical flow with no jumps. Choose carefully what you pay attention to and minimize distractions.
+
+**Check for:**
+- Abrupt topic changes without transitions
+- Introducing concepts before prerequisites are established
+- Tangential content that distracts from the main narrative
+- Missing connections between sections
+
+**Guidance:**  
+Each new paragraph or section should build naturally from the previous one.
+
+---
+
+
+
+### Rule: qe-writing-004
 **Category:** rule  
 **Title:** Avoid unnecessary capitalization in narrative text
 
@@ -129,31 +136,6 @@ Can detect capitalized words mid-sentence that aren't proper nouns or at the sta
 ---
 
 
-### Rule: qe-writing-004
-**Category:** rule  
-**Title:** Capitalize lecture titles properly
-
-**Description:**  
-Use capitalization of all words only for lecture titles. For all other headings (sections, subsections, etc.), capitalize only the first word and proper nouns.
-
-**Check for:**
-- Section headings with all words capitalized
-- Lecture titles with only first word capitalized
-
-**Examples:**
-```markdown
-<!-- ✅ Lecture title -->
-# How It Works: Data, Variables and Names
-
-<!-- ✅ Section heading -->
-## Binary packages with Python frontends
-
-<!-- ❌ Section heading - wrong capitalization -->
-## Binary Packages With Python Frontends
-```
-
----
-
 
 ### Rule: qe-writing-005
 **Category:** rule  
@@ -183,45 +165,35 @@ All consumers have **identical** endowments.
 ---
 
 
+
 ### Rule: qe-writing-006
 **Category:** rule  
-**Title:** Keep writing clear, concise, and valuable
+**Title:** Capitalize lecture titles properly
 
 **Description:**  
-Keep sentences short and clear. Minimize unnecessary words. The value of a lecture equals the importance and clarity of information divided by word count.
+Use capitalization of all words only for lecture titles. For all other headings (sections, subsections, etc.), capitalize only the first word and proper nouns.
 
 **Check for:**
-- Overly long sentences that reduce clarity (>30-40 words as a rough guideline)
-- Unnecessary verbosity that doesn't add value
-- Complex sentence structures where simpler ones would work
-- Redundant phrases or explanations
+- Section headings with all words capitalized
+- Lecture titles with only first word capitalized
 
-**Guidance:**  
-This is a judgment call that requires understanding context and content value. Focus on whether every word serves a purpose.
+**Examples:**
+```markdown
+<!-- ✅ Lecture title -->
+# How It Works: Data, Variables and Names
+
+<!-- ✅ Section heading -->
+## Binary packages with Python frontends
+
+<!-- ❌ Section heading - wrong capitalization -->
+## Binary Packages With Python Frontends
+```
 
 ---
+
 
 
 ### Rule: qe-writing-007
-**Category:** style  
-**Title:** Maintain logical flow
-
-**Description:**  
-Ensure lectures have good logical flow with no jumps. Choose carefully what you pay attention to and minimize distractions.
-
-**Check for:**
-- Abrupt topic changes without transitions
-- Introducing concepts before prerequisites are established
-- Tangential content that distracts from the main narrative
-- Missing connections between sections
-
-**Guidance:**  
-Each new paragraph or section should build naturally from the previous one.
-
----
-
-
-### Rule: qe-writing-008
 **Category:** style  
 **Title:** Use visual elements to enhance understanding
 
@@ -241,3 +213,38 @@ https://continuous-time-mcs.quantecon.org/kolmogorov_fwd.html
 
 ---
 
+
+### Rule: qe-writing-008
+**Category:** rule  
+**Title:** Remove excessive whitespace between words
+
+**Description:**  
+MyST Markdown source files should contain only single spaces between words. Multiple consecutive spaces between words should be reduced to a single space for clean, consistent formatting.
+
+**Check for:**
+- Two or more consecutive spaces between words in narrative text
+- Extra spacing in headings, list items, or inline text
+- Inconsistent spacing patterns
+
+**Examples:**
+```markdown
+<!-- ❌ Incorrect: Multiple spaces between words -->
+This is  an  example with    excessive spacing.
+
+The bellman equation  is a fundamental  tool.
+
+## Section  Heading  With  Extra  Spaces
+
+<!-- ✅ Correct: Single space between words -->
+This is an example with excessive spacing.
+
+The bellman equation is a fundamental tool.
+
+## Section Heading With Extra Spaces
+```
+
+**Important exceptions:**
+- Code blocks (indented or fenced) - preserve all spacing
+- Inline code spans - preserve all spacing
+- Math blocks and inline math - preserve all spacing
+- Intentional formatting like tables or aligned content

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.11] - 2025-10-10
+
+### Changed
+
+- **REVERTED: Rule renumbering from v0.3.10** - Restored original rule numbers
+  - Testing showed renumbering didn't solve the problem - LLM still fixated on one rule (002 instead of 001)
+  - Maintaining sequential rule numbers based on evaluation order creates unnecessary maintenance burden
+  - Restored original numbering: 001=paragraph, 002=clarity, 003=flow, 004=caps, 005=bold/italic, 006=titles, 007=visual, 008=whitespace
+  - **Root cause confirmed**: LLM cannot reliably check multiple rules in a single pass, regardless of numbering or explicit STEP-by-STEP instructions
+
+### Added
+
+- **Single-rule evaluation approach** - New architecture for guaranteed rule coverage
+  - Instead of asking LLM to check all rules at once, loop through rules one at a time
+  - Each rule gets its own focused LLM call with that specific rule injected at bottom of prompt
+  - Guarantees every rule is evaluated independently
+  - Trade-off: 8× API calls for writing category, but reliable comprehensive coverage
+  - More expensive but ensures no rules are skipped or ignored
+  
+### Removed
+
+- **Removed STEP-by-STEP sequential evaluation instructions** - Didn't work
+  - LLM consistently ignores explicit ordering instructions when given multiple rules
+  - Simplified prompt back to basic "check systematically" approach
+  - Single-rule architecture makes sequential ordering unnecessary
+
 ## [0.3.10] - 2025-10-10
 
 ### Changed

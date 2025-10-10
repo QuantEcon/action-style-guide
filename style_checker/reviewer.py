@@ -7,10 +7,90 @@ Uses markdown-based prompt templates for simplicity and maintainability
 
 import os
 import re
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from .fix_applier import apply_fixes, validate_fix_quality
 from .prompt_loader import load_prompt
 
+
+def extract_individual_rules(category: str) -> List[Dict[str, str]]:
+    """
+    Extract individual rules from a category rules file.
+    
+    Args:
+        category: Category name (e.g., 'writing', 'math')
+        
+    Returns:
+        List of dicts with 'rule_id', 'title', and 'content' for each rule
+    """
+    rules_dir = Path(__file__).parent / "rules"
+    rules_file = rules_dir / f"{category}-rules.md"
+    
+    if not rules_file.exists():
+        return []
+    
+    with open(rules_file, 'r') as f:
+        content = f.read()
+    
+    # Extract individual rules using regex
+    # Pattern matches: ### Rule: qe-writing-001 ... until next ### Rule: or end
+    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Category:\*\*[^\n]*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
+    
+    rules = []
+    for match in re.finditer(rule_pattern, content, re.DOTALL):
+        rule_id = match.group(1)
+        title = match.group(2).strip()
+        rule_content = match.group(3).strip()
+        
+        # Reconstruct the full rule markdown
+        full_rule = f"### Rule: {rule_id}\n**Title:** {title}\n\n{rule_content}"
+        
+        rules.append({
+            'rule_id': rule_id,
+            'title': title,
+            'content': full_rule
+        })
+    
+    return rules
+
+
+def create_single_rule_prompt(category: str, rule: Dict[str, str], lecture_content: str) -> str:
+    """
+    Create a focused prompt for checking a single rule.
+    
+    Args:
+        category: Category name (e.g., 'writing')
+        rule: Dict with 'rule_id', 'title', and 'content'
+        lecture_content: The lecture to check
+        
+    Returns:
+        Complete prompt focused on one specific rule
+    """
+    # Load the base prompt (without rules)
+    prompts_dir = Path(__file__).parent / "prompts"
+    prompt_file = prompts_dir / f"{category}-prompt.md"
+    
+    if not prompt_file.exists():
+        raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
+    
+    with open(prompt_file, 'r') as f:
+        base_prompt = f.read()
+    
+    # Create focused prompt with single rule
+    focused_prompt = f"""{base_prompt}
+
+## Style Rule to Check
+
+**IMPORTANT**: Check ONLY for violations of this specific rule. Do not check other rules.
+
+{rule['content']}
+
+## Lecture to Review
+
+{lecture_content}
+"""
+    
+    return focused_prompt
 
 def parse_markdown_response(response: str) -> Dict[str, Any]:
     """
@@ -180,6 +260,34 @@ class AnthropicProvider:
         
         # Parse the Markdown response
         return parse_markdown_response(full_response)
+    
+    def check_single_rule(self, prompt: str) -> Dict[str, Any]:
+        """Check a single rule using provided prompt"""
+        # Try non-streaming first, fall back to streaming if required
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=64000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            full_response = response.content[0].text
+        except Exception as e:
+            # If we get the streaming error, use streaming
+            if "Streaming is required" in str(e) or "10 minutes" in str(e):
+                full_response = ""
+                with self.client.messages.stream(
+                    model=self.model,
+                    max_tokens=64000,
+                    messages=[{"role": "user", "content": prompt}]
+                ) as stream:
+                    for text in stream.text_stream:
+                        full_response += text
+            else:
+                # Re-raise if it's a different error
+                raise
+        
+        # Parse the Markdown response
+        return parse_markdown_response(full_response)
 
 
 class StyleReviewer:
@@ -204,6 +312,98 @@ class StyleReviewer:
         
         # Initialize Claude provider
         self.provider = AnthropicProvider(api_key, model) if model else AnthropicProvider(api_key)
+    
+    def review_lecture_single_rule(
+        self,
+        content: str,
+        categories: List[str],
+        lecture_name: str
+    ) -> Dict[str, Any]:
+        """
+        Review a lecture by checking each rule individually.
+        
+        This approach guarantees comprehensive coverage by evaluating one rule at a time.
+        More expensive (multiple LLM calls) but ensures no rules are skipped.
+        
+        Args:
+            content: Full lecture content
+            categories: List of category names to check (e.g., ["writing", "math"])
+            lecture_name: Name of the lecture
+            
+        Returns:
+            Dictionary with combined review results from all rules
+        """
+        all_violations = []
+        all_warnings = []
+        
+        for category in categories:
+            print(f"  📋 Checking {category} rules individually...")
+            rules = extract_individual_rules(category)
+            
+            if not rules:
+                print(f"    ⚠️  No rules found for category: {category}")
+                continue
+            
+            print(f"    ℹ️  Found {len(rules)} rules to check")
+            
+            for i, rule in enumerate(rules, 1):
+                rule_id = rule['rule_id']
+                print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)})")
+                
+                try:
+                    # Create focused prompt for this specific rule
+                    prompt = create_single_rule_prompt(category, rule, content)
+                    
+                    # Check this single rule
+                    result = self.provider.check_single_rule(prompt)
+                    
+                    # Collect violations from this rule
+                    if result.get('violations'):
+                        violations_count = len(result['violations'])
+                        print(f"      ✓ Found {violations_count} violation(s)")
+                        all_violations.extend(result['violations'])
+                    else:
+                        print(f"      ✓ No violations")
+                        
+                except Exception as e:
+                    warning = f"Error checking {rule_id}: {str(e)}"
+                    print(f"      ⚠️  {warning}")
+                    all_warnings.append(warning)
+        
+        # Combine all results
+        combined_result = {
+            'issues_found': len(all_violations),
+            'violations': all_violations,
+            'provider': self.provider_name,
+            'lecture_name': lecture_name,
+            'warnings': all_warnings
+        }
+        
+        # Apply fixes programmatically if we have violations
+        if all_violations:
+            print(f"  🔧 Applying {len(all_violations)} fixes programmatically...")
+            
+            # Validate fix quality
+            validation_warnings = validate_fix_quality(all_violations)
+            if validation_warnings:
+                print(f"  ⚠️  Fix quality warnings:")
+                for warning in validation_warnings[:5]:  # Show first 5
+                    print(f"      - {warning}")
+            
+            # Apply fixes
+            corrected_content, apply_warnings = apply_fixes(content, all_violations)
+            combined_result['corrected_content'] = corrected_content
+            combined_result['fix_warnings'] = apply_warnings
+            
+            # If we couldn't apply any fixes, keep original content
+            if corrected_content == content and all_violations:
+                print(f"  ⚠️  Could not apply any fixes - keeping original content")
+                combined_result['corrected_content'] = content
+        else:
+            # No violations, keep original content
+            combined_result['corrected_content'] = content
+        
+        return combined_result
     
     def review_lecture(
         self,

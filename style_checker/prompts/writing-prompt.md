@@ -1,4 +1,4 @@
-<!-- Prompt Version: 0.3.10 | Last Updated: 2025-10-10 | Rule renumbering to match evaluation order -->
+<!-- Prompt Version: 0.3.11 | Last Updated: 2025-10-10 | Reverted to original rule numbering, preparing for single-rule evaluation approach -->
 
 # QuantEcon Writing Style Checker Prompt
 
@@ -20,41 +20,7 @@ Each rule is categorized as either:
 
 2. **Read the entire lecture carefully** to understand its context, topic, and flow before identifying violations.
 
-3. **CRITICAL: SEQUENTIAL RULE EVALUATION - Complete each rule ENTIRELY before moving to the next**:
-   
-   **STEP 1:** Check the ENTIRE document for ALL instances of **qe-writing-001** (Whitespace formatting)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 2
-   
-   **STEP 2:** Check the ENTIRE document for ALL instances of **qe-writing-002** (Paragraph structure)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 3
-   
-   **STEP 3:** Check the ENTIRE document for ALL instances of **qe-writing-003** (Capitalization)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 4
-   
-   **STEP 4:** Check the ENTIRE document for ALL instances of **qe-writing-004** (Title capitalization)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 5
-   
-   **STEP 5:** Check the ENTIRE document for ALL instances of **qe-writing-005** (Bold/italic formatting)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 6
-   
-   **STEP 6:** Check the ENTIRE document for ALL instances of **qe-writing-006** (Clarity and conciseness)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 7
-   
-   **STEP 7:** Check the ENTIRE document for ALL instances of **qe-writing-007** (Logical flow)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them before proceeding to Step 8
-   
-   **STEP 8:** Check the ENTIRE document for ALL instances of **qe-writing-008** (Visual elements)
-   - Find EVERY occurrence of this violation throughout the document
-   - Report ALL of them
-   
-   **CRITICAL**: You MUST complete scanning the entire document for one rule before starting the next rule. Do NOT interleave violations from different rules. The output should show all 001s, then all 002s, then all 003s, etc.
+3. **Check systematically** against writing rules (qe-writing-*).
 
 4. **Check systematically** against writing rules (qe-writing-*):
    - Sentence structure and paragraph organization

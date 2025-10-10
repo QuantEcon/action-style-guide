@@ -65,9 +65,9 @@ def review_single_lecture(
         # Use smart sequential category processing (default behavior)
         review_result = reviewer.review_lecture_smart(content, lecture_name)
     else:
-        # Use specific categories requested by user
+        # Use single-rule evaluation for comprehensive coverage
         print(f"🎯 Checking specific categories: {', '.join(categories)}")
-        review_result = reviewer.review_lecture(content, categories, lecture_name)
+        review_result = reviewer.review_lecture_single_rule(content, categories, lecture_name)
     
     issues_found = review_result.get('issues_found', 0)
     print(f"\n📊 Review complete: {issues_found} issues found")
