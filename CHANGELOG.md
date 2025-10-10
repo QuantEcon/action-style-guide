@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Detailed review reports** - Full violation details now saved as artifact in PR
+  - Creates `.github/style-reports/[lecture]-[timestamp].md` file in PR branch
+  - Contains complete details for every violation: location, current text, suggested fix, explanation
+  - PR description includes direct link to view the full report
+  - Solves GitHub's 65KB PR body limit while preserving all debugging information
+  - Concise PR summary shows only statistics and rule counts
+  - Best of both worlds: scannable PR + detailed debugging info
+
 ### Changed
 
 - **Added debug output for rule evaluation order** - Shows LLM's original violation order
@@ -20,6 +30,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added "CRITICAL" note: "You MUST complete scanning the entire document for one rule before starting the next"
   - More verbose but clearer: LLM should report all 008s, then all 001s, then all 004s, etc.
   - Previous version was being ignored - LLM was interleaving violations from different rules
+
+- **Added prompt version detection** - Displays whether using updated or old prompt
+  - Helps verify GitHub Actions cache is using latest code
+  - Shows "✓ Using UPDATED writing prompt" or "⚠️ Using OLD writing prompt"
+
+- **Improved PR body format** - More concise statistics-focused summary
+  - Shows total issues by category
+  - Shows count per rule (not individual locations)
+  - Much shorter and more scannable
+  - Link to full detailed report for complete information
 
 ## [0.3.9] - 2025-10-10
 

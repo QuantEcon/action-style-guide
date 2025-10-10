@@ -200,6 +200,32 @@ class GitHubHandler:
         except GithubException as e:
             raise Exception(f"Failed to commit changes: {e}")
     
+    def commit_file(
+        self,
+        file_path: str,
+        content: str,
+        commit_message: str,
+        branch: str
+    ) -> None:
+        """
+        Create a new file in the repository
+        
+        Args:
+            file_path: Path for the new file
+            content: Content of the file
+            commit_message: Commit message
+            branch: Branch to commit to
+        """
+        try:
+            self.repo.create_file(
+                path=file_path,
+                message=commit_message,
+                content=content,
+                branch=branch
+            )
+        except GithubException as e:
+            raise Exception(f"Failed to create file: {e}")
+    
     def create_pull_request(
         self,
         title: str,
@@ -349,6 +375,158 @@ class GitHubHandler:
         
         return body
     
+    def format_detailed_report(self, review_result: Dict[str, Any], lecture_name: str) -> str:
+        """
+        Format detailed review report with all violation details.
+        This is saved as an artifact file for debugging and improvement purposes.
+        
+        Args:
+            review_result: Review results dictionary
+            lecture_name: Name of the lecture
+            
+        Returns:
+            Detailed markdown report with all violations
+        """
+        from . import __version__
+        
+        report = f"# Detailed Style Guide Review Report\n\n"
+        report += f"**Lecture:** {lecture_name}\n"
+        report += f"**Action Version:** {__version__}\n"
+        report += f"**Provider:** {review_result.get('provider', 'N/A')}\n"
+        report += f"**Review Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n"
+        report += f"**Issues Found:** {review_result.get('issues_found', 0)}\n\n"
+        
+        if review_result.get('summary'):
+            report += f"## Review Summary\n\n{review_result.get('summary')}\n\n"
+        
+        report += "---\n\n"
+        report += "## Detailed Violations\n\n"
+        
+        violations = review_result.get('violations', [])
+        
+        if not violations:
+            report += "*No violations found.*\n"
+            return report
+        
+        # Group by category for organization
+        by_category = {}
+        for v in violations:
+            rule_id = v.get('rule_id', 'unknown')
+            category = rule_id.split('-')[1] if '-' in rule_id else 'other'
+            if category not in by_category:
+                by_category[category] = []
+            by_category[category].append(v)
+        
+        # Output each violation with full details
+        for category, items in sorted(by_category.items()):
+            report += f"### {category.title()} ({len(items)} issues)\n\n"
+            
+            for i, v in enumerate(items, 1):
+                report += f"#### {i}. {v.get('rule_id')} - {v.get('rule_title')}\n\n"
+                report += f"**Location:** {v.get('location', 'Unknown')}\n\n"
+                report += f"**Severity:** {v.get('severity', 'N/A')}\n\n"
+                
+                if v.get('description'):
+                    report += f"**Description:** {v.get('description')}\n\n"
+                
+                if v.get('current_text'):
+                    report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                
+                if v.get('suggested_fix'):
+                    report += f"**Suggested fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                
+                if v.get('explanation'):
+                    report += f"**Explanation:** {v.get('explanation')}\n\n"
+                
+                report += "---\n\n"
+        
+        return report
+
+    def format_pr_body(self, review_result: Dict[str, Any], lecture_name: str, 
+                       detailed_report_url: Optional[str] = None) -> str:
+        """
+        Format concise PR body with summary statistics and link to detailed report.
+        
+        Args:
+            review_result: Review results dictionary
+            lecture_name: Name of the lecture
+            detailed_report_url: URL to detailed report file in PR
+            
+        Returns:
+            Concise PR body with summary and link to detailed report
+        """
+        from . import __version__
+        
+        body = f"## 📋 Style Guide Review: {lecture_name}\n\n"
+        body += f"This PR addresses style guide compliance issues found in the `{lecture_name}` lecture.\n\n"
+        
+        issues_found = review_result.get('issues_found', 0)
+        
+        if issues_found == 0:
+            body += "✅ **No issues found!** This lecture is fully compliant with the style guide.\n"
+            return body
+        
+        body += f"### 📊 Summary\n\n"
+        body += f"- **Issues Found:** {issues_found}\n"
+        body += f"- **Provider:** {review_result.get('provider', 'N/A')}\n"
+        body += f"- **Action Version:** {__version__}\n"
+        body += f"- **Review Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+        
+        # Group violations by rule and category
+        violations = review_result.get('violations', [])
+        by_rule = {}
+        by_category = {}
+        
+        for v in violations:
+            rule_id = v.get('rule_id', 'unknown')
+            category = rule_id.split('-')[1] if '-' in rule_id else 'other'
+            
+            # Group by rule
+            if rule_id not in by_rule:
+                by_rule[rule_id] = {
+                    'title': v.get('rule_title', ''),
+                    'count': 0
+                }
+            by_rule[rule_id]['count'] += 1
+            
+            # Group by category
+            if category not in by_category:
+                by_category[category] = 0
+            by_category[category] += 1
+        
+        # Summary by category
+        body += "### 📝 Changes by Category\n\n"
+        for category, count in sorted(by_category.items()):
+            body += f"- **{category.title()}:** {count} issue{'s' if count != 1 else ''}\n"
+        body += "\n"
+        
+        # Summarize by rule
+        body += "### 🔍 Issues by Rule\n\n"
+        
+        for rule_id, data in sorted(by_rule.items()):
+            count = data['count']
+            body += f"- **{rule_id}** - {data['title']}: {count} occurrence{'s' if count != 1 else ''}\n"
+        body += "\n"
+        
+        # Add link to detailed report if available
+        if detailed_report_url:
+            body += "### 📄 Detailed Report\n\n"
+            body += f"For complete details including all violation explanations, current text, and suggested fixes, see:\n\n"
+            body += f"**➡️ [View Full Review Report]({detailed_report_url})**\n\n"
+        
+        # Add LLM summary if available
+        if review_result.get('summary'):
+            body += f"### 💬 Review Summary\n\n{review_result.get('summary')}\n\n"
+        
+        body += "---\n\n"
+        body += "*🤖 This PR was automatically generated by the QuantEcon Style Guide Checker*\n"
+        if detailed_report_url:
+            body += "*📊 Full violation details are available in the detailed report linked above*\n"
+        else:
+            body += "*📚 Review the changes in the diff for complete details*\n"
+        
+        return body
+
     def format_commit_message(self, violations: List[Dict], lecture_name: str) -> str:
         """
         Format commit message from violations
