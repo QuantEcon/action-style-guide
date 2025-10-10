@@ -37,13 +37,14 @@ def test_prompt_loader():
     assert test_content in prompt, "Prompt should contain lecture content"
     print("   ✓ Multiple categories work")
     
-    # Test 3: Load all categories
-    print("\n3. Testing 'all' category...")
-    prompt = loader.load_prompt(["all"], test_content)
+    # Test 3: Load all categories (use list of all instead of ["all"])
+    print("\n3. Testing all categories...")
+    all_cats = ["writing", "math", "code", "jax", "figures", "references", "links", "admonitions"]
+    prompt = loader.load_prompt(all_cats, test_content)
     
-    assert "Complete Style Guide" in prompt or "All Categories" in prompt, "Prompt should indicate comprehensive review"
+    assert "Multi-Category" in prompt, "Prompt should indicate multi-category review"
     assert test_content in prompt, "Prompt should contain lecture content"
-    print("   ✓ 'all' category works")
+    print("   ✓ All categories work")
     
     # Test 4: Invalid category
     print("\n4. Testing invalid category...")
@@ -57,13 +58,11 @@ def test_prompt_loader():
     # Test 5: Verify all valid categories exist
     print("\n5. Verifying all category files exist...")
     for category in PromptLoader.VALID_CATEGORIES:
-        if category == "all":
-            continue  # 'all' is special
         try:
             prompt = loader.load_prompt([category], "test")
-            print(f"   ✓ {category}.md exists and loads")
-        except FileNotFoundError:
-            print(f"   ✗ {category}.md missing!")
+            print(f"   ✓ {category}-prompt.md and {category}-rules.md exist")
+        except FileNotFoundError as e:
+            print(f"   ✗ {category} files missing: {e}")
             return False
     
     print("\n" + "=" * 60)

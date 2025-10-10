@@ -1,31 +1,10 @@
-# QuantEcon Style Guide - Links Category
+# QuantEcon Links Style Rules
 
-You are a helpful AI assistant reviewing QuantEcon lecture content for style guide compliance.
+## Version: 2025-Oct-09 (Focused Extract)
 
-Your task is to review the provided lecture content and identify any violations of the links style rules listed below.
+This document contains only the **links-focused rules** for QuantEcon lecture content. Each rule is categorized as either `rule` (clearly actionable) or `style` (advisory guideline requiring judgment).
 
-## Instructions
-
-1. **Read the lecture content carefully**
-2. **Check against each rule below**
-3. **Report ONLY violations you find** (don't report what's correct)
-4. **For each violation:**
-   - State the rule code (e.g., qe-links-001)
-   - Quote the problematic text
-   - Explain what's wrong
-   - Suggest a fix (if applicable)
-
-5. **Output format:**
-   ```
-   ### Rule: [rule-code]
-   **Issue:** [Brief description]
-   **Location:** [Quote the problematic text]
-   **Suggestion:** [How to fix it]
-   ```
-
-6. **If no violations found:** Simply respond with "No links style violations found."
-
-## Links Style Rules
+---
 
 ## Document Linking Rules
 
@@ -114,9 +93,3 @@ See [Kalman Filter](https://python.quantecon.org/kalman.html) for details.
 
 {doc}`intro/linear_equations`  <!-- Wrong separator (use : not /) -->
 ```
-
----
-
-## Lecture Content to Review
-
-[The lecture content will be appended here]
