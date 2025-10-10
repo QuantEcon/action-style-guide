@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] - 2025-10-10
+
 ### Changed
 
 - **Strengthened rule evaluation order in writing prompt** - Made order mandatory
