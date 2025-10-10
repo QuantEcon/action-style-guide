@@ -323,6 +323,7 @@ class StyleReviewer:
         Review a lecture by checking each rule individually.
         
         This approach guarantees comprehensive coverage by evaluating one rule at a time.
+        Applies fixes after each rule, so subsequent rules check the updated content.
         More expensive (multiple LLM calls) but ensures no rules are skipped.
         
         Args:
@@ -335,6 +336,7 @@ class StyleReviewer:
         """
         all_violations = []
         all_warnings = []
+        current_content = content  # Track the evolving content as fixes are applied
         
         for category in categories:
             print(f"  📋 Checking {category} rules individually...")
@@ -351,16 +353,37 @@ class StyleReviewer:
                 print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)})")
                 
                 try:
-                    # Create focused prompt for this specific rule
-                    prompt = create_single_rule_prompt(category, rule, content)
+                    # Create focused prompt for this specific rule using CURRENT content
+                    prompt = create_single_rule_prompt(category, rule, current_content)
                     
                     # Check this single rule
                     result = self.provider.check_single_rule(prompt)
                     
-                    # Collect violations from this rule
+                    # Process violations from this rule
                     if result.get('violations'):
                         violations_count = len(result['violations'])
                         print(f"      ✓ Found {violations_count} violation(s)")
+                        
+                        # Validate fix quality
+                        validation_warnings = validate_fix_quality(result['violations'])
+                        if validation_warnings:
+                            print(f"      ⚠️  Fix quality warnings: {len(validation_warnings)}")
+                            all_warnings.extend(validation_warnings)
+                        
+                        # Apply fixes immediately to current content
+                        corrected_content, apply_warnings = apply_fixes(current_content, result['violations'])
+                        
+                        if apply_warnings:
+                            all_warnings.extend(apply_warnings)
+                        
+                        # Update current content for next rule
+                        if corrected_content != current_content:
+                            current_content = corrected_content
+                            print(f"      ✓ Applied {violations_count} fix(es) - content updated for next rule")
+                        else:
+                            print(f"      ⚠️  Could not apply fixes - content unchanged")
+                        
+                        # Store violations for reporting
                         all_violations.extend(result['violations'])
                     else:
                         print(f"      ✓ No violations")
@@ -376,32 +399,9 @@ class StyleReviewer:
             'violations': all_violations,
             'provider': self.provider_name,
             'lecture_name': lecture_name,
-            'warnings': all_warnings
+            'warnings': all_warnings,
+            'corrected_content': current_content  # Final content after all fixes
         }
-        
-        # Apply fixes programmatically if we have violations
-        if all_violations:
-            print(f"  🔧 Applying {len(all_violations)} fixes programmatically...")
-            
-            # Validate fix quality
-            validation_warnings = validate_fix_quality(all_violations)
-            if validation_warnings:
-                print(f"  ⚠️  Fix quality warnings:")
-                for warning in validation_warnings[:5]:  # Show first 5
-                    print(f"      - {warning}")
-            
-            # Apply fixes
-            corrected_content, apply_warnings = apply_fixes(content, all_violations)
-            combined_result['corrected_content'] = corrected_content
-            combined_result['fix_warnings'] = apply_warnings
-            
-            # If we couldn't apply any fixes, keep original content
-            if corrected_content == content and all_violations:
-                print(f"  ⚠️  Could not apply any fixes - keeping original content")
-                combined_result['corrected_content'] = content
-        else:
-            # No violations, keep original content
-            combined_result['corrected_content'] = content
         
         return combined_result
     

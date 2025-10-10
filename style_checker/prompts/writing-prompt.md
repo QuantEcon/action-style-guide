@@ -1,4 +1,4 @@
-<!-- Prompt Version: 0.3.11 | Last Updated: 2025-10-10 | Reverted to original rule numbering, preparing for single-rule evaluation approach -->
+<!-- Prompt Version: 0.3.12 | Last Updated: 2025-10-10 | Sequential fix application after each rule -->
 
 # QuantEcon Writing Style Checker Prompt
 

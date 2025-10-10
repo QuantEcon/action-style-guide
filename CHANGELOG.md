@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.12] - 2025-10-10
+
+### Fixed
+
+- **Sequential fix application in single-rule evaluation** - Critical bug fix
+  - Previous implementation collected ALL violations from ALL rules, then applied fixes at the end
+  - This meant rule 002 was checking against ORIGINAL content, not content fixed by rule 001
+  - **Now applies fixes immediately after each rule** before checking the next rule
+  - Rule 001 → find violations → apply fixes → Rule 002 checks the UPDATED content
+  - Ensures proper sequential processing: each rule sees the results of previous fixes
+  - More accurate detection as later rules work with already-cleaned content
+
 ## [0.3.11] - 2025-10-10
 
 ### Changed
