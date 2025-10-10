@@ -155,19 +155,33 @@ class AnthropicProvider:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
     def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """Check style using Anthropic Claude"""
+        """Check style using Anthropic Claude with automatic streaming for large requests"""
         # Load prompt using category-specific templates
         prompt = load_prompt(categories, content)
         
-        # Make API call
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=64000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        
-        # Extract text from response
-        full_response = response.content[0].text
+        # Try non-streaming first, fall back to streaming if required
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=64000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            full_response = response.content[0].text
+        except Exception as e:
+            # If we get the streaming error, use streaming
+            if "Streaming is required" in str(e) or "10 minutes" in str(e):
+                print(f"    ℹ️  Using streaming for large request...")
+                full_response = ""
+                with self.client.messages.stream(
+                    model=self.model,
+                    max_tokens=64000,
+                    messages=[{"role": "user", "content": prompt}]
+                ) as stream:
+                    for text in stream.text_stream:
+                        full_response += text
+            else:
+                # Re-raise if it's a different error
+                raise
         
         # Parse the Markdown response
         return parse_markdown_response(full_response)

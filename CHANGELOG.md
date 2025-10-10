@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-10-10
+
+### Fixed
+
+- **Streaming Fallback**: Added automatic fallback to streaming API for large lectures
+  - Anthropic now requires streaming for requests that may take longer than 10 minutes
+  - Non-streaming API tried first for better performance
+  - Automatically falls back to streaming if required
+  - Fixes error: "Streaming is required for operations that may take longer than 10 minutes"
+  - Particularly important for very large lectures (40K+ characters)
+
 ## [0.3.0] - 2025-10-10
 
 ### Breaking Changes 🚨
