@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Removed "Corrected Content" from LLM responses** - Major performance improvement
+  - Prompts no longer request full corrected lecture in response
+  - Fixes applied programmatically using existing `apply_fixes()` function
+  - Reduces output tokens by ~50% (e.g., 40K char lecture now ~20K tokens cheaper)
+  - Faster API responses and lower costs
+  - Matches `tool-style-checker` architecture for consistency
+  - Parser updated to not expect "Corrected Content" section
+  - See: Implementing Option 1 from architecture analysis
+
 ## [0.3.2] - 2025-10-10
 
 ### Fixed

@@ -38,11 +38,6 @@ Each rule is categorized as either:
    - Include `style` category suggestions when they significantly impact readability
    - For style suggestions, explain your reasoning clearly
 
-6. **Be thorough but practical**:
-   - If a pattern repeats (e.g., multiple paragraphs with multiple sentences), note the first 2-3 instances and mention "This pattern occurs throughout the document"
-   - Group related violations together when appropriate
-   - Don't overwhelm with minor issues if major structural problems exist
-
 ## Output Format
 
 **CRITICAL**: You MUST structure your response EXACTLY as shown below. The automated parser requires this precise format.
@@ -63,11 +58,11 @@ Each rule is categorized as either:
 - **Location:** Line [X-Y] / Section "[Section Name]"
 - **Description:** [Brief explanation of the violation]
 - **Current text:**
-```
+```markdown
 [Exact quote of the problematic text - can be multiple lines]
 ```
 - **Suggested fix:**
-```
+```markdown
 [The corrected version of the text]
 ```
 - **Explanation:** [Why this change improves the writing]
@@ -77,23 +72,16 @@ Each rule is categorized as either:
 - **Location:** Line [X] / Section "[Section Name]"
 - **Description:** [Brief explanation]
 - **Current text:**
-```
+```markdown
 [Problematic text]
 ```
 - **Suggested fix:**
-```
+```markdown
 [Corrected text]
 ```
 - **Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
-
-## Corrected Content
-
-```markdown
-[The COMPLETE corrected lecture file with ALL violations fixed.
-Include the entire file from beginning to end, not just excerpts.]
-```
 ```
 
 **CRITICAL FORMATTING RULES:**
@@ -102,7 +90,7 @@ Include the entire file from beginning to end, not just excerpts.]
 2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
 3. **Severity levels**: Use `error`, `warning`, or `info`
 4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
-5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+5. **Do NOT include** a "Corrected Content" section - fixes will be applied programmatically
 6. **Do NOT deviate** from this structure - the parser depends on it
 
 **Important**: If NO violations are found, still use this format:
@@ -118,10 +106,4 @@ No writing style violations found. The lecture follows all writing guidelines.
 ## Violations
 
 [Leave empty]
-
-## Corrected Content
-
-```markdown
-[Include the original lecture content unchanged]
-```
 ```

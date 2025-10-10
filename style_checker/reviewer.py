@@ -121,14 +121,9 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
                 
                 result['violations'].append(violation)
         
-        # Extract corrected content (handle nested code blocks)
-        corrected_match = re.search(r'## Corrected Content\s*\n```(?:markdown)?\s*\n(.+)', response, re.DOTALL)
-        if corrected_match:
-            # Extract everything after the opening ``` and before the final ```
-            content_after_header = corrected_match.group(1)
-            # Remove the final closing ``` (it will be the last one before end or next ##)
-            content_after_header = re.sub(r'\n```\s*$', '', content_after_header)
-            result['corrected_content'] = content_after_header.strip()
+        # Note: Corrected content is not extracted from LLM response anymore
+        # Fixes are applied programmatically using apply_fixes() function
+        # This reduces output tokens by ~50% and matches tool-style-checker approach
         
     except Exception as e:
         result['error'] = f'Markdown parsing failed: {str(e)}'

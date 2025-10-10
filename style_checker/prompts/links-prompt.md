@@ -90,13 +90,6 @@ Each rule is categorized as either:
 - **Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
-
-## Corrected Content
-
-```markdown
-[The COMPLETE corrected lecture file with ALL violations fixed.
-Include the entire file from beginning to end, not just excerpts.]
-```
 ```
 
 **CRITICAL FORMATTING RULES:**
@@ -105,7 +98,7 @@ Include the entire file from beginning to end, not just excerpts.]
 2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
 3. **Severity levels**: Use `error`, `warning`, or `info`
 4. **Code blocks**: Current text and Suggested fix MUST be in triple-backtick code blocks
-5. **Corrected Content**: Must include the COMPLETE lecture file in a markdown code block
+5. **Do NOT include** a "Corrected Content" section - fixes will be applied programmatically
 6. **Do NOT deviate** from this structure - the parser depends on it
 
 **Important**: If NO violations are found, still use this format:
@@ -121,10 +114,4 @@ No link formatting violations found. The lecture follows all link guidelines.
 ## Violations
 
 [Leave empty]
-
-## Corrected Content
-
-```markdown
-[Include the original lecture content unchanged]
-```
 ```
