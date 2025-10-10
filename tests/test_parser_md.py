@@ -17,9 +17,9 @@ from style_checker.parser_md import load_style_guide, StyleRule
 @pytest.fixture
 def style_guide_path():
     """Fixture to provide the style guide path"""
-    # Look for the style guide in the attachments directory or root
+    # Look for the style guide in the development directory or external manual
     possible_paths = [
-        Path(__file__).parent.parent / "style-guide-database.md",
+        Path(__file__).parent.parent / "tool-style-guide-development" / "style-guide-database.md",
         Path("/Users/mmcky/work/quantecon/QuantEcon.manual/manual/style-guide-database.md")
     ]
     

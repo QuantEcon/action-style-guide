@@ -1,48 +1,41 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> ✨ **Version 0.2.1**: Now with simplified prompts and category-based reviews!
+> 🚀 **Version 0.3.0**: Focused prompts architecture for better quality and lower costs!
 
-A GitHub Action and bot for automated style guide compliance checking of QuantEcon lecture materials.
+A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
 ## Overview
 
-This action automatically reviews MyST Markdown lecture files against the comprehensive [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses AI-powered analysis with category-specific prompts to check 50+ style rules covering writing, formatting, mathematics, code, JAX patterns, and more.
+This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses category-specific focused prompts to check 50+ style rules covering writing, mathematics, code, JAX patterns, figures, and more.
 
 ## Features
 
-- 🤖 **AI-Powered Review**: Intelligent checking using Claude/GPT/Gemini to understand context
+- 🤖 **AI-Powered Review**: Uses Claude Sonnet 4.5 for intelligent, nuanced style analysis
 - 🏷️ **Category-Based Reviews**: Target specific areas (writing, math, code, jax, figures, references, links, admonitions)
-- 📝 **Comprehensive Rule Coverage**: 50+ style rules from writing style to technical requirements
-- 🎯 **Single Lecture Reviews**: Trigger reviews via issue comments with optional category filtering
-- 📅 **Scheduled Bulk Reviews**: Weekly automated reviews of all lectures
-- 🔄 **Markdown-Based Prompts**: Easy-to-update prompt templates for each category
-- 🎯 **Actionable Rules**: Automatically applies only `rule` category fixes
-- 🏷️ **Automated PR Management**: Creates labeled PRs with detailed change descriptions
+- 📝 **Focused Prompts**: Hand-crafted prompts + detailed rules = better quality, lower cost
+- 🎯 **Flexible Targeting**: Check all categories or focus on specific ones
+- 📅 **Scheduled Reviews**: Weekly automated reviews or on-demand via comments
+- 🔄 **Automated Fixes**: Applies fixes programmatically for reliable results
+- 🏷️ **PR Management**: Creates labeled PRs with detailed explanations
 
-## Usage
+## Quick Start
 
-### Trigger Single Lecture Review
+### Trigger a Review
 
 Comment on any issue in your lecture repository:
 
 ```
-@qe-style-checker aiyagari
+@qe-style-checker lecture_name
 ```
 
-or with specific categories:
+With specific categories:
 
 ```
-@qe-style-checker aiyagari writing,math
-```
-
-or check all categories:
-
-```
-@qe-style-checker lectures/aiyagari.md all
+@qe-style-checker lecture_name writing,math
 ```
 
 **Available Categories:**
@@ -54,47 +47,14 @@ or check all categories:
 - `references` - Citations and bibliography
 - `links` - Hyperlinks and cross-references  
 - `admonitions` - Note/warning/tip blocks
-- `all` - Check all categories (default if not specified)
 
-This will:
-1. Review the specified lecture against selected categories
-2. Open a PR titled `[aiyagari] Style guide review` 
-3. Apply labels: `automated`, `style-guide`, `review`
-4. Include detailed explanations of all suggested changes
-
-**Legacy Syntax** (still supported):
-```
-@quantecon-style-guide aiyagari
-```
-
-### Scheduled Bulk Reviews
-
-Configure weekly reviews in your `.github/workflows/style-guide.yml`:
-
-```yaml
-name: Weekly Style Guide Review
-on:
-  schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight
-  workflow_dispatch:  # Manual trigger
-
-jobs:
-  style-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: QuantEcon/action-style-guide@v0.2
-        with:
-          mode: 'bulk'
-          lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
-          llm-provider: 'claude'
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-```
+If no categories specified, checks all categories sequentially (one at a time, feeding updated content between categories).
 
 ## Installation
 
 ### 1. Add Workflow to Your Lecture Repository
+
+### 1. Create Workflow File
 
 Create `.github/workflows/style-guide-comment.yml`:
 
@@ -108,15 +68,13 @@ on:
 
 jobs:
   check-trigger:
-    if: contains(github.event.comment.body, '@qe-style-checker') || contains(github.event.comment.body, '@quantecon-style-guide')
+    if: contains(github.event.comment.body, '@qe-style-checker')
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v0.2
+      - uses: QuantEcon/action-style-guide@v0.3
         with:
           mode: 'single'
           lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
-          llm-provider: 'claude'  # Default: best results
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-body: ${{ github.event.comment.body || github.event.issue.body }}
@@ -126,9 +84,7 @@ jobs:
 
 Add to your repository settings → Secrets and variables → Actions:
 
-- `ANTHROPIC_API_KEY`: Your Anthropic API key for Claude (recommended)
-- Or `OPENAI_API_KEY`: Your OpenAI API key for GPT-4
-- Or `GOOGLE_API_KEY`: Your Google API key for Gemini
+- `ANTHROPIC_API_KEY`: Your Anthropic API key for Claude Sonnet 4.5
 - `GITHUB_TOKEN`: Automatically provided (or use PAT for extended permissions)
 
 ### 3. Configure Labels
@@ -144,51 +100,21 @@ Ensure these labels exist in your repository:
 |-------|-------------|----------|---------|
 | `mode` | Review mode: `single` or `bulk` | Yes | - |
 | `lectures-path` | Path to lectures directory | No | `lectures/` |
-| `style-guide-url` | URL or path to style-guide-database.md | No | Built-in rules |
-| `openai-api-key` | OpenAI API key for GPT-4 | No | - |
-| `anthropic-api-key` | Anthropic API key for Claude | No | - |
-| `google-api-key` | Google API key for Gemini | No | - |
+| `anthropic-api-key` | Anthropic API key for Claude Sonnet 4.5 | Yes | - |
 | `github-token` | GitHub token for PR creation | Yes | - |
 | `comment-body` | Issue comment body (for single mode) | No | - |
-| `llm-provider` | LLM provider: `openai`, `claude`, `gemini` | No | `claude` |
-| `llm-model` | Specific model name | No | Provider default |
+| `llm-model` | Specific Claude model to use | No | `claude-sonnet-4-5-20250929` |
 | `rule-categories` | Comma-separated categories to check | No | All categories |
 | `create-pr` | Whether to create PR with fixes | No | `true` |
 
-### LLM Model Options
+### LLM Model
 
-The action supports three LLM providers with different models and capabilities:
+The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) by default, which provides:
+- Excellent comprehension for nuanced style rules
+- Strong markdown and code understanding
+- Reliable structured output for suggestions and fixes
 
-#### Claude (Anthropic) - Recommended ⭐
-- **Default Model**: `claude-sonnet-4-5-20250929` (64,000 max output tokens) - **Latest & Best!**
-  - Best model for complex agents and coding
-  - Highest intelligence across most tasks
-  - 8x more output capacity than previous Sonnet 3.5
-- **Alternative Models**:
-  - `claude-sonnet-4-20250514` (64,000 max output tokens)
-  - `claude-opus-4-1-20250805` (32,000 max output tokens) - Exceptional for specialized tasks
-  - `claude-opus-4-20250514` (32,000 max output tokens)
-  - `claude-3-7-sonnet-20250219` (64,000 max output tokens with beta header)
-  - `claude-3-5-haiku-20241022` (8,192 max output tokens) - Fastest
-- **Best For**: Comprehensive style reviews, nuanced language analysis, long lectures
-- **Note**: Claude Sonnet 4.5 is the most capable model with 64K output tokens
-
-#### OpenAI (GPT-4)
-- **Default Model**: `gpt-4` (8,192 max output tokens)
-- **Alternative Models**:
-  - `gpt-4-turbo` (4,096 max output tokens)
-  - `gpt-4o` (16,384 max output tokens)
-- **Best For**: Structured JSON responses, code analysis
-
-#### Google (Gemini)
-- **Default Model**: `gemini-1.5-pro` (8,192 max output tokens)
-- **Alternative Models**:
-  - `gemini-1.5-flash` (8,192 max output tokens, faster)
-- **Best For**: Cost-effective reviews, multi-modal content
-
-**Important**: The action now uses semantic grouping to intelligently organize rules by topic (Writing, Math, Code, etc.), which naturally handles token limits by processing related rules together. The default configuration works well for all models.
-
-If you need to focus on specific areas, use the `rule-categories` parameter to check only certain rule categories.
+The focused prompts architecture (85-line instructions + 120-235 line rules) ensures efficient token usage while maintaining comprehensive analysis.
 
 ## Rule Categories
 
@@ -206,48 +132,40 @@ Rules that are clearly actionable and will be automatically applied by the actio
 
 **These rules are automatically checked and fixed by the action.**
 
-### Category: `style` (Advisory) 💡
-Guidelines that may require human judgment or context:
-- Writing clarity and conciseness
-- Logical flow and narrative structure  
-- Figure placement and visualization choices
-- Mathematical notation simplicity
-- Code readability patterns
+## Architecture
 
-**These rules are tracked but not automatically actioned. Future versions will add comment-based suggestions.**
+The action uses a **focused prompts architecture** with **sequential category processing**:
 
-### Category: `migrate` (Code Transformation) 🔄
-Legacy code patterns suitable for automated transformation tools:
-- `tic/toc` → `quantecon.Timer()` migration
-- `%timeit` → `quantecon.timeit()` migration
-- NumPy → JAX functional patterns
-- In-place operations → JAX immutable updates
+1. **Prompts** (`style_checker/prompts/*.md`): Concise instructions (~85 lines each) for LLM analysis
+2. **Rules** (`style_checker/rules/*.md`): Detailed specifications (~120-235 lines each) with examples
+3. **Categories**: 8 focused areas (writing, math, code, jax, figures, references, links, admonitions)
+4. **Sequential Processing**: Processes categories one at a time, feeding the updated document from each category into the next
 
-**These rules are for specialized migration tools and are not actioned by the main checker.**
+Each category combines its prompt (how to check) with its rules (what to check) for targeted, efficient analysis.
 
-## Style Guide Database
+### How Sequential Processing Works
 
-The complete style guide is maintained in `style-guide-database.md` with:
-- **48 rules** organized into **8 groups**
-- **31 actionable rules** (category=`rule`)
-- **13 advisory guidelines** (category=`style`)
-- **4 migration patterns** (category=`migrate`)
+The action processes categories in order, ensuring all fixes are applied without conflicts:
 
-Each rule includes:
-- Unique rule code (e.g., `qe-writing-001`, `qe-math-004`)
-- Category classification
-- Detailed description and rationale
-- Examples showing correct/incorrect usage
-- Implementation notes for automated checking
+1. **Category 1 (e.g., Writing)**: Reviews original document → finds violations → applies fixes → **updated document**
+2. **Category 2 (e.g., Math)**: Reviews **updated document** → finds violations → applies fixes → **updated document**
+3. **Category 3 (e.g., Code)**: Reviews **updated document** → finds violations → applies fixes → **updated document**
+4. Continue for all 8 categories...
 
-For the complete database, see: [style-guide-database.md](style-guide-database.md)
+This approach matches `tool-style-checker` and ensures:
+- ✅ All fixes are applied without conflicts
+- ✅ Later categories see changes made by earlier categories
+- ✅ More coherent and complete final output
+- ✅ No skipped fixes due to overlapping changes
+
+**Trade-off**: Sequential processing is slower than parallel (8 sequential API calls vs 8 parallel), but produces more reliable results.
 
 ## Example Review Output
 
 When a lecture is reviewed, the action will:
 
-1. **Analyze the file** against all applicable rules
-2. **Generate specific suggestions** with rule references
+1. **Analyze the file** against all applicable categories
+2. **Generate specific suggestions** with detailed explanations
 3. **Create a PR** with changes organized by category
 4. **Include detailed commit messages** explaining each fix
 
@@ -260,34 +178,20 @@ This PR addresses style guide compliance issues found in the Aiyagari model lect
 
 ### Changes Summary
 
-#### Writing Rules (5 issues)
-- Split multi-sentence paragraphs per qe-writing-002
-- Fixed capitalization in section headings per qe-title-002
+#### Writing
+- Split multi-sentence paragraphs
+- Fixed capitalization in section headings
 
-#### Mathematics Rules (3 issues)
-- Changed A' to A⊤ for transpose notation per qe-math-001
-- Converted matrices to square brackets per qe-math-003
+#### Mathematics
+- Changed A' to A⊤ for transpose notation
+- Converted matrices to square brackets
 
-#### Code Rules (2 issues)
-- Added Unicode Greek letters per qe-code-004
-- Replaced manual timing with qe.Timer() per qe-code-006
+#### Code
+- Added Unicode Greek letters
+- Replaced manual timing with qe.Timer()
 
-### Rule References
-
-Each change references the specific style guide rule:
-- qe-writing-002: One-sentence paragraphs only
-- qe-title-002: Capitalize only first word in headings
-- qe-math-001: Use \top for transpose
-...
+See commits for detailed explanations of each change.
 ```
-
-## Updating Style Guide Rules
-
-To update the style guide rules:
-
-1. Edit `style-guide-database.md` in this repository
-2. Commit and push changes
-3. All future reviews will use the updated rules automatically
 
 ## Development
 
@@ -297,11 +201,11 @@ To update the style guide rules:
 # Install dependencies
 pip install -r requirements.txt
 
-# Run single lecture check
-python -m style_checker.cli --mode single --lecture lectures/aiyagari.md
+# Run tests
+pytest tests/
 
-# Run bulk check
-python -m style_checker.cli --mode bulk --lectures-dir lectures/
+# Check specific lecture
+python -m style_checker.main --mode single --lecture lectures/aiyagari.md
 ```
 
 ### Project Structure
@@ -309,14 +213,15 @@ python -m style_checker.cli --mode bulk --lectures-dir lectures/
 ```
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
-├── style-guide-database.md   # Style guide rules database
 ├── style_checker/            # Main package
-│   ├── __init__.py
-│   ├── parser_md.py         # Markdown rule parser
-│   ├── reviewer.py          # LLM-based review logic
+│   ├── main.py              # Entry point
+│   ├── parser_md.py         # Comment parsing
+│   ├── reviewer.py          # LLM review logic
 │   ├── github_handler.py    # PR/issue management
-│   ├── prompts.py           # LLM prompt templates
-│   └── cli.py               # CLI interface
+│   ├── fix_applier.py       # Apply fixes to files
+│   ├── prompt_loader.py     # Load prompts + rules
+│   ├── prompts/             # Category-specific prompts
+│   └── rules/               # Category-specific rules
 ├── tests/                    # Test suite
 ├── examples/                 # Example workflows
 └── docs/                     # Documentation

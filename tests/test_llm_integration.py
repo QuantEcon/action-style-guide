@@ -1,6 +1,6 @@
 """
 Integration tests for LLM-based style checking
-These tests make real API calls to LLM providers - run with pytest -m integration
+These tests make real API calls to Claude Sonnet 4.5 - run with pytest -m integration
 """
 
 import sys
@@ -74,7 +74,7 @@ The solution is V(x) = 42.
 @pytest.fixture
 def style_guide_path():
     """Fixture to provide the style guide path"""
-    return Path(__file__).parent.parent / "style-guide-database.md"
+    return Path(__file__).parent.parent / "tool-style-guide-development" / "style-guide-database.md"
 
 
 @pytest.fixture
@@ -102,22 +102,16 @@ def sample_rules(style_guide_path):
 
 @pytest.mark.integration
 @pytest.mark.skipif(
-    "ANTHROPIC_API_KEY" not in os.environ and 
-    "OPENAI_API_KEY" not in os.environ and
-    "GOOGLE_API_KEY" not in os.environ,
-    reason="No LLM API key found - set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY"
+    "ANTHROPIC_API_KEY" not in os.environ,
+    reason="No Anthropic API key found - set ANTHROPIC_API_KEY"
 )
 class TestLLMIntegration:
     """Integration tests that make real LLM API calls"""
     
     def get_available_provider(self):
-        """Determine which LLM provider to use based on available API keys"""
+        """Get the Claude API key"""
         if os.environ.get("ANTHROPIC_API_KEY"):
             return "claude", os.environ["ANTHROPIC_API_KEY"]
-        elif os.environ.get("OPENAI_API_KEY"):
-            return "openai", os.environ["OPENAI_API_KEY"]
-        elif os.environ.get("GOOGLE_API_KEY"):
-            return "gemini", os.environ["GOOGLE_API_KEY"]
         else:
             pytest.skip("No LLM API key available")
     
@@ -127,8 +121,8 @@ class TestLLMIntegration:
         
         print(f"\n🤖 Testing with provider: {provider_name}")
         
-        # Create reviewer
-        reviewer = StyleReviewer(provider=provider_name, api_key=api_key)
+        # Create reviewer (api_key is read from environment by StyleReviewer)
+        reviewer = StyleReviewer()
         
         # Review the sample lecture
         result = reviewer.review_lecture(
@@ -165,7 +159,7 @@ class TestLLMIntegration:
         """Test that LLM provides corrected content"""
         provider_name, api_key = self.get_available_provider()
         
-        reviewer = StyleReviewer(provider=provider_name, api_key=api_key)
+        reviewer = StyleReviewer()
         
         result = reviewer.review_lecture(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
@@ -189,7 +183,7 @@ class TestLLMIntegration:
         """Test that LLM response follows expected Markdown format"""
         provider_name, api_key = self.get_available_provider()
         
-        reviewer = StyleReviewer(provider=provider_name, api_key=api_key)
+        reviewer = StyleReviewer()
         
         result = reviewer.review_lecture(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
@@ -213,7 +207,7 @@ class TestLLMIntegration:
         """Test that LLM identifies known violations in sample"""
         provider_name, api_key = self.get_available_provider()
         
-        reviewer = StyleReviewer(provider=provider_name, api_key=api_key)
+        reviewer = StyleReviewer()
         
         result = reviewer.review_lecture(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
@@ -250,7 +244,7 @@ def test_markdown_format_no_json_errors(sample_rules):
     if "ANTHROPIC_API_KEY" not in os.environ:
         pytest.skip("ANTHROPIC_API_KEY not set")
     
-    reviewer = StyleReviewer(provider="claude", api_key=os.environ["ANTHROPIC_API_KEY"])
+    reviewer = StyleReviewer()
     
     # Use a longer, more complex lecture to stress-test the parser
     complex_lecture = SAMPLE_LECTURE_WITH_VIOLATIONS * 3  # Triple the content

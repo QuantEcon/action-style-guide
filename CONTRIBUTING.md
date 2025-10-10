@@ -32,9 +32,7 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 4. **Set up API keys**
    ```bash
-   export ANTHROPIC_API_KEY="your-key"  # For Claude
-   export OPENAI_API_KEY="your-key"     # For OpenAI
-   export GOOGLE_API_KEY="your-key"     # For Gemini
+   export ANTHROPIC_API_KEY="your-key"  # For Claude Sonnet 4.5
    export GITHUB_TOKEN="your-token"     # For GitHub API
    ```
 
@@ -46,10 +44,8 @@ Thank you for your interest in contributing! This document provides guidelines f
 python -m style_checker.main \
   --mode single \
   --lectures-path lectures/ \
-  --style-guide style-guide-database.md \
-  --llm-provider claude \
   --repository owner/repo \
-  --comment-body "@quantecon-style-guide lecture-name" \
+  --comment-body "@qe-style-checker lecture-name" \
   --create-pr false
 ```
 
@@ -59,8 +55,6 @@ python -m style_checker.main \
 python -m style_checker.main \
   --mode bulk \
   --lectures-path lectures/ \
-  --style-guide style-guide-database.md \
-  --llm-provider claude \
   --repository owner/repo \
   --create-pr false
 ```
@@ -69,37 +63,34 @@ python -m style_checker.main \
 
 ### Adding New Style Rules
 
-1. Edit `style-guide-database.md`
+Rules are now organized in category-specific files in `style_checker/rules/`:
+
+1. Edit the appropriate rules file (e.g., `style_checker/rules/writing-rules.md`)
 2. Add rule following the existing Markdown format:
    ```markdown
-   ### [CODE] Rule Title {#rule-id}
+   ## Rule Title
    
-   **Category**: rule  
-   **Group**: CODE  
-   **Priority**: critical
+   **Description**: Clear explanation of what the rule checks
    
-   **Rule**: Clear description of the rule
+   **Why**: Rationale for this rule
    
-   **Correct**:
+   **Good**:
    ```python
    # Good example
    ```
    
-   **Incorrect**:
+   **Bad**:
    ```python
    # Bad example
    ```
    ```
 
-3. Choose appropriate category:
-   - `rule` - Actionable, enforced automatically
-   - `style` - Style preferences, informational
-   - `migrate` - Migration notes for transitions
+3. Rules are grouped into 8 categories:
+   - writing, math, code, jax, figures, references, links, admonitions
 
-4. Choose appropriate semantic group:
-   - WRITING, MATH, CODE, JAX, FIGURES, REFERENCES, LINKS, ADMONITIONS
+4. If needed, update corresponding prompt file in `style_checker/prompts/`
 
-5. Test with sample lectures using the semantic grouping system
+5. Test with sample lectures
 
 ### Adding New LLM Providers
 
@@ -111,9 +102,14 @@ python -m style_checker.main \
 
 ### Improving Prompts
 
-- Edit system prompts in provider classes
+The action uses a focused prompts architecture:
+- **Prompts** (`style_checker/prompts/*.md`): Concise instructions for the LLM
+- **Rules** (`style_checker/rules/*.md`): Detailed specifications with examples
+
+To improve:
+- Edit the appropriate prompt or rules file
 - Test with various lecture types
-- Ensure JSON output format is maintained
+- Ensure Markdown output format is maintained
 - Validate against all rule categories
 
 ## Code Style

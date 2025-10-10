@@ -14,6 +14,12 @@ from datetime import datetime
 class GitHubHandler:
     """Handles GitHub API interactions for PR and issue management"""
     
+    # Valid category names (must match files in style_checker/rules/)
+    VALID_CATEGORIES = {
+        'writing', 'math', 'code', 'jax',
+        'figures', 'references', 'links', 'admonitions'
+    }
+    
     def __init__(self, token: str, repository: str):
         """
         Initialize GitHub handler
@@ -63,6 +69,14 @@ class GitHubHandler:
                 # Parse categories if provided (group 2)
                 if len(match.groups()) > 1 and match.group(2):
                     categories = [cat.strip() for cat in match.group(2).split(',')]
+                    
+                    # Validate categories
+                    if categories != ['all']:
+                        invalid = [c for c in categories if c not in self.VALID_CATEGORIES]
+                        if invalid:
+                            print(f"⚠️  Invalid categories: {', '.join(invalid)}")
+                            print(f"   Valid categories: {', '.join(sorted(self.VALID_CATEGORIES))}")
+                            return None
                 else:
                     categories = ['all']  # Default to all categories
                 

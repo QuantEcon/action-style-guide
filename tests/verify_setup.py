@@ -57,7 +57,7 @@ def main():
     print("📁 Checking Core Files...")
     files_to_check = [
         ("action.yml", "GitHub Action definition"),
-        ("style-guide-database.md", "Style guide rules"),
+        ("tool-style-guide-development/style-guide-database.md", "Style guide rules database"),
         ("requirements.txt", "Python dependencies"),
         ("README.md", "Main documentation"),
         ("LICENSE", "License file"),
@@ -127,14 +127,15 @@ def main():
             checks_passed += 1
     print()
     
-    # Count rules
+    # Count rules from development database
     print("📊 Style Guide Statistics...")
-    rule_count = count_rules("style-guide-database.md")
+    db_path = "tool-style-guide-development/style-guide-database.md"
+    rule_count = count_rules(db_path)
     if rule_count > 0:
-        print(f"✓ Found {rule_count} style guide rules")
+        print(f"✓ Found {rule_count} style guide rules in {db_path}")
         checks_passed += 1
     else:
-        print(f"✗ No rules found in style-guide-database.md")
+        print(f"✗ No rules found in {db_path}")
     total_checks += 1
     print()
     

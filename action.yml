@@ -14,33 +14,19 @@ inputs:
     description: 'Path to lectures directory'
     required: false
     default: 'lectures/'
-  style-guide-url:
-    description: 'URL or path to style-guide-database.md file'
-    required: false
-    default: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
-  openai-api-key:
-    description: 'OpenAI API key for LLM-powered review'
-    required: false
   anthropic-api-key:
-    description: 'Anthropic API key (alternative to OpenAI)'
-    required: false
+    description: 'Anthropic API key for Claude Sonnet 4.5'
+    required: true
   github-token:
     description: 'GitHub token for creating PRs and comments'
     required: true
   comment-body:
     description: 'Issue comment body (used in single mode to extract lecture name)'
     required: false
-  llm-provider:
-    description: 'LLM provider to use: "openai", "claude", or "gemini"'
-    required: false
-    default: 'claude'
   llm-model:
-    description: 'Specific LLM model to use'
+    description: 'Specific Claude model to use (default: claude-sonnet-4-5-20250929)'
     required: false
     default: ''
-  google-api-key:
-    description: 'Google API key for Gemini (alternative to OpenAI/Anthropic)'
-    required: false
   rule-categories:
     description: 'Comma-separated list of rule categories to check (leave empty for all)'
     required: false
@@ -88,30 +74,17 @@ runs:
         python -m pip install --upgrade pip
         pip install -r ${{ github.action_path }}/requirements.txt
 
-    - name: Download style guide
-      shell: bash
-      run: |
-        if [[ "${{ inputs.style-guide-url }}" == http* ]]; then
-          curl -o /tmp/style-guide-database.md "${{ inputs.style-guide-url }}"
-        else
-          cp "${{ inputs.style-guide-url }}" /tmp/style-guide-database.md
-        fi
-
     - name: Run style checker
       id: run-checker
       shell: bash
       env:
         PYTHONPATH: ${{ github.action_path }}
-        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
-        GOOGLE_API_KEY: ${{ inputs.google-api-key }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         python ${{ github.action_path }}/style_checker/main.py \
           --mode "${{ inputs.mode }}" \
           --lectures-path "${{ inputs.lectures-path }}" \
-          --style-guide /tmp/style-guide-database.md \
-          --llm-provider "${{ inputs.llm-provider }}" \
           --llm-model "${{ inputs.llm-model }}" \
           --rule-categories "${{ inputs.rule-categories }}" \
           --create-pr "${{ inputs.create-pr }}" \

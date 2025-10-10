@@ -17,14 +17,11 @@ jobs:
     
     steps:
       - name: Run bulk style guide review
-        uses: QuantEcon/action-style-guide@v0.2
+        uses: QuantEcon/action-style-guide@v0.3
         id: review
         with:
           mode: 'bulk'
           lectures-path: 'lectures/'
-          style-guide-url: 'https://raw.githubusercontent.com/QuantEcon/action-style-guide/main/style-guide-database.md'
-          # Use Claude as default (best results)
-          llm-provider: 'claude'
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           create-pr: 'true'

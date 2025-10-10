@@ -28,7 +28,7 @@ Tests the Markdown response parser used for LLM responses:
 - Violation detection with real LLM providers
 - Corrected content generation
 - Markdown response format validation
-- Tests work with Claude, GPT-4, or Gemini
+- Tests work with Claude Sonnet 4.5
 
 **Note:** These tests are skipped by default (require API keys and cost money to run).
 
@@ -78,7 +78,8 @@ Run ONLY integration tests (requires API keys):
 ```bash
 # Set API key first
 export ANTHROPIC_API_KEY="your-key-here"
-# or: export OPENAI_API_KEY="your-key-here"
+# Set your API key
+export ANTHROPIC_API_KEY="your-key-here"
 # or: export GOOGLE_API_KEY="your-key-here"
 
 # Run integration tests

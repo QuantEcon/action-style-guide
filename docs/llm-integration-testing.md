@@ -7,7 +7,7 @@ The `test_llm_integration.py` file contains **end-to-end integration tests** tha
 ## What Do Integration Tests Cover?
 
 ### 1. **Real LLM API Calls**
-- Tests use actual API keys to call Claude, GPT-4, or Gemini
+- Tests use actual API key to call Claude Sonnet 4.5
 - Verifies that LLM providers return properly formatted responses
 - Ensures the Markdown format works in practice (not just in theory)
 
@@ -63,16 +63,9 @@ def bellman_operator(v):
    pip install -r requirements.txt
    ```
 
-2. **Set up API key** (choose one provider):
+2. **Set up API key**:
    ```bash
-   # For Anthropic Claude (recommended)
    export ANTHROPIC_API_KEY="sk-ant-..."
-   
-   # OR for OpenAI GPT-4
-   export OPENAI_API_KEY="sk-..."
-   
-   # OR for Google Gemini
-   export GOOGLE_API_KEY="..."
    ```
 
 ### Running Tests
@@ -134,20 +127,12 @@ PASSED
 
 ⚠️ **Integration tests make real API calls and cost money!**
 
-### Approximate Costs per Test Run (as of Oct 2025)
+### Approximate Costs per Test Run (as of Jan 2025)
 
 **Anthropic Claude Sonnet 4.5:**
 - Input: ~2K tokens × 5 tests = 10K tokens
 - Output: ~1K tokens × 5 tests = 5K tokens
 - **Cost: ~$0.05 per full test run**
-
-**OpenAI GPT-4:**
-- Similar token usage
-- **Cost: ~$0.10 per full test run**
-
-**Google Gemini:**
-- Often has free tier
-- **Cost: Free or ~$0.02 per test run**
 
 ### Cost-Saving Tips
 
@@ -157,16 +142,12 @@ PASSED
    pytest tests/test_llm_integration.py::TestLLMIntegration::test_llm_can_detect_violations
    ```
 
-2. **Use Gemini for development:**
-   - Often has generous free tier
-   - Good for frequent testing
-
-3. **Mock in CI:**
+2. **Mock in CI:**
    - Don't run integration tests in CI by default
    - Use `pytest -m "not integration"` in CI
    - Only run integration tests manually before releases
 
-4. **Cache responses:**
+3. **Cache responses:**
    - Consider caching LLM responses for repeated test runs
    - Use `pytest-recording` or similar for HTTP mocking
 
@@ -182,8 +163,7 @@ PASSED
 **`TestLLMIntegration`**:
 - Uses `@pytest.mark.integration` marker
 - Auto-skips if no API keys found
-- Auto-detects available provider (Claude > OpenAI > Gemini)
-- Tests work with any of the three providers
+- Tests work with Claude Sonnet 4.5
 
 ### Individual Tests
 

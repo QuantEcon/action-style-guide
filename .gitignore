@@ -49,6 +49,9 @@ htmlcov/
 secrets/
 credentials/
 
+# Development tools - generated files
+tool-style-guide-development/rules/
+
 # Logs
 *.log
 logs/

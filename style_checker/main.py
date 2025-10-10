@@ -14,7 +14,6 @@ from datetime import datetime
 action_path = Path(__file__).parent.parent
 sys.path.insert(0, str(action_path))
 
-from style_checker.parser_md import load_style_guide
 from style_checker.reviewer import StyleReviewer
 from style_checker.github_handler import GitHubHandler
 
@@ -23,7 +22,6 @@ def review_single_lecture(
     lecture_name: str,
     gh_handler: GitHubHandler,
     reviewer: StyleReviewer,
-    style_guide_path: str,
     lectures_path: str,
     create_pr: bool,
     pr_branch_prefix: str,
@@ -36,12 +34,11 @@ def review_single_lecture(
         lecture_name: Name of the lecture to review
         gh_handler: GitHub API handler
         reviewer: LLM-based style reviewer
-        style_guide_path: Path to style guide database
         lectures_path: Path to lectures directory
         create_pr: Whether to create a PR with fixes
         pr_branch_prefix: Prefix for PR branch name
         categories: Optional list of categories to check (e.g., ["writing", "math"])
-                   If None or ["all"], uses smart semantic grouping
+                   If None or ["all"], uses sequential category processing
     
     Returns:
         Dictionary with review results and PR info
@@ -62,19 +59,10 @@ def review_single_lecture(
     content = gh_handler.get_lecture_content(lecture_file)
     print(f"📖 Loaded {len(content)} characters")
     
-    # Load style guide
-    print(f"📋 Loading style guide rules...")
-    style_guide = load_style_guide(style_guide_path)
-    
-    # Only action 'rule' category (not 'style' or 'migrate')
-    actionable_rules = style_guide.get_actionable_rules()
-    print(f"✓ Loaded {len(style_guide.rules)} total rules")
-    print(f"✓ Using {len(actionable_rules)} actionable rules (category='rule')")
-    
     # Perform review
     if not categories or categories == ['all']:
-        # Use smart semantic grouping strategy (default behavior)
-        review_result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
+        # Use smart sequential category processing (default behavior)
+        review_result = reviewer.review_lecture_smart(content, lecture_name)
     else:
         # Use specific categories requested by user
         print(f"🎯 Checking specific categories: {', '.join(categories)}")
@@ -132,7 +120,6 @@ def review_single_lecture(
 def review_bulk_lectures(
     gh_handler: GitHubHandler,
     reviewer: StyleReviewer,
-    style_guide_path: str,
     lectures_path: str,
     create_pr: bool,
     pr_branch_prefix: str
@@ -163,14 +150,6 @@ def review_bulk_lectures(
         gh_handler.create_branch(branch_name)
         print(f"✓ Created branch: {branch_name}\n")
     
-    # Load style guide once
-    style_guide = load_style_guide(style_guide_path)
-    
-    # Only action 'rule' category (not 'style' or 'migrate')
-    actionable_rules = style_guide.get_actionable_rules()
-    print(f"✓ Loaded {len(style_guide.rules)} total rules")
-    print(f"✓ Using {len(actionable_rules)} actionable rules (category='rule')")
-    
     # Review each lecture
     all_results = []
     total_issues = 0
@@ -183,8 +162,8 @@ def review_bulk_lectures(
             # Get content
             content = gh_handler.get_lecture_content(lecture_file)
             
-            # Review using smart semantic grouping strategy
-            result = reviewer.review_lecture_smart(content, style_guide, lecture_name)
+            # Review using sequential category processing
+            result = reviewer.review_lecture_smart(content, lecture_name)
             
             issues_found = result.get('issues_found', 0)
             total_issues += issues_found
@@ -293,12 +272,7 @@ def main():
                        help='Review mode: single lecture or bulk')
     parser.add_argument('--lectures-path', default='lectures/',
                        help='Path to lectures directory')
-    parser.add_argument('--style-guide', required=True,
-                       help='Path to style-guide-database.md')
-    parser.add_argument('--llm-provider', default='claude',
-                       choices=['openai', 'claude', 'gemini'],
-                       help='LLM provider to use')
-    parser.add_argument('--llm-model', help='Specific LLM model')
+    parser.add_argument('--llm-model', help='Specific Claude model (default: claude-sonnet-4-5-20250929)')
     parser.add_argument('--rule-categories', default='',
                        help='Comma-separated rule categories to check')
     parser.add_argument('--create-pr', default='true',
@@ -322,7 +296,7 @@ def main():
     
     # Initialize handlers
     gh_handler = GitHubHandler(github_token, args.repository)
-    reviewer = StyleReviewer(provider=args.llm_provider, model=args.llm_model)
+    reviewer = StyleReviewer(model=args.llm_model)
     
     # Run review
     try:
@@ -345,7 +319,6 @@ def main():
                 lecture_name=lecture_name,
                 gh_handler=gh_handler,
                 reviewer=reviewer,
-                style_guide_path=args.style_guide,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
                 pr_branch_prefix=args.pr_branch_prefix,
@@ -387,7 +360,6 @@ def main():
             result = review_bulk_lectures(
                 gh_handler=gh_handler,
                 reviewer=reviewer,
-                style_guide_path=args.style_guide,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
                 pr_branch_prefix=args.pr_branch_prefix

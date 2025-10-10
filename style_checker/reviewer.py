@@ -1,6 +1,5 @@
 """
-LLM-based Style Checker
-Supports multiple LLM providers: OpenAI, Anthropic Claude, Google Gemini
+LLM-based Style Checker using Claude Sonnet 4.5
 Uses Markdown format for LLM responses (more reliable than JSON for long content)
 Applies fixes programmatically instead of relying on LLM-generated corrected content
 Uses markdown-based prompt templates for simplicity and maintainability
@@ -8,13 +7,9 @@ Uses markdown-based prompt templates for simplicity and maintainability
 
 import os
 import re
-from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
-from abc import ABC, abstractmethod
+from typing import List, Dict, Any, Optional, Tuple
 from .fix_applier import apply_fixes, validate_fix_quality
 from .prompt_loader import load_prompt
-
-if TYPE_CHECKING:
-    from .parser_md import StyleGuideDatabase, StyleRule
 
 
 def parse_markdown_response(response: str) -> Dict[str, Any]:
@@ -32,7 +27,7 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
     
     ## Violations
     
-    ### Violation 1: <rule_id> - <rule_title>
+    ###Violation 1: <rule_id> - <rule_title>
     - **Severity:** <severity>
     - **Location:** <location>
     - **Description:** <description>
@@ -51,11 +46,11 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
     ## Corrected Content
     
     ```markdown
-    <full corrected content>
+    <corrected_content>
     ```
     
     Returns:
-        Dictionary with parsed results
+        Dictionary with parsed review results
     """
     result = {
         'issues_found': 0,
@@ -66,151 +61,86 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
     
     try:
         # Extract summary
-        summary_match = re.search(r'##\s+Summary\s*\n(.*?)(?=\n##|\Z)', response, re.DOTALL)
+        summary_match = re.search(r'## Summary\s*\n(.+?)(?=\n##|\Z)', response, re.DOTALL)
         if summary_match:
             result['summary'] = summary_match.group(1).strip()
         
         # Extract issues count
-        issues_match = re.search(r'##\s+Issues Found\s*\n(\d+)', response, re.IGNORECASE)
+        issues_match = re.search(r'## Issues Found\s*\n(\d+)', response)
         if issues_match:
             result['issues_found'] = int(issues_match.group(1))
         
-        # Extract violations section
-        violations_section = re.search(
-            r'##\s+Violations\s*\n(.*?)(?=\n##\s+Corrected Content|\Z)',
-            response,
-            re.DOTALL | re.IGNORECASE
-        )
-        
+        # Extract violations
+        violations_section = re.search(r'## Violations\s*\n(.+?)(?=\n## Corrected Content|\Z)', response, re.DOTALL)
         if violations_section:
             violations_text = violations_section.group(1)
             
             # Parse individual violations
-            violation_pattern = re.compile(
-                r'###\s+Violation\s+\d+:\s+([a-zA-Z0-9_-]+)\s+-\s+(.+?)\n'
-                r'.*?-\s+\*\*Severity:\*\*\s*(.+?)\n'
-                r'.*?-\s+\*\*Location:\*\*\s*(.+?)\n'
-                r'.*?-\s+\*\*Description:\*\*\s*(.+?)\n'
-                r'.*?-\s+\*\*Current text:\*\*\s*\n```(?:.*?\n)?(.*?)```\s*\n'
-                r'.*?-\s+\*\*Suggested fix:\*\*\s*\n```(?:.*?\n)?(.*?)```\s*\n'
-                r'.*?-\s+\*\*Explanation:\*\*\s*(.+?)(?=\n###|\n##|\Z)',
-                re.DOTALL | re.IGNORECASE
-            )
-            
-            for match in violation_pattern.finditer(violations_text):
+            violation_pattern = r'### Violation \d+: ([^\n]+)\n(.+?)(?=\n### Violation|\Z)'
+            for match in re.finditer(violation_pattern, violations_text, re.DOTALL):
+                header = match.group(1)
+                body = match.group(2)
+                
+                # Parse rule_id and title from header
+                header_parts = header.split(' - ', 1)
+                rule_id = header_parts[0].strip()
+                rule_title = header_parts[1].strip() if len(header_parts) > 1 else ''
+                
                 violation = {
-                    'rule_id': match.group(1).strip(),
-                    'rule_title': match.group(2).strip(),
-                    'severity': match.group(3).strip(),
-                    'location': match.group(4).strip(),
-                    'description': match.group(5).strip(),
-                    'current_text': match.group(6).strip(),
-                    'suggested_fix': match.group(7).strip(),
-                    'explanation': match.group(8).strip()
+                    'rule_id': rule_id,
+                    'rule_title': rule_title
                 }
+                
+                # Extract fields from violation body
+                severity_match = re.search(r'\*\*Severity:\*\*\s*(.+)', body)
+                if severity_match:
+                    violation['severity'] = severity_match.group(1).strip()
+                
+                location_match = re.search(r'\*\*Location:\*\*\s*(.+)', body)
+                if location_match:
+                    violation['location'] = location_match.group(1).strip()
+                
+                desc_match = re.search(r'\*\*Description:\*\*\s*(.+?)(?=\n\*\*|\Z)', body, re.DOTALL)
+                if desc_match:
+                    violation['description'] = desc_match.group(1).strip()
+                
+                # Extract current text (in code block)
+                current_match = re.search(r'\*\*Current text:\*\*\s*\n```[^\n]*\n(.+?)\n```', body, re.DOTALL)
+                if current_match:
+                    violation['current_text'] = current_match.group(1).strip()
+                
+                # Extract suggested fix (in code block)
+                fix_match = re.search(r'\*\*Suggested fix:\*\*\s*\n```[^\n]*\n(.+?)\n```', body, re.DOTALL)
+                if fix_match:
+                    violation['suggested_fix'] = fix_match.group(1).strip()
+                
+                # Extract explanation
+                expl_match = re.search(r'\*\*Explanation:\*\*\s*(.+?)(?=\n\*\*|\n###|\Z)', body, re.DOTALL)
+                if expl_match:
+                    violation['explanation'] = expl_match.group(1).strip()
+                
                 result['violations'].append(violation)
         
-        # Extract corrected content (optional - for backward compatibility)
-        # New approach: Apply fixes programmatically, so this field is optional
-        corrected_match = re.search(
-            r'##\s+Corrected Content\s*\n```(?:markdown)?\s*\n(.*?)(?:\n```\s*(?:$|(?=\n##)))',
-            response,
-            re.DOTALL | re.IGNORECASE
-        )
+        # Extract corrected content (handle nested code blocks)
+        corrected_match = re.search(r'## Corrected Content\s*\n```(?:markdown)?\s*\n(.+)', response, re.DOTALL)
         if corrected_match:
-            result['corrected_content'] = corrected_match.group(1).strip()
-        else:
-            # Fallback: try to find content after "Corrected Content" header
-            # This handles cases where the format might be slightly different
-            content_match = re.search(
-                r'##\s+Corrected Content\s*\n(.+)',
-                response,
-                re.DOTALL | re.IGNORECASE
-            )
-            if content_match:
-                # Extract everything after the header
-                content_after = content_match.group(1).strip()
-                # If it starts with a code fence, extract the content
-                code_fence_match = re.match(r'```(?:markdown)?\s*\n(.+)', content_after, re.DOTALL)
-                if code_fence_match:
-                    # Get content and find the last closing fence
-                    full_content = code_fence_match.group(1)
-                    # Remove trailing ``` if present
-                    if full_content.endswith('```'):
-                        full_content = full_content[:-3].rstrip()
-                    result['corrected_content'] = full_content
-            # If still no corrected content, leave it empty (will be generated from fixes)
-
+            # Extract everything after the opening ``` and before the final ```
+            content_after_header = corrected_match.group(1)
+            # Remove the final closing ``` (it will be the last one before end or next ##)
+            content_after_header = re.sub(r'\n```\s*$', '', content_after_header)
+            result['corrected_content'] = content_after_header.strip()
         
-        # Update issues_found based on actual violations parsed if not set
-        if result['issues_found'] == 0 and result['violations']:
-            result['issues_found'] = len(result['violations'])
-            
     except Exception as e:
-        print(f"    ⚠️  Markdown parsing error: {e}")
-        print(f"    Response preview: {response[:500]}...")
         result['error'] = f'Markdown parsing failed: {str(e)}'
     
     return result
 
 
-class LLMProvider(ABC):
-    """Abstract base class for LLM providers"""
-    
-    @abstractmethod
-    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """
-        Check style and return structured results.
-        
-        Args:
-            content: Lecture content to review
-            categories: List of style categories to check (e.g., ["writing", "math"])
-        
-        Returns:
-            Dictionary with parsed review results
-        """
-        pass
-
-
-class OpenAIProvider(LLMProvider):
-    """OpenAI GPT-4 provider"""
-    
-    def __init__(self, api_key: str, model: str = "gpt-4"):
-        self.api_key = api_key
-        self.model = model
-        try:
-            from openai import OpenAI
-            self.client = OpenAI(api_key=api_key)
-        except ImportError:
-            raise ImportError("openai package not installed. Run: pip install openai")
-    
-    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """Check style using OpenAI GPT-4"""
-        # Load prompt using category-specific templates
-        prompt = load_prompt(categories, content)
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.1
-        )
-        
-        return parse_markdown_response(response.choices[0].message.content)
-
-
-class AnthropicProvider(LLMProvider):
+class AnthropicProvider:
     """Anthropic Claude provider
     
-    Token limits by model:
-    - claude-sonnet-4-5-20250929: 64000 max output tokens (recommended)
-    - claude-sonnet-4-20250514: 64000 max output tokens
-    - claude-opus-4-1-20250805: 32000 max output tokens
-    - claude-opus-4-20250514: 32000 max output tokens
-    - claude-3-7-sonnet-20250219: 64000 max output tokens
-    - claude-3-5-haiku-20241022: 8192 max output tokens
-    - claude-3-5-sonnet-20241022: 8192 max output tokens (deprecated)
+    Uses Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) by default.
+    Supports up to 64,000 output tokens.
     
     For latest models and limits, see: https://docs.anthropic.com/en/docs/about-claude/models
     """
@@ -225,101 +155,46 @@ class AnthropicProvider(LLMProvider):
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
     def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """Check style using Anthropic Claude with streaming for long requests"""
+        """Check style using Anthropic Claude"""
         # Load prompt using category-specific templates
         prompt = load_prompt(categories, content)
         
-        # Use streaming to avoid 10-minute timeout on long requests
-        # See: https://docs.anthropic.com/en/docs/build-with-claude/streaming
-        full_response = ""
-        stop_reason = None
-        
-        with self.client.messages.stream(
+        # Make API call
+        response = self.client.messages.create(
             model=self.model,
-            max_tokens=32000,  # Safe limit for all Claude 4+ models (Sonnet 4.5 supports up to 64K)
-            temperature=0.1,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        ) as stream:
-            for text in stream.text_stream:
-                full_response += text
-            # Get the final message to check stop reason
-            final_message = stream.get_final_message()
-            stop_reason = final_message.stop_reason if final_message else None
+            max_tokens=64000,
+            messages=[{"role": "user", "content": prompt}]
+        )
         
-        # Check if response was truncated
-        if stop_reason == "max_tokens":
-            print(f"    ⚠️  Warning: Response truncated (hit max_tokens limit)")
-            print(f"    Consider using specific categories to focus the review")
+        # Extract text from response
+        full_response = response.content[0].text
         
         # Parse the Markdown response
         return parse_markdown_response(full_response)
 
 
-class GeminiProvider(LLMProvider):
-    """Google Gemini provider"""
-    
-    def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
-        self.api_key = api_key
-        self.model = model
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel(
-                model_name=model,
-                generation_config={
-                    "temperature": 0.1
-                }
-            )
-        except ImportError:
-            raise ImportError("google-generativeai package not installed. Run: pip install google-generativeai")
-    
-    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """Check style using Google Gemini"""
-        # Load prompt using category-specific templates
-        prompt = load_prompt(categories, content)
-        
-        response = self.model.generate_content(prompt)
-        return parse_markdown_response(response.text)
-
-
 class StyleReviewer:
-    """Main style reviewer coordinating LLM-based checking"""
+    """Main style reviewer using Claude Sonnet 4.5"""
     
-    def __init__(self, provider: str = "claude", api_key: Optional[str] = None, model: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         """
-        Initialize reviewer with specified LLM provider
+        Initialize reviewer with Claude Sonnet 4.5
         
         Args:
-            provider: 'openai', 'claude', or 'gemini'
-            api_key: API key (or will use environment variable)
-            model: Specific model to use
+            api_key: Anthropic API key (or will use ANTHROPIC_API_KEY environment variable)
+            model: Specific Claude model to use (default: claude-sonnet-4-5-20250929)
         """
-        self.provider_name = provider.lower()
+        self.provider_name = 'claude'
         
         # Get API key from parameter or environment
         if not api_key:
-            if provider == 'openai':
-                api_key = os.environ.get('OPENAI_API_KEY')
-            elif provider == 'claude':
-                api_key = os.environ.get('ANTHROPIC_API_KEY')
-            elif provider == 'gemini':
-                api_key = os.environ.get('GOOGLE_API_KEY')
+            api_key = os.environ.get('ANTHROPIC_API_KEY')
         
         if not api_key:
-            raise ValueError(f"No API key provided for {provider}")
+            raise ValueError("No API key provided. Set ANTHROPIC_API_KEY environment variable or pass api_key parameter")
         
-        # Initialize provider
-        if provider == 'openai':
-            self.provider = OpenAIProvider(api_key, model or "gpt-4")
-        elif provider == 'claude':
-            # Use provider's default if no model specified (Sonnet 4.5)
-            self.provider = AnthropicProvider(api_key, model) if model else AnthropicProvider(api_key)
-        elif provider == 'gemini':
-            self.provider = GeminiProvider(api_key, model or "gemini-1.5-pro")
-        else:
-            raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'claude', or 'gemini'")
+        # Initialize Claude provider
+        self.provider = AnthropicProvider(api_key, model) if model else AnthropicProvider(api_key)
     
     def review_lecture(
         self,
@@ -381,160 +256,145 @@ class StyleReviewer:
     def review_lecture_smart(
         self,
         content: str,
-        style_guide: 'StyleGuideDatabase',
         lecture_name: str
     ) -> Dict[str, Any]:
         """
-        Smart review strategy using semantic category grouping.
+        Smart review strategy using sequential category processing.
         
-        Groups rules by their semantic categories (WRITING, MATH, CODE, etc.)
-        and processes them in parallel for better performance and quality.
+        Processes categories one at a time, feeding the updated document from
+        one category into the next. This matches the tool-style-checker approach
+        and ensures all fixes are applied without conflicts.
         
         Benefits:
-        - Related rules checked together (better context for LLM)
-        - Parallel processing (3-4x faster than sequential)
-        - Reasonable cost (~8 API calls vs 31 single-rule calls)
-        - Natural alignment with style guide structure
-        - Better quality results from semantic coherence
+        - All fixes applied without conflicts
+        - Later categories see changes from earlier categories
+        - More coherent final output
+        - No skipped fixes due to overlapping changes
+        
+        Trade-off:
+        - Slower than parallel processing (sequential API calls)
+        - But more reliable and complete results
         
         Args:
             content: Full lecture content
-            style_guide: Parsed style guide database with rules
             lecture_name: Name of the lecture file
             
         Returns:
-            Dictionary with all violations found across all groups
+            Dictionary with all violations found across all categories
         """
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        
-        print(f"\n🤖 Starting AI-powered review using semantic grouping...")
+        print(f"\n🤖 Starting AI-powered review using sequential category processing...")
         print(f"📊 Lecture: {lecture_name}")
         
-        # Get all groups with their actionable rules (category='rule' only)
-        groups = style_guide.get_all_groups_with_rules(category='rule')
+        # Define all categories to check (matches files in style_checker/rules/)
+        categories = [
+            'writing',
+            'math',
+            'code',
+            'jax',
+            'figures',
+            'references',
+            'links',
+            'admonitions'
+        ]
         
-        if not groups:
-            print("  ⚠️  No actionable rules found!")
-            return {
-                'issues_found': 0,
-                'violations': [],
-                'corrected_content': content,
-                'summary': 'No actionable rules to check',
-                'provider': self.provider_name,
-                'lecture_name': lecture_name
-            }
+        print(f"\n📦 Processing {len(categories)} categories sequentially:")
+        for category in categories:
+            print(f"   • {category}")
         
-        total_rules = sum(len(rules) for rules in groups.values())
-        print(f"📋 Total actionable rules: {total_rules}")
-        
-        print(f"\n📦 Processing {len(groups)} semantic groups in parallel:")
-        for group_name, rules in sorted(groups.items()):
-            print(f"   • {group_name}: {len(rules)} rules")
-        
-        # Process groups in parallel
+        # Process categories sequentially, updating content after each
         all_violations = []
-        max_workers = min(4, len(groups))  # Max 4 parallel calls to avoid rate limits
+        current_content = content
         
-        print(f"\n🚀 Running {max_workers} parallel reviews...")
-        print()
+        print(f"\n🔄 Processing categories one at a time...\n")
         
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all group reviews
-            futures = {
-                executor.submit(
-                    self._review_group,
-                    content,
-                    group_name,
-                    rules,
-                    lecture_name
-                ): group_name
-                for group_name, rules in groups.items()
-            }
+        for i, category in enumerate(categories, 1):
+            print(f"  [{i}/{len(categories)}] Processing {category}...")
             
-            # Collect results as they complete
-            for future in as_completed(futures):
-                group_name = futures[future]
-                try:
-                    result = future.result()
-                    violations_count = len(result.get('violations', []))
+            try:
+                result = self._review_category(
+                    current_content,
+                    category,
+                    lecture_name
+                )
+                
+                violations_count = len(result.get('violations', []))
+                
+                if violations_count > 0:
+                    print(f"       ✓ Found {violations_count} issues")
                     
-                    if violations_count > 0:
-                        print(f"  ✓ {group_name}: {violations_count} issues found")
+                    # Apply fixes from this category to current content
+                    print(f"       🔧 Applying {violations_count} fixes...")
+                    
+                    # Validate fix quality
+                    validation_warnings = validate_fix_quality(result.get('violations', []))
+                    if validation_warnings:
+                        print(f"       ⚠️  Fix quality warnings:")
+                        for warning in validation_warnings[:3]:  # Show first 3
+                            print(f"           - {warning}")
+                    
+                    # Apply fixes to current content
+                    updated_content, fix_warnings = apply_fixes(
+                        current_content, 
+                        result.get('violations', [])
+                    )
+                    
+                    if updated_content != current_content:
+                        current_content = updated_content
+                        print(f"       ✓ Updated document with {category} fixes")
                     else:
-                        print(f"  ✓ {group_name}: No issues found")
+                        print(f"       ⚠️  No changes applied (possible conflicts)")
                     
+                    # Track all violations for reporting
                     all_violations.extend(result.get('violations', []))
-                    
-                except Exception as e:
-                    print(f"  ❌ {group_name} failed: {e}")
+                else:
+                    print(f"       ✓ No issues found")
+                
+            except Exception as e:
+                print(f"       ❌ Failed: {e}")
         
-        print(f"\n📊 Total issues found across all groups: {len(all_violations)}")
-        
-        # Apply ALL fixes programmatically to the original content
-        corrected_content = content
-        fix_warnings = []
+        print(f"\n📊 Total issues found across all categories: {len(all_violations)}")
         
         if all_violations:
-            print(f"  🔧 Applying {len(all_violations)} fixes programmatically...")
-            
-            # Validate fix quality
-            validation_warnings = validate_fix_quality(all_violations)
-            if validation_warnings:
-                print(f"  ⚠️  Fix quality warnings:")
-                for warning in validation_warnings[:5]:  # Show first 5
-                    print(f"      - {warning}")
-            
-            # Apply fixes
-            corrected_content, fix_warnings = apply_fixes(content, all_violations)
-            
-            if corrected_content == content and all_violations:
-                print(f"  ⚠️  Could not apply any fixes - keeping original content")
+            print(f"  ✅ All fixes have been applied sequentially")
         else:
             print(f"  ✨ No issues found - lecture follows all style guide rules!")
         
         return {
             'issues_found': len(all_violations),
             'violations': all_violations,
-            'corrected_content': corrected_content,
-            'fix_warnings': fix_warnings,
-            'summary': f"Found {len(all_violations)} issues across {len(groups)} semantic groups",
+            'corrected_content': current_content,
+            'summary': f"Found {len(all_violations)} issues across {len(categories)} categories (processed sequentially)",
             'provider': self.provider_name,
             'lecture_name': lecture_name,
-            'groups_checked': list(groups.keys())
+            'categories_checked': categories
         }
     
-    def _review_group(
+    def _review_category(
         self,
         content: str,
-        group_name: str,
-        rules: List['StyleRule'],
+        category: str,
         lecture_name: str
     ) -> Dict[str, Any]:
         """
-        Review lecture content against a single semantic group of rules.
+        Review lecture content against a single category of rules.
         
-        Now uses markdown-based category prompts instead of programmatic formatting.
+        Uses markdown-based category prompts from style_checker/rules/
         
         Args:
             content: Full lecture content
-            group_name: Name of the semantic group (e.g., 'WRITING', 'MATH')
-            rules: List of StyleRule objects in this group (not used - kept for compatibility)
+            category: Name of the category (e.g., 'writing', 'math')
             lecture_name: Name of the lecture file
             
         Returns:
-            Dictionary with violations found for this group
+            Dictionary with violations found for this category
         """
-        # Convert group name to category (e.g., "WRITING" -> "writing")
-        category = group_name.lower()
-        
-        # Review using category-specific prompt
         try:
             result = self.provider.check_style(content, [category])
-            result['group'] = group_name
+            result['category'] = category
             return result
         except Exception as e:
             return {
                 'error': str(e),
                 'violations': [],
-                'group': group_name
+                'category': category
             }

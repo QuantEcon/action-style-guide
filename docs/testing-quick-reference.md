@@ -57,7 +57,7 @@ open htmlcov/index.html
 ### Integration Tests (Slow, Costs Money)
 - `test_llm_integration.py` - Real LLM API calls
 - Tests end-to-end with actual providers
-- Requires API keys (Claude/GPT-4/Gemini)
+- Requires API key (Claude Sonnet 4.5)
 - **Cost:** ~$0.05 per test run
 - Run manually before releases
 
