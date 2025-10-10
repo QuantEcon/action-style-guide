@@ -1,4 +1,4 @@
-<!-- Prompt Version: 0.3.12 | Last Updated: 2025-10-10 | Sequential fix application after each rule -->
+<!-- Prompt Version: 0.3.13 | Last Updated: 2025-10-10 | Hardcoded optimal rule evaluation order (008 first) -->
 
 # QuantEcon Writing Style Checker Prompt
 

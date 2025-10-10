@@ -13,15 +13,37 @@ from .fix_applier import apply_fixes, validate_fix_quality
 from .prompt_loader import load_prompt
 
 
+# Rule evaluation order - defines the sequence for checking rules
+# This order is optimized for best results: mechanical → structural → stylistic → creative
+RULE_EVALUATION_ORDER = {
+    'writing': [
+        'qe-writing-008',  # Whitespace formatting (mechanical)
+        'qe-writing-001',  # Paragraph structure (structural)
+        'qe-writing-004',  # Capitalization (mechanical)
+        'qe-writing-006',  # Title capitalization (mechanical)
+        'qe-writing-005',  # Bold/italic formatting (mechanical)
+        'qe-writing-002',  # Clarity and conciseness (stylistic)
+        'qe-writing-003',  # Logical flow (creative)
+        'qe-writing-007',  # Visual elements (creative)
+    ],
+    # Other categories can be added here with their optimal order
+    # 'math': ['qe-math-001', 'qe-math-002', ...],
+}
+
+
 def extract_individual_rules(category: str) -> List[Dict[str, str]]:
     """
     Extract individual rules from a category rules file.
+    
+    Returns rules in the optimal evaluation order defined by RULE_EVALUATION_ORDER.
+    If no order is specified for a category, returns rules in file order.
     
     Args:
         category: Category name (e.g., 'writing', 'math')
         
     Returns:
-        List of dicts with 'rule_id', 'title', and 'content' for each rule
+        List of dicts with 'rule_id', 'title', and 'content' for each rule, 
+        sorted by evaluation priority
     """
     rules_dir = Path(__file__).parent / "rules"
     rules_file = rules_dir / f"{category}-rules.md"
@@ -36,7 +58,8 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
     # Pattern matches: ### Rule: qe-writing-001 ... until next ### Rule: or end
     rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Category:\*\*[^\n]*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
     
-    rules = []
+    # First, extract all rules into a dict keyed by rule_id
+    rules_dict = {}
     for match in re.finditer(rule_pattern, content, re.DOTALL):
         rule_id = match.group(1)
         title = match.group(2).strip()
@@ -45,13 +68,28 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
         # Reconstruct the full rule markdown
         full_rule = f"### Rule: {rule_id}\n**Title:** {title}\n\n{rule_content}"
         
-        rules.append({
+        rules_dict[rule_id] = {
             'rule_id': rule_id,
             'title': title,
             'content': full_rule
-        })
+        }
     
-    return rules
+    # If we have a defined evaluation order for this category, use it
+    if category in RULE_EVALUATION_ORDER:
+        ordered_rules = []
+        for rule_id in RULE_EVALUATION_ORDER[category]:
+            if rule_id in rules_dict:
+                ordered_rules.append(rules_dict[rule_id])
+        
+        # Add any rules not in the priority list (shouldn't happen, but defensive)
+        for rule_id, rule_data in rules_dict.items():
+            if rule_id not in RULE_EVALUATION_ORDER[category]:
+                ordered_rules.append(rule_data)
+        
+        return ordered_rules
+    else:
+        # No defined order, return in file order
+        return list(rules_dict.values())
 
 
 def create_single_rule_prompt(category: str, rule: Dict[str, str], lecture_content: str) -> str:

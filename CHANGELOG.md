@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.13] - 2025-10-10
+
+### Added
+
+- **Hardcoded rule evaluation order** - Rules now checked in optimal sequence
+  - Defined `RULE_EVALUATION_ORDER` constant in `reviewer.py`
+  - Writing rules checked in priority: 008 → 001 → 004 → 006 → 005 → 002 → 003 → 007
+  - Order: mechanical → structural → stylistic → creative
+  - Previously: Rules checked in file order (001, 002, 003...) regardless of priority
+  - Now: Rules extracted and checked in optimal order for best results
+  - Whitespace (008) checked FIRST, visual elements (007) checked LAST
+  - Easy to maintain: update constant to change order, no need to reorder file
+
 ## [0.3.12] - 2025-10-10
 
 ### Fixed
