@@ -3,27 +3,40 @@
 ## Date: 2025-10-10
 
 ## Overview
-Successfully migrated the GitHub Action from programmatic prompt construction to a simplified markdown-based prompt architecture, inspired by the `tool-style-checker` approach.
+Successfully migrated the GitHub Action from programmatic prompt construction to a **focused, hand-written prompt architecture** following the `tool-style-checker` approach.
 
 ## Changes Made
 
-### 1. Created Prompt System
-- **Generated 9 category-specific prompt files** in `style_checker/prompts/`:
-  - `writing.md`, `math.md`, `code.md`, `jax.md`
-  - `figures.md`, `references.md`, `links.md`, `admonitions.md`
-  - `all.md` (comprehensive prompt with all categories)
+### 1. Created Focused Prompt System ⭐
+**Following tool-style-checker's proven approach:**
 
-- **Created `generate_prompts.py`**: Script to auto-generate prompts from `style-guide-database.md`
-  - Extracts rules between `<!-- GROUP:X-START -->` and `<!-- GROUP:X-END -->` markers
-  - Creates structured prompt templates with instructions and rules
-  - Can be re-run when style guide is updated
+- **Concise instruction prompts** in `style_checker/prompts/` (~85 lines each):
+  - `writing-prompt.md`, `math-prompt.md`, `code-prompt.md`, `jax-prompt.md`
+  - `figures-prompt.md`, `references-prompt.md`, `links-prompt.md`, `admonitions-prompt.md`
+  
+- **Detailed rules** in `style_checker/rules/` (~120-235 lines each):
+  - `writing-rules.md`, `math-rules.md`, `code-rules.md`, `jax-rules.md`
+  - `figures-rules.md`, `references-rules.md`, `links-rules.md`, `admonitions-rules.md`
 
-- **Created `prompt_loader.py`**: Simple utility to load and combine category prompts
-  - Supports single category: `["math"]`
-  - Supports multiple categories: `["writing", "math"]`  
-  - Supports all categories: `["all"]`
+- **Combined approach**: `prompt + rules + lecture_content`
+  - Matches `tool-style-checker/style_checker.py` exactly
+  - Small focused instructions + detailed specifications
+  - Much more effective than auto-generated bloated prompts
+
+**Size Comparison:**
+- ❌ Auto-generated (first attempt): 3,610 lines
+- ✅ Focused hand-written (final): 1,901 lines  
+- **48% smaller = lower costs + better focus**
+
+- **Created `prompt_loader.py`**: Loads and combines prompts + rules
+  - `_load_single_category()`: prompt + rules + lecture
+  - `_combine_categories()`: multiple prompts + all rules + lecture
   - Validates category names
-  - Combines categories intelligently
+
+- **Deprecated `generate_prompts.py`**: No longer auto-generating prompts
+  - Hand-written prompts are higher quality
+  - Easier to maintain and iterate
+  - Following successful `tool-style-checker` pattern
 
 ### 2. Updated LLM Reviewers
 - **Simplified `reviewer.py`**:
@@ -126,12 +139,12 @@ Successfully migrated the GitHub Action from programmatic prompt construction to
 2. **Custom prompts**: Allow users to provide custom prompt files
 3. **Prompt versioning**: Track prompt changes over time
 
-## File Summary
+### File Summary
 
-### New Files (11)
-- `generate_prompts.py` - Prompt generator script
-- `style_checker/prompt_loader.py` - Prompt loading utility
-- `style_checker/prompts/*.md` - 9 category prompt files
+### New Files (18)
+- `style_checker/prompt_loader.py` - Loads and combines prompts + rules
+- `style_checker/prompts/*.md` - 8 focused instruction prompts (~85 lines each)
+- `style_checker/rules/*.md` - 8 detailed rule files (~120-235 lines each)
 - `test_migration.py` - Prompt loader tests
 - `test_parsing.py` - Comment parsing tests
 
@@ -142,10 +155,13 @@ Successfully migrated the GitHub Action from programmatic prompt construction to
 - `README.md` - Updated documentation
 - `examples/style-guide-comment.yml` - Updated workflow
 
+### Deprecated Files (1)
+- `generate_prompts.py` - No longer used (hand-written prompts are better)
+
 ### Total Impact
-- **4,278 lines added**
-- **280 lines removed**
-- **Net: +3,998 lines** (mostly from generated prompt files)
+- **1,158 lines added** (focused prompts + rules)
+- **2,907 lines removed** (bloated auto-generated prompts)
+- **Net: -1,749 lines** (48% reduction in prompt size!)
 
 ## Conclusion
 
