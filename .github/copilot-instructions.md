@@ -34,7 +34,7 @@ This is a GitHub Action that performs AI-powered style guide compliance checking
 ```
 action-style-guide/
 ├── action.yml                    # GitHub Action definition
-├── style_checker/
+├── style_checker/                # Main action code
 │   ├── __init__.py              # Version info (__version__)
 │   ├── main.py                  # Entry point, CLI handling
 │   ├── reviewer.py              # LLM interaction, response parsing
@@ -50,8 +50,31 @@ action-style-guide/
 │       ├── math-rules.md
 │       └── ...
 ├── tests/                       # Test files
-└── docs/                        # Documentation
+├── docs/                        # Documentation
+└── tool-*/                      # Independent development tools (NOT part of action)
+    ├── tool-style-checker/      # Prototype for testing prompts/rules
+    └── tool-style-guide-development/  # Rule development utilities
 ```
+
+### Important: tool-* Folders
+
+**The `tool-*` directories are independent projects for developing and testing prompts and rules.**
+
+- ❌ **NOT part of the GitHub Action** - Not loaded or used by the action
+- ✅ **Development utilities** - Used for prototyping and testing rule changes
+- ✅ **Standalone tools** - Can be run independently for prompt/rule development
+- 📝 **May have different dependencies** - Don't assume they share code with `style_checker/`
+
+**When to use:**
+- Testing new prompts before adding to `style_checker/prompts/`
+- Developing new rules before adding to `style_checker/rules/`
+- Experimenting with rule formatting or LLM behavior
+- Quick prototyping without affecting the action
+
+**When NOT to use:**
+- Production runs (use the GitHub Action)
+- Expecting changes in `tool-*` to affect the action behavior
+- Assuming code consistency with `style_checker/`
 
 ## Key Technical Decisions
 
