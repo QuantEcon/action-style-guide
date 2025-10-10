@@ -128,16 +128,18 @@ def test_parse_summary(sample_markdown_response):
 
 
 def test_parse_corrected_content(sample_markdown_response):
-    """Test parsing the corrected content from Markdown"""
+    """Test that corrected_content field exists (even if empty)
+    
+    Note: We no longer request corrected content from the LLM.
+    Instead, we apply fixes programmatically using fix_applier.py.
+    This test verifies the parser handles the field correctly.
+    """
     result = parse_markdown_response(sample_markdown_response)
     
+    # Corrected content field should exist in result
     assert 'corrected_content' in result
-    assert len(result['corrected_content']) > 0
-    assert 'Sample Lecture' in result['corrected_content']
-    # Verify nested code blocks are preserved
-    assert '```python' in result['corrected_content']
-    assert 'def compute(x):' in result['corrected_content']
-    assert 'End of lecture' in result['corrected_content']
+    # But may be empty since we don't parse it from LLM responses anymore
+    # (it's generated programmatically by apply_fixes() instead)
 
 
 def test_parse_empty_response():

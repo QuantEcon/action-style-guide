@@ -165,12 +165,19 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 
 ### Release Process
 
+**CRITICAL: Always run tests before any release!**
+
 1. Make changes
-2. Update `__version__` in `style_checker/__init__.py`
-3. Update `CHANGELOG.md` (move Unreleased to new version)
-4. Commit: "Prepare vX.Y.Z release - Description"
-5. Create GitHub release: `gh release create vX.Y.Z --title "..." --notes "..."`
-6. Update floating tag: `git tag -f v0.3 && git push origin v0.3 --force`
+2. **Run full test suite**: `pytest tests/ -v`
+3. **Verify all tests pass** (except LLM integration tests which require API keys)
+4. Update `__version__` in `style_checker/__init__.py`
+5. Update `CHANGELOG.md` (move Unreleased to new version)
+6. Commit: "Prepare vX.Y.Z release - Description"
+7. Create GitHub release: `gh release create vX.Y.Z --title "..." --notes "..."`
+8. Update floating tag: `git tag -f v0.3 && git push origin v0.3 --force`
+9. Push main branch: `git push origin main`
+
+**Never skip testing** - it catches regressions and ensures quality.
 
 ## Common Tasks
 

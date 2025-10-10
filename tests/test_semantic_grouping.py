@@ -69,8 +69,8 @@ def test_reviewer_integration():
         "StyleReviewer.review_lecture_smart() method NOT found"
     print("✓ StyleReviewer.review_lecture_smart() method exists")
     
-    # Check helper methods (removed _format_rules_for_prompt and _estimate_tokens as they're no longer used)
-    helper_methods = ['_review_group']
+    # Check helper methods
+    helper_methods = ['_review_category']
     for method in helper_methods:
         assert hasattr(StyleReviewer, method), \
             f"StyleReviewer.{method}() method NOT found"

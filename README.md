@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.3.15-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.3.0**: Focused prompts architecture for better quality and lower costs!
+> 🚀 **Version 0.3.15**: Four-backtick markdown formatting in PR comments to handle nested MyST directives!
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
@@ -201,12 +201,21 @@ See commits for detailed explanations of each change.
 # Install dependencies
 pip install -r requirements.txt
 
-# Run tests
-pytest tests/
+# Run all tests
+pytest tests/ -v
 
-# Check specific lecture
-python -m style_checker.main --mode single --lecture lectures/aiyagari.md
+# Run specific test file
+pytest tests/test_github_handler.py -v
+
+# Check specific lecture (without creating PR)
+python -m style_checker.main \
+  --mode single \
+  --repository owner/repo \
+  --comment-body "@qe-style-checker lecture_name" \
+  --create-pr false
 ```
+
+See [docs/testing-quick-reference.md](docs/testing-quick-reference.md) for more testing options.
 
 ### Project Structure
 
