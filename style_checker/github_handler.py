@@ -55,10 +55,10 @@ class GitHubHandler:
             match = re.search(pattern, comment_body)
             if match:
                 lecture = match.group(1)
-                # Remove .md extension if present
-                lecture = lecture.replace('.md', '')
-                # Remove lectures/ prefix if present
-                lecture = lecture.replace('lectures/', '')
+                # Clean up lecture name
+                lecture = lecture.replace('.md', '')  # Remove .md extension
+                lecture = lecture.replace('lectures/', '')  # Remove lectures/ prefix
+                lecture = lecture.strip('`')  # Remove backticks
                 
                 # Parse categories if provided (group 2)
                 if len(match.groups()) > 1 and match.group(2):
@@ -79,10 +79,10 @@ class GitHubHandler:
             match = re.search(pattern, comment_body)
             if match:
                 lecture = match.group(1)
-                # Remove .md extension if present
-                lecture = lecture.replace('.md', '')
-                # Remove lectures/ prefix if present
-                lecture = lecture.replace('lectures/', '')
+                # Clean up lecture name
+                lecture = lecture.replace('.md', '')  # Remove .md extension
+                lecture = lecture.replace('lectures/', '')  # Remove lectures/ prefix
+                lecture = lecture.strip('`')  # Remove backticks
                 return (lecture, ['all'])  # Old syntax defaults to all
         
         return None
