@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Strengthened rule evaluation order in writing prompt** - Made order mandatory
+  - Changed from "for optimal results" to "CRITICAL: Apply rules in this EXACT order"
+  - Changed from bullet points to numbered list for emphasis
+  - Added "This sequence is MANDATORY, not optional"
+  - Added "Do NOT skip ahead or check rules out of sequence"
+  - Added instruction to check each rule in order before moving to next
+  - Prevents LLM from applying rules out of sequence
+
+### Added
+
+- **Prevent identical current/fix violations** - Quality control for LLM responses
+  - Added CRITICAL instruction: "Current text" and "Suggested fix" MUST be different
+  - If LLM cannot provide different fix, must NOT report as violation
+  - Prevents confusing quality warnings where current and fix are identical
+
 ### Fixed
 
 - **Action now fails on errors** - Exit with code 1 when LLM errors occur

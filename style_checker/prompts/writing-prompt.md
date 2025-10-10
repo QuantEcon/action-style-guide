@@ -18,17 +18,17 @@ Each rule is categorized as either:
 
 2. **Read the entire lecture carefully** to understand its context, topic, and flow before identifying violations.
 
-3. **Apply rules in the following order** for optimal results:
-   - **qe-writing-008** - Whitespace formatting (mechanical cleanup)
-   - **qe-writing-001** - Paragraph structure (foundational organization)
-   - **qe-writing-004** - Capitalization (mechanical correction)
-   - **qe-writing-006** - Title capitalization (mechanical correction)
-   - **qe-writing-005** - Bold/italic formatting (contextual formatting)
-   - **qe-writing-002** - Clarity and conciseness (editorial judgment)
-   - **qe-writing-003** - Logical flow (editorial judgment)
-   - **qe-writing-007** - Visual elements (creative enhancement)
+3. **CRITICAL: Apply rules in this EXACT order** - Do NOT skip ahead or check rules out of sequence:
+   1. **qe-writing-008** - Whitespace formatting (mechanical cleanup)
+   2. **qe-writing-001** - Paragraph structure (foundational organization)
+   3. **qe-writing-004** - Capitalization (mechanical correction)
+   4. **qe-writing-006** - Title capitalization (mechanical correction)
+   5. **qe-writing-005** - Bold/italic formatting (contextual formatting)
+   6. **qe-writing-002** - Clarity and conciseness (editorial judgment)
+   7. **qe-writing-003** - Logical flow (editorial judgment)
+   8. **qe-writing-007** - Visual elements (creative enhancement)
    
-   This sequence progresses from mechanical fixes to structural organization to stylistic improvements. Each rule benefits from the corrections made by earlier rules.
+   **This sequence is MANDATORY, not optional.** Check each rule in order before moving to the next. Each rule benefits from the corrections made by earlier rules in the sequence.
 
 4. **Check systematically** against writing rules (qe-writing-*):
    - Sentence structure and paragraph organization
@@ -45,6 +45,8 @@ Each rule is categorized as either:
    - **Current Text**: Quote the problematic text exactly as it appears
    - **Issue**: Brief explanation of why this violates the rule
    - **Suggested Fix**: Specific corrected version of the text
+   
+   **CRITICAL**: The "Current text" and "Suggested fix" MUST be different. If you cannot provide a different fix, do NOT report it as a violation.
 
 6. **Prioritize actionable feedback**:
    - Focus on `rule` category violations first (these are clear-cut)
