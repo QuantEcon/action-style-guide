@@ -15,22 +15,15 @@ This document contains only the **writing-focused rules** for QuantEcon lecture 
 **Description:**  
 Each paragraph block (text separated by blank lines) must contain exactly one sentence. This improves readability and helps readers digest information in clear, focused chunks.
 
-**Important:** A paragraph is defined as text between blank lines in the markdown source. Line breaks within text (without blank lines) do NOT create new paragraphs. A single sentence may span multiple lines.
-
-**Check for:**
-- Paragraph blocks containing multiple sentences (identified by multiple periods)
-- Multiple complete sentences within the same block of text (between blank lines)
-
-**Associated rules:**  
-This rule focuses on sentence structure and paragraph organization. For whitespace formatting issues (multiple spaces between words), see qe-writing-008.
+**Important:** A paragraph is defined as text between blank lines in the markdown source. Line breaks within text (without blank lines) do NOT create new paragraphs and punctuation should be examined to determine a sentence. A single sentence may span multiple lines.
 
 **Examples:**
 
 ```markdown
-<!-- ❌ VIOLATION: Multiple sentences in one paragraph block -->
+<!-- ❌ VIOLATION: Multiple sentences in one paragraph block (NO blank lines) -->
 This section introduces the concept of dynamic programming. Dynamic programming is a powerful method for solving optimization problems. We will use it throughout the lecture series.
 
-<!-- ❌ VIOLATION: Multiple sentences even with line breaks (no blank lines between) -->
+<!-- ❌ VIOLATION: Multiple sentences even with line breaks (but NO blank lines between) -->
 This section introduces the concept of dynamic programming. Dynamic programming 
 is a powerful method for solving optimization problems. We will use it throughout 
 the lecture series.
@@ -46,20 +39,27 @@ We will use it throughout the lecture series.
 Dynamic programming is a powerful method for solving optimization problems 
 with recursive structure.
 
-<!-- ✅ CORRECT: Already following the rule (each block has one sentence) -->
+<!-- ✅ CORRECT: Already following the rule -->
 Many economic time series display persistent growth that prevents them from being asymptotically stationary and ergodic.
 
 For example, outputs, prices, and dividends typically display irregular but persistent growth.
 
 Asymptotic stationarity and ergodicity are key assumptions needed to make it possible to learn by applying statistical methods.
-```
 
-**Implementation note:**  
-Check by counting sentences (periods followed by space/capital or newline) within each paragraph block. Paragraph blocks are defined by blank lines—text separated by blank lines forms distinct paragraphs. Line breaks (without blank lines) within a paragraph do not create new paragraphs. Whitespace formatting between words is handled by qe-writing-008.
+<!-- ✅ CORRECT: Lists can be proceeded by an introduction word -->
+Here
+
+* $x_t$ is an $n \times 1$ vector,
+* $A$ is an $n \times n$ stable matrix (all eigenvalues lie within the open unit circle),
+* $z_{t+1} \sim {\cal N}(0,I)$ is an $m \times 1$ IID shock,
+* $B$ is an $n \times m$ matrix, and
+* $x_0 \sim {\cal N}(\mu_0, \Sigma_0)$ is a random initial condition for $x$
+
+```
 
 **Key distinction:**  
 - **Blank line** = Creates new paragraph (required between sentences)
-- **Line break** = Does not create new paragraph (allowed within sentences)
+- **Line break** = Does not create new paragraph (allowed WITHIN sentences)
 
 ---
 

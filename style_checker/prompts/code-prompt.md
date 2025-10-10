@@ -62,32 +62,44 @@ Each rule is categorized as either:
 ## Violations
 
 ### Violation 1: [rule-code] - [Rule Title]
-- **Severity:** error
-- **Location:** Line [X-Y] / Code block starting with "[first line]"
-- **Description:** [Brief explanation of the violation]
-- **Current text:**
+
+**Severity:** error
+
+**Location:** Line [X-Y] / Code block starting with "[first line]"
+
+**Description:** [Brief explanation of the violation]
+
+**Current text:**
 ~~~markdown
 [Exact quote of the problematic code block]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [The corrected version with proper syntax highlighting]
 ~~~
-- **Explanation:** [Why this change improves the code presentation]
+
+**Explanation:** [Why this change improves the code presentation]
 
 ### Violation 2: [rule-code] - [Rule Title]
-- **Severity:** warning
-- **Location:** Line [X] / Section "[Section Name]"
-- **Description:** [Brief explanation]
-- **Current text:**
+
+**Severity:** warning
+
+**Location:** Line [X] / Section "[Section Name]"
+
+**Description:** [Brief explanation]
+
+**Current text:**
 ~~~markdown
 [Problematic code text]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [Corrected code text]
 ~~~
-- **Explanation:** [Reasoning for the change]
+
+**Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
 ```

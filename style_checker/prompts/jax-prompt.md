@@ -62,32 +62,44 @@ Each rule is categorized as either:
 ## Violations
 
 ### Violation 1: [rule-code] - [Rule Title]
-- **Severity:** error
-- **Location:** Line [X-Y] / Code cell "[context]"
-- **Description:** [Brief explanation of the violation]
-- **Current text:**
+
+**Severity:** error
+
+**Location:** Line [X-Y] / Code cell "[context]"
+
+**Description:** [Brief explanation of the violation]
+
+**Current text:**
 ~~~markdown
 [Exact quote of the problematic JAX code]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [The corrected version with proper JAX patterns]
 ~~~
-- **Explanation:** [Why this change improves the JAX code]
+
+**Explanation:** [Why this change improves the JAX code]
 
 ### Violation 2: [rule-code] - [Rule Title]
-- **Severity:** warning
-- **Location:** Line [X] / Section "[Section Name]"
-- **Description:** [Brief explanation]
-- **Current text:**
+
+**Severity:** warning
+
+**Location:** Line [X] / Section "[Section Name]"
+
+**Description:** [Brief explanation]
+
+**Current text:**
 ~~~markdown
 [Problematic JAX text]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [Corrected JAX text]
 ~~~
-- **Explanation:** [Reasoning for the change]
+
+**Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
 ```

@@ -62,32 +62,44 @@ Each rule is categorized as either:
 ## Violations
 
 ### Violation 1: [rule-code] - [Rule Title]
-- **Severity:** error
-- **Location:** Line [X-Y] / Equation "[context]"
-- **Description:** [Brief explanation of the violation]
-- **Current text:**
+
+**Severity:** error
+
+**Location:** Line [X-Y] / Equation "[context]"
+
+**Description:** [Brief explanation of the violation]
+
+**Current text:**
 ~~~markdown
 [Exact quote of the problematic math expression/equation]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [The corrected version with proper LaTeX]
 ~~~
-- **Explanation:** [Why this change improves the notation]
+
+**Explanation:** [Why this change improves the notation]
 
 ### Violation 2: [rule-code] - [Rule Title]
-- **Severity:** warning
-- **Location:** Line [X] / Section "[Section Name]"
-- **Description:** [Brief explanation]
-- **Current text:**
+
+**Severity:** warning
+
+**Location:** Line [X] / Section "[Section Name]"
+
+**Description:** [Brief explanation]
+
+**Current text:**
 ~~~markdown
 [Problematic math text]
 ~~~
-- **Suggested fix:**
+
+**Suggested fix:**
 ~~~markdown
 [Corrected math text]
 ~~~
-- **Explanation:** [Reasoning for the change]
+
+**Explanation:** [Reasoning for the change]
 
 [Continue for ALL violations found...]
 ```

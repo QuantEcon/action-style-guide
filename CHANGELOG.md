@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.20] - 2025-10-11
+
+### Changed
+
+- **Writing prompt improvements** - Updated to reflect single-rule processing architecture and simplified language
+  - Changed from "check all writing rules" to "check one specific rule" 
+  - Emphasizes checking ONLY the provided rule, not other issues
+  - Clarified that rules are processed one at a time sequentially
+  - Simplified rule/style category descriptions (removed verbose explanations)
+  - Changed "Quality over quantity" to "Apply the rule appropriately"
+  - More concise and actionable instructions
+  - Updated version comment to `0.3.19` and added "Single rule per LLM call" description
+  - Better focused output with rule-specific summary messages
+
+### Fixed
+
+- **qe-writing-001 false positives** - Simplified rule definition to prevent reporting already-correct text
+  - Removed verbose "CRITICAL - Do NOT report" sections
+  - Changed "Check for" to focus on violations requiring fixes
+  - Simplified examples by removing redundant "DO NOT report" comments
+  - More concise rule definition following "simplicity above all" principle
+
+## [0.3.19] - 2025-10-11
+
+### Fixed
+
+- **Duplicate explanation in PR comments** - Removed list formatting from violation output templates
+  - Updated all 8 category prompts to use paragraph format instead of list items
+  - Changed from `- **Severity:** error` to `**Severity:** error` (no bullet point)
+  - Eliminates duplicate explanation text that appeared in PR comments
+  - Cleaner, more readable output format
+  - Affects: writing, math, code, jax, figures, references, links, admonitions prompts
+
+## [0.3.18] - 2025-10-11
+
+### Fixed
+
+- **qe-writing-001 false positives** - Clarified "Check for" criteria to prevent reporting already-correct text
+  - Updated rule to specify: "Only report when blank lines need to be ADDED to separate sentences"
+  - Simplified language by removing verbose "DO NOT report" sections
+  - Focuses on the actual violation: multiple sentences in a single paragraph block (no blank lines between them)
+  - Fixes issue where LLM would report correctly-formatted text as violations
+
 ## [0.3.17] - 2025-10-11
 
 ### Changed
