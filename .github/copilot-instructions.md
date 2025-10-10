@@ -80,15 +80,23 @@ action-style-guide/
 
 ### LLM Architecture
 - **Single model**: Claude Sonnet 4.5 only (no model switching complexity)
-- **Sequential processing**: Process categories one at a time, apply fixes between each
+- **Sequential rule processing**: Process one rule at a time within each category, apply fixes between each
+- **Sequential category processing**: Process categories one at a time, feed updated document to next category
 - **Prompt-driven**: Instructions in prompts, not hardcoded logic
 - **Simple parsing**: Regex-based markdown response parsing
 
 ### Rule System
 - **Category-based**: 8 categories (writing, math, code, jax, figures, references, links, admonitions)
 - **Prompt + Rules**: Each category has a prompt template and rules document
+- **One rule per LLM call**: Each rule checked individually, fixes applied before next rule
 - **Order matters**: Rules evaluated in specified order (mechanical → structural → stylistic → creative)
-- **Single source of truth**: Version in `__init__.py`, order in prompts only
+- **Single source of truth**: Version in `__init__.py`
+
+### Prompt Files
+- **Location**: `style_checker/prompts/*.md`
+- **Version tracking**: Each prompt has version comment at top: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
+- **Update on modification**: Bump version when prompt content changes (usually to match release version)
+- **Purpose**: Track which prompt version generated historical LLM responses
 
 ### GitHub Integration
 - **Programmatic fixes**: Apply fixes via code, don't ask LLM for full corrected content
@@ -171,13 +179,19 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 2. **Run full test suite**: `pytest tests/ -v`
 3. **Verify all tests pass** (except LLM integration tests which require API keys)
 4. Update `__version__` in `style_checker/__init__.py`
-5. Update `CHANGELOG.md` (move Unreleased to new version)
-6. Commit: "Prepare vX.Y.Z release - Description"
-7. Create GitHub release: `gh release create vX.Y.Z --title "..." --notes "..."`
-8. Update floating tag: `git tag -f v0.3 && git push origin v0.3 --force`
-9. Push main branch: `git push origin main`
+5. **Update prompt versions** if any prompts were modified:
+   - Update version comment at top of each modified prompt file
+   - Format: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
+   - Version should match the release version
+6. Update `CHANGELOG.md` (move Unreleased to new version)
+7. Commit: "Release vX.Y.Z - Description"
+8. Create GitHub release: `gh release create vX.Y.Z --title "..." --notes "..."`
+9. Update floating tag: `git tag -f v0.3 && git push origin v0.3 --force`
+10. Push main branch: `git push origin main`
 
 **Never skip testing** - it catches regressions and ensures quality.
+
+**Prompt Version Tracking**: Prompt versions should stay in sync with releases when prompts are modified. This helps track which prompt version was used in historical runs.
 
 ## Common Tasks
 
