@@ -446,6 +446,135 @@ class GitHubHandler:
         
         return report
 
+    def format_applied_fixes_report(self, review_result: Dict[str, Any], lecture_name: str) -> str:
+        """
+        Format report of automatically applied fixes (rule category violations).
+        This is posted as a collapsible PR comment for reference.
+        
+        Args:
+            review_result: Review results dictionary with rule_violations
+            lecture_name: Name of the lecture
+            
+        Returns:
+            Detailed markdown report of applied fixes (wrapped in <details>)
+        """
+        from . import __version__
+        
+        rule_violations = review_result.get('rule_violations', [])
+        
+        if not rule_violations:
+            return None  # No comment needed if no fixes were applied
+        
+        # Wrap in collapsible details block
+        report = f"<details>\n<summary><b>✅ Applied Fixes Report</b> ({len(rule_violations)} fixes applied - click to expand)</summary>\n\n"
+        
+        report += f"# Applied Style Guide Fixes\n\n"
+        report += f"**Lecture:** {lecture_name}\n"
+        report += f"**Action Version:** {__version__}\n"
+        report += f"**Review Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n"
+        report += f"**Fixes Applied:** {len(rule_violations)}\n\n"
+        report += "---\n\n"
+        report += "## Automatically Applied Fixes\n\n"
+        report += "*The following mechanical fixes have been automatically applied to the lecture content.*\n\n"
+        
+        # Group by category for organization
+        by_category = {}
+        for v in rule_violations:
+            rule_id = v.get('rule_id', 'unknown')
+            category = rule_id.split('-')[1] if '-' in rule_id else 'other'
+            if category not in by_category:
+                by_category[category] = []
+            by_category[category].append(v)
+        
+        # Output each violation with full details
+        for category, items in sorted(by_category.items()):
+            report += f"### {category.title()} ({len(items)} fixes)\n\n"
+            
+            for i, v in enumerate(items, 1):
+                report += f"#### {i}. {v.get('rule_id')} - {v.get('rule_title')}\n\n"
+                report += f"**Location:** {v.get('location', 'Unknown')}\n\n"
+                
+                if v.get('description'):
+                    report += f"**Description:** {v.get('description')}\n\n"
+                
+                if v.get('current_text'):
+                    report += f"**Original text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                
+                if v.get('suggested_fix'):
+                    report += f"**Applied fix:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                
+                if v.get('explanation'):
+                    report += f"**Explanation:** {v.get('explanation')}\n\n"
+                
+                report += "---\n\n"
+        
+        report += "\n</details>"
+        
+        return report
+
+    def format_style_suggestions_report(self, review_result: Dict[str, Any], lecture_name: str) -> str:
+        """
+        Format report of style suggestions (style category violations).
+        This is posted as an OPEN PR comment for immediate human review.
+        
+        Args:
+            review_result: Review results dictionary with style_violations
+            lecture_name: Name of the lecture
+            
+        Returns:
+            Open markdown report of style suggestions (NOT collapsible - visible by default)
+        """
+        from . import __version__
+        
+        style_violations = review_result.get('style_violations', [])
+        
+        if not style_violations:
+            return None  # No comment needed if no suggestions
+        
+        # NO <details> wrapper - open and visible by default
+        report = f"# 🎨 Style Suggestions for Human Review\n\n"
+        report += f"**Lecture:** {lecture_name}\n"
+        report += f"**Action Version:** {__version__}\n"
+        report += f"**Review Date:** {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n"
+        report += f"**Suggestions:** {len(style_violations)}\n\n"
+        report += "---\n\n"
+        report += "⚠️ **These suggestions require human review before applying.**\n\n"
+        report += "*Style improvements are subjective - please review each suggestion carefully.*\n\n"
+        
+        # Group by category for organization
+        by_category = {}
+        for v in style_violations:
+            rule_id = v.get('rule_id', 'unknown')
+            category = rule_id.split('-')[1] if '-' in rule_id else 'other'
+            if category not in by_category:
+                by_category[category] = []
+            by_category[category].append(v)
+        
+        # Output each violation with full details
+        for category, items in sorted(by_category.items()):
+            report += f"## {category.title()} ({len(items)} suggestions)\n\n"
+            
+            for i, v in enumerate(items, 1):
+                report += f"### {i}. {v.get('rule_id')} - {v.get('rule_title')}\n\n"
+                report += f"**Location:** {v.get('location', 'Unknown')}\n\n"
+                report += f"**Severity:** {v.get('severity', 'N/A')}\n\n"
+                
+                if v.get('description'):
+                    report += f"**Description:** {v.get('description')}\n\n"
+                
+                if v.get('current_text'):
+                    report += f"**Current text:**\n```markdown\n{v.get('current_text')}\n```\n\n"
+                
+                if v.get('suggested_fix'):
+                    report += f"**Suggested improvement:**\n```markdown\n{v.get('suggested_fix')}\n```\n\n"
+                
+                if v.get('explanation'):
+                    report += f"**Explanation:** {v.get('explanation')}\n\n"
+                
+                report += "---\n\n"
+        
+        return report
+
     def format_pr_body(self, review_result: Dict[str, Any], lecture_name: str) -> str:
         """
         Format concise PR body with summary statistics.

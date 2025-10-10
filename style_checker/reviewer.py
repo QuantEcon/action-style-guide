@@ -56,20 +56,22 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
     
     # Extract individual rules using regex
     # Pattern matches: ### Rule: qe-writing-001 ... until next ### Rule: or end
-    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Category:\*\*[^\n]*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
+    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Category:\*\* (rule|style)\s*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
     
     # First, extract all rules into a dict keyed by rule_id
     rules_dict = {}
     for match in re.finditer(rule_pattern, content, re.DOTALL):
         rule_id = match.group(1)
-        title = match.group(2).strip()
-        rule_content = match.group(3).strip()
+        rule_category = match.group(2).strip()  # 'rule' or 'style'
+        title = match.group(3).strip()
+        rule_content = match.group(4).strip()
         
         # Reconstruct the full rule markdown
-        full_rule = f"### Rule: {rule_id}\n**Title:** {title}\n\n{rule_content}"
+        full_rule = f"### Rule: {rule_id}\n**Category:** {rule_category}\n**Title:** {title}\n\n{rule_content}"
         
         rules_dict[rule_id] = {
             'rule_id': rule_id,
+            'rule_category': rule_category,  # NEW: Store rule category
             'title': title,
             'content': full_rule
         }
@@ -373,6 +375,8 @@ class StyleReviewer:
             Dictionary with combined review results from all rules
         """
         all_violations = []
+        rule_violations = []  # NEW: Track rule category violations (auto-apply)
+        style_violations = []  # NEW: Track style category violations (suggestions only)
         all_warnings = []
         current_content = content  # Track the evolving content as fixes are applied
         
@@ -388,7 +392,8 @@ class StyleReviewer:
             
             for i, rule in enumerate(rules, 1):
                 rule_id = rule['rule_id']
-                print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)})")
+                rule_category = rule.get('rule_category', 'rule')  # NEW: Get rule category, default to 'rule'
+                print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)}) [category: {rule_category}]")
                 
                 try:
                     # Create focused prompt for this specific rule using CURRENT content
@@ -408,20 +413,29 @@ class StyleReviewer:
                             print(f"      ⚠️  Fix quality warnings: {len(validation_warnings)}")
                             all_warnings.extend(validation_warnings)
                         
-                        # Apply fixes immediately to current content
-                        corrected_content, apply_warnings = apply_fixes(current_content, result['violations'])
-                        
-                        if apply_warnings:
-                            all_warnings.extend(apply_warnings)
-                        
-                        # Update current content for next rule
-                        if corrected_content != current_content:
-                            current_content = corrected_content
-                            print(f"      ✓ Applied {violations_count} fix(es) - content updated for next rule")
+                        # NEW: Separate by category - only auto-apply fixes for 'rule' category
+                        if rule_category == 'rule':
+                            # Apply fixes immediately to current content
+                            corrected_content, apply_warnings = apply_fixes(current_content, result['violations'])
+                            
+                            if apply_warnings:
+                                all_warnings.extend(apply_warnings)
+                            
+                            # Update current content for next rule
+                            if corrected_content != current_content:
+                                current_content = corrected_content
+                                print(f"      ✓ Applied {violations_count} fix(es) automatically - content updated for next rule")
+                            else:
+                                print(f"      ⚠️  Could not apply fixes - content unchanged")
+                            
+                            # Store rule violations for applied fixes report
+                            rule_violations.extend(result['violations'])
                         else:
-                            print(f"      ⚠️  Could not apply fixes - content unchanged")
+                            # Style category - collect suggestions but don't auto-apply
+                            print(f"      ℹ️  Style suggestions collected (not auto-applied) - requires human review")
+                            style_violations.extend(result['violations'])
                         
-                        # Store violations for reporting
+                        # Store all violations for comprehensive reporting
                         all_violations.extend(result['violations'])
                     else:
                         print(f"      ✓ No violations")
@@ -435,10 +449,12 @@ class StyleReviewer:
         combined_result = {
             'issues_found': len(all_violations),
             'violations': all_violations,
+            'rule_violations': rule_violations,  # NEW: Automatic fixes applied
+            'style_violations': style_violations,  # NEW: Suggestions for human review
             'provider': self.provider_name,
             'lecture_name': lecture_name,
             'warnings': all_warnings,
-            'corrected_content': current_content  # Final content after all fixes
+            'corrected_content': current_content  # Final content after all rule fixes
         }
         
         return combined_result

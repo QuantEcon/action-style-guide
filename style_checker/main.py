@@ -111,10 +111,17 @@ def review_single_lecture(
         )
         print(f"✓ Created PR #{pr_number}: {pr_url}")
         
-        # Add detailed report as a collapsible comment
-        detailed_report = gh_handler.format_detailed_report(review_result, lecture_name)
-        gh_handler.add_comment_to_pr(pr_number, detailed_report)
-        print(f"✓ Added detailed report as PR comment")
+        # Add applied fixes report (rule category) as a collapsible comment
+        applied_fixes_report = gh_handler.format_applied_fixes_report(review_result, lecture_name)
+        if applied_fixes_report:
+            gh_handler.add_comment_to_pr(pr_number, applied_fixes_report)
+            print(f"✓ Added applied fixes report as PR comment")
+        
+        # Add style suggestions report (style category) as an open, visible comment
+        style_suggestions_report = gh_handler.format_style_suggestions_report(review_result, lecture_name)
+        if style_suggestions_report:
+            gh_handler.add_comment_to_pr(pr_number, style_suggestions_report)
+            print(f"✓ Added style suggestions report as PR comment")
         
         review_result['pr_number'] = pr_number
         review_result['pr_url'] = pr_url

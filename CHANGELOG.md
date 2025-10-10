@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.14] - 2025-10-10
+
+### Added
+
+- **Separate handling for rule vs style category violations** - Two-comment PR system
+  - **Rule category violations (mechanical fixes)**: Automatically applied to lecture content
+    - Rules: qe-writing-001, 002, 004, 005, 006, 008
+    - Applied fixes posted as collapsible PR comment for reference
+    - Includes all fix details (original text, applied fix, explanation)
+  - **Style category violations (subjective suggestions)**: Collected but NOT auto-applied
+    - Rules: qe-writing-003 (logical flow), 007 (visual elements)
+    - Suggestions posted as OPEN PR comment requiring human review
+    - Prevents "over enthusiastic" LLM from making subjective changes
+  - Updated `extract_individual_rules()` to capture category field from rule definitions
+  - Modified `review_lecture_single_rule()` to filter fixes by category before applying
+  - Added `format_applied_fixes_report()` and `format_style_suggestions_report()` methods
+  - Two separate PR comments: one collapsible (applied), one open (suggestions)
+
+### Changed
+
+- **PR comment structure redesigned** - Replaced single detailed report with two targeted comments
+  - Previous: One collapsible comment with ALL violations (mixed rule and style)
+  - Now: Separate comments for automatic fixes vs suggestions requiring human review
+  - Applied fixes comment: Collapsed by default (reference only, already applied)
+  - Style suggestions comment: Open by default (immediate visibility for review)
+
 ## [0.3.13] - 2025-10-10
 
 ### Added
