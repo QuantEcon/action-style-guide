@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Added debug output for rule evaluation order** - Shows LLM's original violation order
+  - Helps diagnose whether LLM is respecting the mandatory rule sequence
+  - Displays first 10 rule IDs in the order LLM identified them
+  - Note: Fix application order (by document position) may differ from identification order
+
 ## [0.3.9] - 2025-10-10
 
 ### Changed

@@ -20,6 +20,13 @@ def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, Li
     skipped_count = 0
     warnings = []
     
+    # Debug: Show LLM's original order
+    print(f"  ℹ️  LLM identified violations in this rule order:")
+    rule_sequence = [v.get('rule_id', 'unknown') for v in violations[:10]]  # First 10
+    print(f"      {', '.join(rule_sequence)}")
+    if len(violations) > 10:
+        print(f"      ... and {len(violations) - 10} more")
+    
     # Sort violations by position in content (reverse order to avoid offset issues)
     # We'll try to apply them in the order they appear
     violations_with_pos = []
