@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **New writing rule: qe-writing-008** - Whitespace linting
+  - Detects multiple consecutive spaces between words in MyST Markdown source
+  - Suggests reducing excessive whitespace to single spaces
+  - Improves markdown source consistency and readability
+  - Excludes code blocks, inline code, math blocks, and intentional formatting
+  - Linting-focused rule (doesn't affect HTML output, only source quality)
+
+### Changed
+
+- **Updated qe-writing-001** - Clarified scope
+  - Added note that whitespace formatting is handled by qe-writing-008
+  - Updated implementation note to reference the new whitespace rule
+  - Focuses on sentence structure and paragraph organization
+
 ## [0.3.3] - 2025-10-10
 
 ### Changed

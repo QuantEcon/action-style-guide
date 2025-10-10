@@ -19,6 +19,9 @@ Each paragraph should contain only one sentence. This improves readability and h
 - Paragraphs containing multiple sentences separated by periods
 - Run-on text blocks without paragraph breaks
 
+**Associated rules:**  
+This rule focuses on sentence structure and paragraph organization. For whitespace formatting issues (multiple spaces between words), see qe-writing-008.
+
 **Examples:**
 ```markdown
 <!-- ❌ Avoid: Multiple sentences in one paragraph -->
@@ -33,7 +36,7 @@ We will use it throughout the lecture series.
 ```
 
 **Implementation note:**  
-Can be checked by counting sentences (periods followed by space/newline) within paragraph blocks (text between blank lines).
+Can be checked by counting sentences (periods followed by space/newline) within paragraph blocks (text between blank lines). Whitespace formatting between words is handled by qe-writing-008.
 
 ---
 
@@ -172,3 +175,40 @@ This requires understanding the content and judging where visualization adds val
 
 **Reference example:**  
 https://continuous-time-mcs.quantecon.org/kolmogorov_fwd.html
+
+---
+
+### Rule: qe-writing-008
+**Category:** rule  
+**Title:** Remove excessive whitespace between words
+
+**Description:**  
+MyST Markdown source files should contain only single spaces between words. Multiple consecutive spaces between words should be reduced to a single space for clean, consistent formatting.
+
+**Check for:**
+- Two or more consecutive spaces between words in narrative text
+- Extra spacing in headings, list items, or inline text
+- Inconsistent spacing patterns
+
+**Examples:**
+```markdown
+<!-- ❌ Incorrect: Multiple spaces between words -->
+This is  an  example with    excessive spacing.
+
+The bellman equation  is a fundamental  tool.
+
+## Section  Heading  With  Extra  Spaces
+
+<!-- ✅ Correct: Single space between words -->
+This is an example with excessive spacing.
+
+The bellman equation is a fundamental tool.
+
+## Section Heading With Extra Spaces
+```
+
+**Important exceptions:**
+- Code blocks (indented or fenced) - preserve all spacing
+- Inline code spans - preserve all spacing
+- Math blocks and inline math - preserve all spacing
+- Intentional formatting like tables or aligned content

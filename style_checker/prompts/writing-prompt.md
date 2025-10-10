@@ -25,6 +25,7 @@ Each rule is categorized as either:
    - Capitalization and grammar
    - Tone and voice consistency
    - Pronoun usage and contractions
+   - Whitespace formatting (multiple spaces between words)
 
 4. **For each violation found**, provide:
    - **Rule Code and Title**: e.g., `qe-writing-001: Use one sentence per paragraph`
