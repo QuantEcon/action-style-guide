@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.23] - 2025-10-11
+
+### Changed
+
+- **Remove redundant CRITICAL instruction** - Removed ambiguous "Current text and Suggested fix MUST be different" note
+  - Instruction was redundant (obviously fixes should change something)
+  - Was causing confusion and potentially skipping valid fixes
+  - Validation is already handled by `validate_fix_quality()` function
+  - Cleaner, simpler prompt with less confusion
+  - Updated writing prompt version to 0.3.23
+
 ## [0.3.22] - 2025-10-11
 
 ### Fixed
