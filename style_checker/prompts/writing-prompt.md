@@ -1,4 +1,4 @@
-<!-- Prompt Version: 0.3.19 | Last Updated: 2025-10-11 | Single rule per LLM call -->
+<!-- Prompt Version: 0.3.22 | Last Updated: 2025-10-11 | Single rule per LLM call -->
 
 # QuantEcon Writing Style Checker Prompt
 
@@ -31,7 +31,7 @@ The rule's `Category:` field indicates how to apply it:
    - **Issue**: Brief explanation of why this violates the rule
    - **Suggested Fix**: Specific corrected version of the text
    
-   **CRITICAL**: The "Current text" and "Suggested fix" MUST be different. If you cannot provide a different fix, do NOT report it as a violation.
+   **CRITICAL**: The "Current text" and "Suggested fix" MUST be different (fixes must change something). Even if the visual difference is subtle (like whitespace changes), ensure the suggested fix actually corrects the violation.
 
 6. **Apply the rule appropriately**:
    - **`rule` category**: Report all clear violations mechanically

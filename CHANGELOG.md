@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.22] - 2025-10-11
+
+### Fixed
+
+- **Whitespace fix application** - Clarified CRITICAL instruction to allow subtle visual differences
+  - Changed from "MUST be different" (ambiguous) to "must change something"
+  - Added explicit note: "Even if the visual difference is subtle (like whitespace changes), ensure the suggested fix actually corrects the violation"
+  - Fixes issue where whitespace fixes were being skipped because they looked "the same"
+  - LLM was interpreting "different" too strictly, avoiding reporting valid whitespace violations
+  - Updated writing prompt version to 0.3.22
+
 ## [0.3.21] - 2025-10-11
 
 ### Fixed
