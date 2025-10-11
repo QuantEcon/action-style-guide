@@ -66,7 +66,7 @@ Here
 
 
 ### Rule: qe-writing-002
-**Category:** rule  
+**Category:** style  
 **Title:** Keep writing clear, concise, and valuable
 
 **Description:**  
@@ -77,6 +77,10 @@ Keep sentences short and clear. Minimize unnecessary words. The value of a lectu
 - Unnecessary verbosity that doesn't add value
 - Complex sentence structures where simpler ones would work
 - Redundant phrases or explanations
+
+**Important:** Breaking long sentences up can be useful sometimes, but 
+each sentence must be in its own paragraph block separated by blank lines 
+(per qe-writing-001).
 
 **Guidance:**  
 This is a judgment call that requires understanding context and content value. Focus on whether every word serves a purpose.

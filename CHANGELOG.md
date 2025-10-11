@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.24] - 2025-10-11
+
+### Fixed
+
+- **qe-writing-002 rule conflict** - Added constraint to prevent violating qe-writing-001
+  - qe-writing-002 was breaking long sentences into multiple sentences without blank lines
+  - This violated qe-writing-001 (one sentence per paragraph)
+  - Added "Important" note: Breaking sentences up requires blank lines between each sentence
+  - Changed category from `rule` to `style` for advisory guidance
+  - Self-contained constraint (no external links needed)
+
+## [0.3.23] - 2025-10-11
+
+### Fixed
+
+- **qe-writing-002 rule conflict** - Added explicit exception to prevent breaking sentences
+  - qe-writing-002 was breaking long sentences into multiple sentences
+  - This violated qe-writing-001 (one sentence per paragraph)
+  - Added "Important" section: Do NOT break sentences, instead simplify within single sentence
+  - Provides guidance: remove words, simplify clauses, use direct phrasing, restructure
+  - Prevents conflicting edits between rules processed sequentially
+
 ## [0.3.23] - 2025-10-11
 
 ### Changed
