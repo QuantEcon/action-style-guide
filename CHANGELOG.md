@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.21] - 2025-10-11
+
+### Fixed
+
+- **Parser support for tilde fences** - Updated violation parser to handle both backtick and tilde code fences
+  - Parser now accepts `~~~markdown` (as instructed in prompts) in addition to ` ```markdown`
+  - Fixes issue where Current text and Suggested fix weren't being extracted from LLM responses
+  - Regex patterns updated: `(?:```|~~~)` to match either fence type
+  - Ensures PR comments display violations correctly
+
 ## [0.3.20] - 2025-10-11
 
 ### Changed

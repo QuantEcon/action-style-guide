@@ -224,13 +224,13 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
                 if desc_match:
                     violation['description'] = desc_match.group(1).strip()
                 
-                # Extract current text (in code block)
-                current_match = re.search(r'\*\*Current text:\*\*\s*\n```[^\n]*\n(.+?)\n```', body, re.DOTALL)
+                # Extract current text (in code block - supports both ``` and ~~~ fences)
+                current_match = re.search(r'\*\*Current text:\*\*\s*\n(?:```|~~~)[^\n]*\n(.+?)\n(?:```|~~~)', body, re.DOTALL)
                 if current_match:
                     violation['current_text'] = current_match.group(1).strip()
                 
-                # Extract suggested fix (in code block)
-                fix_match = re.search(r'\*\*Suggested fix:\*\*\s*\n```[^\n]*\n(.+?)\n```', body, re.DOTALL)
+                # Extract suggested fix (in code block - supports both ``` and ~~~ fences)
+                fix_match = re.search(r'\*\*Suggested fix:\*\*\s*\n(?:```|~~~)[^\n]*\n(.+?)\n(?:```|~~~)', body, re.DOTALL)
                 if fix_match:
                     violation['suggested_fix'] = fix_match.group(1).strip()
                 
