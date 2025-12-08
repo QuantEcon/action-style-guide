@@ -103,11 +103,18 @@ def review_single_lecture(
         # Create PR with concise summary
         pr_title = f"[{lecture_name}] Style guide review"
         pr_body = gh_handler.format_pr_body(review_result, lecture_name)
+        
+        # Parse PR labels
+        pr_labels = ['automated', 'style-guide', 'review']
+        if args.pr_labels:
+            custom_labels = [l.strip() for l in args.pr_labels.split(',') if l.strip()]
+            pr_labels.extend(custom_labels)
+        
         pr_number, pr_url = gh_handler.create_pull_request(
             title=pr_title,
             body=pr_body,
             head_branch=branch_name,
-            labels=['automated', 'style-guide', 'review']
+            labels=pr_labels
         )
         print(f"✓ Created PR #{pr_number}: {pr_url}")
         
@@ -136,7 +143,8 @@ def review_bulk_lectures(
     reviewer: StyleReviewer,
     lectures_path: str,
     create_pr: bool,
-    pr_branch_prefix: str
+    pr_branch_prefix: str,
+    pr_labels: str = ''
 ) -> dict:
     """
     Review all lectures in directory and create single PR
@@ -210,11 +218,17 @@ def review_bulk_lectures(
         pr_title = f"Style guide bulk review ({len(lectures)} lectures)"
         pr_body = format_bulk_pr_body(all_results, total_issues)
         
+        # Parse PR labels
+        labels = ['automated', 'style-guide', 'bulk-review']
+        if pr_labels:
+            custom_labels = [l.strip() for l in pr_labels.split(',') if l.strip()]
+            labels.extend(custom_labels)
+        
         pr_number, pr_url = gh_handler.create_pull_request(
             title=pr_title,
             body=pr_body,
             head_branch=branch_name,
-            labels=['automated', 'style-guide', 'bulk-review']
+            labels=labels
         )
         print(f"✓ Created PR #{pr_number}: {pr_url}")
         
@@ -299,6 +313,8 @@ def main():
                        help='Whether to create PR')
     parser.add_argument('--pr-branch-prefix', default='style-guide',
                        help='Prefix for PR branches')
+    parser.add_argument('--pr-labels', default='',
+                       help='Comma-separated PR labels')
     parser.add_argument('--comment-body', help='Issue comment body (for single mode)')
     parser.add_argument('--repository', required=True,
                        help='GitHub repository (owner/repo)')
@@ -384,7 +400,8 @@ def main():
                 reviewer=reviewer,
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
-                pr_branch_prefix=args.pr_branch_prefix
+                pr_branch_prefix=args.pr_branch_prefix,
+                pr_labels=args.pr_labels
             )
             
             # Set outputs for GitHub Actions (using environment file)

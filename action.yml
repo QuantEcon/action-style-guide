@@ -39,6 +39,10 @@ inputs:
     description: 'Prefix for PR branch names'
     required: false
     default: 'style-guide'
+  pr-labels:
+    description: 'Comma-separated list of labels to add to the PR'
+    required: false
+    default: ''
 
 outputs:
   pr-number:
