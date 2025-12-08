@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.4.0**: CLI tool integration, improved documentation, all tests passing
+> 🚀 **Version 0.5.0**: Production testing infrastructure, PR labels, @qe-style-checker syntax
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
@@ -71,7 +71,7 @@ jobs:
     if: contains(github.event.comment.body, '@qe-style-checker')
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v0.4
+      - uses: QuantEcon/action-style-guide@v0.5
         with:
           mode: 'single'
           lectures-path: 'lectures/'
@@ -233,7 +233,11 @@ The CLI uses the **same prompts and rules** as the GitHub Action (loaded from `s
 
 See [tool-style-checker/README.md](tool-style-checker/README.md) for full documentation.
 
-### Running Tests
+### Testing
+
+#### Unit Tests
+
+Run the test suite locally:
 
 ```bash
 # Install dependencies
@@ -247,6 +251,20 @@ pytest tests/test_github_handler.py -v
 ```
 
 See [docs/testing-quick-reference.md](docs/testing-quick-reference.md) for more testing options.
+
+#### GitHub Integration Testing
+
+**Test Repository**: [test-action-style-guide](https://github.com/QuantEcon/test-action-style-guide)
+- Dedicated test repository with intentional violations
+- Safe environment for testing new features
+- Automated regression tests
+
+**Real-World Testing**: [lecture-python-advanced.myst](https://github.com/QuantEcon/lecture-python-advanced.myst)
+- Enabled for real-world testing and validation
+- [Testing issue #261](https://github.com/QuantEcon/lecture-python-advanced.myst/issues/261)
+- Comment `@qe-style-checker lecture_name` to test on actual lectures
+
+See [docs/production-testing.md](docs/production-testing.md) for complete testing guide.
 
 ### Project Structure
 
