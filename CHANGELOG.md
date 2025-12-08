@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Production Testing Guide** (`docs/production-testing.md`) - Comprehensive guide for testing the action
+  - Local CLI testing workflow
+  - GitHub test repository setup (`test-action-style-guide`)
+  - Testing checklist and debugging guide
+  
+- **Test Repository** (`QuantEcon/test-action-style-guide`) - Dedicated repository for action testing
+  - Jupyter Book structure with test lectures
+  - Workflow for manual and comment-triggered testing
+  - Clean and violation test lectures for regression testing
+  - Scheduled weekly regression tests
+
+- **PR Labels Input** (`pr-labels`) - Allow custom labels on created PRs
+  - New action input: `pr-labels` (comma-separated list)
+  - Custom labels added to default labels (automated, style-guide, review)
+  - Useful for test repos to add labels like 'do-not-merge'
+
+### Changed
+
+- **Simplified comment trigger syntax** - Now only supports `@qe-style-checker`
+  - Removed legacy `@quantecon-style-guide` syntax
+  - Removed experimental `@github-actions style-guide` syntax
+  - Cleaner codebase with single comment pattern
+  - Updated documentation to reflect syntax
+
+### Removed
+
+- **RELEASE-GUIDE.md** - Outdated release documentation removed
+
 ## [0.4.0] - 2025-12-08
 
 ### Changed

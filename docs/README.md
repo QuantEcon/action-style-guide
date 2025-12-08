@@ -18,6 +18,7 @@ This directory contains documentation for the QuantEcon Style Guide Checker.
 | [Architecture](ARCHITECTURE.md) | System architecture, data flow, and component design |
 | [Testing Quick Reference](testing-quick-reference.md) | Quick commands for running tests |
 | [LLM Integration Testing](llm-integration-testing.md) | Testing with real LLM API calls |
+| [Production Testing](production-testing.md) | Testing the GitHub Action in production environments |
 | [Future Enhancements](FUTURE-ENHANCEMENTS.md) | Roadmap and planned features |
 
 ## Getting Started
