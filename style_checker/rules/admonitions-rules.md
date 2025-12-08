@@ -9,7 +9,7 @@ This document contains only the **admonitions-focused rules** for QuantEcon lect
 ## Admonition and Directive Rules
 
 ### Rule: qe-admon-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use gated syntax for executable code in exercises
 
 **Description:**  
@@ -22,7 +22,7 @@ Use gated syntax (`exercise-start`/`exercise-end`) whenever exercises contain ex
 ---
 
 ### Rule: qe-admon-002
-**Category:** style  
+**Type:** style  
 **Title:** Use dropdown class for solutions
 
 **Description:**  
@@ -48,7 +48,7 @@ Solution content here.
 ---
 
 ### Rule: qe-admon-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Use tick count management for nested directives
 
 **Description:**  
@@ -61,7 +61,7 @@ When nesting directives, ensure the outer directive uses more ticks than nested 
 ---
 
 ### Rule: qe-admon-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Use prf prefix for proof directives
 
 **Description:**  
@@ -80,7 +80,7 @@ All sphinx-proof directives require `prf:` prefix in both the directive and when
 ---
 
 ### Rule: qe-admon-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Link solutions to exercises
 
 **Description:**  

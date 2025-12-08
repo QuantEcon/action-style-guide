@@ -25,7 +25,7 @@ from dataclasses import dataclass
 class Rule:
     """Represents a single rule from the database"""
     rule_id: str
-    category: str
+    rule_type: str  # rule, style, or migrate
     title: str
     group: str
     full_text: str  # Complete markdown for this rule
@@ -61,28 +61,28 @@ def extract_rules_from_group(group_content: str, group_name: str) -> List[Rule]:
     """
     Extract individual rules from a group section.
     
-    Each rule starts with ### Rule: qe-category-NNN
+    Each rule starts with ### Rule: qe-group-NNN
     """
     rules = []
     
     # Split by rule headers (### Rule:)
-    rule_pattern = r'### Rule: (qe-\w+-\d+)\s*\n\*\*Category:\*\*\s*(\w+)\s*\n\*\*Title:\*\*\s*(.+?)\n((?:.|\n)*?)(?=### Rule:|$)'
+    rule_pattern = r'### Rule: (qe-\w+-\d+)\s*\n\*\*Type:\*\*\s*(\w+)\s*\n\*\*Title:\*\*\s*(.+?)\n((?:.|\n)*?)(?=### Rule:|$)'
     
     for match in re.finditer(rule_pattern, group_content):
         rule_id = match.group(1)
-        category = match.group(2)
+        rule_type = match.group(2)
         title = match.group(3).strip()
         rule_body = match.group(4).strip()
         
         # Reconstruct the full rule markdown
         full_text = f"### Rule: {rule_id}\n"
-        full_text += f"**Category:** {category}  \n"
+        full_text += f"**Type:** {rule_type}  \n"
         full_text += f"**Title:** {title}\n\n"
         full_text += rule_body
         
         rules.append(Rule(
             rule_id=rule_id,
-            category=category,
+            rule_type=rule_type,
             title=title,
             group=group_name,
             full_text=full_text
@@ -111,7 +111,7 @@ These rules are used by the style checker to identify and fix {category.lower()}
 
 Each rule includes:
 - **Rule ID**: Unique identifier (e.g., qe-{category.lower()}-001)
-- **Category**: Classification (rule/style/migrate)
+- **Type**: Classification (rule/style/migrate)
 - **Title**: Brief description
 - **Description**: Detailed explanation
 - **Check for**: Specific patterns to look for

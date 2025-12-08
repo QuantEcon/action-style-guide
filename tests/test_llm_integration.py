@@ -11,7 +11,6 @@ import pytest
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from style_checker.parser_md import load_style_guide
 from style_checker.reviewer import StyleReviewer
 
 
@@ -72,32 +71,10 @@ The solution is V(x) = 42.
 
 
 @pytest.fixture
-def style_guide_path():
-    """Fixture to provide the style guide path"""
-    return Path(__file__).parent.parent / "tool-style-guide-development" / "style-guide-database.md"
-
-
-@pytest.fixture
-def sample_rules(style_guide_path):
-    """Load a subset of critical rules for testing"""
-    db = load_style_guide(str(style_guide_path))
-    
-    # Get high-priority rules for testing
-    # Use the new semantic grouping - get a few groups for testing
-    groups_with_rules = db.get_all_groups_with_rules()
-    
-    # Just use the first 2-3 groups for faster testing
-    test_groups = list(groups_with_rules.items())[:3]
-    
-    # Format rules for the prompt (similar to reviewer._format_rules_for_prompt)
-    rules_parts = []
-    for group_name, group_rules in test_groups:
-        if group_rules:
-            rules_parts.append(f"\n## {group_name.upper()} Rules\n")
-            for rule in group_rules:
-                rules_parts.append(rule.to_prompt_format())
-    
-    return "\n".join(rules_parts)
+def test_categories():
+    """Return a subset of categories for faster testing"""
+    # Use a small subset to keep tests fast and cheap
+    return ['math', 'code']
 
 
 @pytest.mark.integration
@@ -108,26 +85,18 @@ def sample_rules(style_guide_path):
 class TestLLMIntegration:
     """Integration tests that make real LLM API calls"""
     
-    def get_available_provider(self):
-        """Get the Claude API key"""
-        if os.environ.get("ANTHROPIC_API_KEY"):
-            return "claude", os.environ["ANTHROPIC_API_KEY"]
-        else:
-            pytest.skip("No LLM API key available")
-    
-    def test_llm_can_detect_violations(self, sample_rules):
+    def test_llm_can_detect_violations(self, test_categories):
         """Test that LLM can detect style violations in sample lecture"""
-        provider_name, api_key = self.get_available_provider()
-        
-        print(f"\n🤖 Testing with provider: {provider_name}")
+        print(f"\n🤖 Testing with Claude Sonnet 4.5")
+        print(f"📋 Categories: {test_categories}")
         
         # Create reviewer (api_key is read from environment by StyleReviewer)
         reviewer = StyleReviewer()
         
-        # Review the sample lecture
-        result = reviewer.review_lecture(
+        # Review the sample lecture using single-rule processing
+        result = reviewer.review_lecture_single_rule(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
-            rules_text=sample_rules,
+            categories=test_categories,
             lecture_name="test_lecture"
         )
         
@@ -155,15 +124,13 @@ class TestLLMIntegration:
             print(f"  Severity: {v.get('severity', 'unknown')}")
             print(f"  Description: {v.get('description', 'unknown')[:80]}...")
     
-    def test_llm_provides_corrections(self, sample_rules):
+    def test_llm_provides_corrections(self, test_categories):
         """Test that LLM provides corrected content"""
-        provider_name, api_key = self.get_available_provider()
-        
         reviewer = StyleReviewer()
         
-        result = reviewer.review_lecture(
+        result = reviewer.review_lecture_single_rule(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
-            rules_text=sample_rules,
+            categories=test_categories,
             lecture_name="test_lecture"
         )
         
@@ -179,15 +146,13 @@ class TestLLMIntegration:
         
         print(f"\n✓ Corrected content length: {len(result['corrected_content'])} chars")
     
-    def test_llm_response_is_parseable(self, sample_rules):
+    def test_llm_response_is_parseable(self, test_categories):
         """Test that LLM response follows expected Markdown format"""
-        provider_name, api_key = self.get_available_provider()
-        
         reviewer = StyleReviewer()
         
-        result = reviewer.review_lecture(
+        result = reviewer.review_lecture_single_rule(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
-            rules_text=sample_rules,
+            categories=test_categories,
             lecture_name="test_lecture"
         )
         
@@ -203,15 +168,13 @@ class TestLLMIntegration:
         
         print(f"\n✓ Response successfully parsed with {len(result.get('violations', []))} violations")
     
-    def test_llm_identifies_specific_violations(self, sample_rules):
+    def test_llm_identifies_specific_violations(self, test_categories):
         """Test that LLM identifies known violations in sample"""
-        provider_name, api_key = self.get_available_provider()
-        
         reviewer = StyleReviewer()
         
-        result = reviewer.review_lecture(
+        result = reviewer.review_lecture_single_rule(
             content=SAMPLE_LECTURE_WITH_VIOLATIONS,
-            rules_text=sample_rules,
+            categories=test_categories,
             lecture_name="test_lecture"
         )
         
@@ -220,9 +183,8 @@ class TestLLMIntegration:
         # Check if LLM detected common violations
         # Note: These checks are flexible since different LLMs may phrase things differently
         expected_issues = {
-            'display_math': ['$$', 'display math', 'math directive', 'latex'],
+            'display_math': ['$$', 'display math', 'math directive', 'latex', 'math:'],
             'code_language': ['language', 'specifier', 'python', 'code block'],
-            'exercise_format': ['exercise', 'solution', 'admonition', 'directive'],
         }
         
         found_categories = []
@@ -239,7 +201,7 @@ class TestLLMIntegration:
 
 
 @pytest.mark.integration
-def test_markdown_format_no_json_errors(sample_rules):
+def test_markdown_format_no_json_errors(test_categories):
     """Test that Markdown format eliminates JSON parsing errors"""
     if "ANTHROPIC_API_KEY" not in os.environ:
         pytest.skip("ANTHROPIC_API_KEY not set")
@@ -247,11 +209,11 @@ def test_markdown_format_no_json_errors(sample_rules):
     reviewer = StyleReviewer()
     
     # Use a longer, more complex lecture to stress-test the parser
-    complex_lecture = SAMPLE_LECTURE_WITH_VIOLATIONS * 3  # Triple the content
+    complex_lecture = SAMPLE_LECTURE_WITH_VIOLATIONS * 2  # Double the content
     
-    result = reviewer.review_lecture(
+    result = reviewer.review_lecture_single_rule(
         content=complex_lecture,
-        rules_text=sample_rules,
+        categories=test_categories,
         lecture_name="test_complex_lecture"
     )
     
@@ -267,6 +229,30 @@ def test_markdown_format_no_json_errors(sample_rules):
     assert 'violations' in result, "Response should have violations field"
     print(f"\n✓ Complex lecture processed without JSON errors")
     print(f"  Response length: ~{len(str(result))} chars")
+
+
+@pytest.mark.integration
+def test_review_lecture_smart():
+    """Test the smart review method that processes all categories"""
+    if "ANTHROPIC_API_KEY" not in os.environ:
+        pytest.skip("ANTHROPIC_API_KEY not set")
+    
+    reviewer = StyleReviewer()
+    
+    # This tests the full review_lecture_smart flow
+    result = reviewer.review_lecture_smart(
+        content=SAMPLE_LECTURE_WITH_VIOLATIONS,
+        lecture_name="test_smart_review"
+    )
+    
+    # Verify response structure
+    assert 'issues_found' in result, "Response missing 'issues_found'"
+    assert 'violations' in result, "Response missing 'violations'"
+    assert 'corrected_content' in result, "Response missing 'corrected_content'"
+    
+    print(f"\n✓ Smart review completed")
+    print(f"  Issues found: {result['issues_found']}")
+    print(f"  Violations: {len(result['violations'])}")
 
 
 # Utility test that doesn't require API key

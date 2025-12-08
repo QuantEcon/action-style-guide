@@ -9,7 +9,7 @@ This document contains only the **links-focused rules** for QuantEcon lecture co
 ## Document Linking Rules
 
 ### Rule: qe-link-001
-**Category:** style  
+**Type:** style  
 **Title:** Use markdown style links for lectures in same lecture series
 
 **Description:**  
@@ -46,7 +46,7 @@ See [this lecture](https://python.quantecon.org/linear_equations.html) for more.
 ---
 
 ### Rule: qe-link-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use doc links for cross-series references
 
 **Description:**  

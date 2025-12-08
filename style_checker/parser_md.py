@@ -13,7 +13,7 @@ from pathlib import Path
 class StyleRule:
     """Represents a single style guide rule from Markdown"""
     rule_id: str
-    category: str  # 'rule', 'style', or 'migrate'
+    rule_type: str  # 'rule' (auto-fix) or 'style' (suggestion)
     title: str
     description: str
     check_for: List[str]
@@ -27,7 +27,7 @@ class StyleRule:
     def to_prompt_format(self) -> str:
         """Convert rule to format suitable for LLM prompts"""
         prompt = f"### {self.rule_id}: {self.title}\n"
-        prompt += f"**Category:** {self.category}\n\n"
+        prompt += f"**Type:** {self.rule_type}\n\n"
         prompt += f"**Description:**\n{self.description}\n\n"
         
         if self.check_for:
@@ -51,8 +51,8 @@ class StyleRule:
         return prompt
     
     def is_actionable(self) -> bool:
-        """Check if this rule should be actioned by LLM (category='rule')"""
-        return self.category == 'rule'
+        """Check if this rule should be actioned by LLM (type='rule')"""
+        return self.rule_type == 'rule'
 
 
 @dataclass
@@ -62,25 +62,25 @@ class StyleGuideDatabase:
     groups: Dict[str, List[str]]  # group_name -> list of rule_ids
     metadata: Dict[str, Any]
     
-    def get_rules_by_category(self, category: str) -> List[StyleRule]:
-        """Get all rules in a specific category"""
-        return [rule for rule in self.rules.values() if rule.category == category]
+    def get_rules_by_type(self, rule_type: str) -> List[StyleRule]:
+        """Get all rules of a specific type ('rule' or 'style')"""
+        return [rule for rule in self.rules.values() if rule.rule_type == rule_type]
     
     def get_actionable_rules(self) -> List[StyleRule]:
-        """Get all rules that should be actioned (category='rule')"""
-        return self.get_rules_by_category('rule')
+        """Get all rules that should be actioned (type='rule')"""
+        return self.get_rules_by_type('rule')
     
     def get_rules_by_group(self, group: str) -> List[StyleRule]:
         """Get all rules in a specific group"""
         rule_ids = self.groups.get(group.upper(), [])
         return [self.rules[rid] for rid in rule_ids if rid in self.rules]
     
-    def get_all_groups_with_rules(self, category: Optional[str] = None) -> Dict[str, List[StyleRule]]:
+    def get_all_groups_with_rules(self, rule_type: Optional[str] = None) -> Dict[str, List[StyleRule]]:
         """
-        Get all groups with their rules, optionally filtered by category
+        Get all groups with their rules, optionally filtered by rule type
         
         Args:
-            category: Optional category filter ('rule', 'style', or 'migrate')
+            rule_type: Optional type filter ('rule' or 'style')
             
         Returns:
             Dictionary mapping group names to lists of StyleRule objects
@@ -89,9 +89,9 @@ class StyleGuideDatabase:
         for group_name, rule_ids in self.groups.items():
             group_rules = [self.rules[rid] for rid in rule_ids if rid in self.rules]
             
-            # Apply category filter if specified
-            if category:
-                group_rules = [r for r in group_rules if r.category == category]
+            # Apply type filter if specified
+            if rule_type:
+                group_rules = [r for r in group_rules if r.rule_type == rule_type]
             
             # Only include groups that have rules (after filtering)
             if group_rules:
@@ -130,7 +130,7 @@ def parse_markdown_style_guide(md_path: str) -> StyleGuideDatabase:
     
     # Split content into rule sections
     # Rules start with ### Rule: <rule-id>
-    rule_pattern = r'### Rule: (qe-[\w-]+)\n\*\*Category:\*\* (rule|style|migrate)'
+    rule_pattern = r'### Rule: (qe-[\w-]+)\n\*\*Type:\*\* (rule|style)'
     
     # Find all group markers (format: <!-- GROUP:NAME-START --> or <!-- GROUP:NAME-END -->)
     group_pattern = r'<!-- GROUP:([\w]+)-(START|END) -->'
@@ -199,11 +199,11 @@ def extract_version(content: str) -> str:
     return match.group(1).strip() if match else 'unknown'
 
 
-def parse_rule_section(rule_id: str, category: str, content: str, group: Optional[str]) -> StyleRule:
+def parse_rule_section(rule_id: str, rule_type: str, content: str, group: Optional[str]) -> StyleRule:
     """Parse a single rule section from Markdown"""
     
     # Extract title (first line after rule_id line)
-    title_match = re.search(r'### Rule: qe-[\w-]+\n\*\*Category:\*\*.+?\n\*\*Title:\*\* (.+)', content)
+    title_match = re.search(r'### Rule: qe-[\w-]+\n\*\*Type:\*\*.+?\n\*\*Title:\*\* (.+)', content)
     title = title_match.group(1).strip() if title_match else ''
     
     # Extract description
@@ -239,7 +239,7 @@ def parse_rule_section(rule_id: str, category: str, content: str, group: Optiona
     
     return StyleRule(
         rule_id=rule_id,
-        category=category,
+        rule_type=rule_type,
         title=title,
         description=description,
         check_for=check_for,

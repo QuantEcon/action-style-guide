@@ -9,7 +9,7 @@ This document contains only the **references-focused rules** for QuantEcon lectu
 ## Reference and Citation Rules
 
 ### Rule: qe-ref-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use correct citation style
 
 **Description:**  

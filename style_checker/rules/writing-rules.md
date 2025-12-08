@@ -9,7 +9,7 @@ This document contains only the **writing-focused rules** for QuantEcon lecture 
 ## Writing Rules
 
 ### Rule: qe-writing-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use one sentence per paragraph
 
 **Description:**  
@@ -66,7 +66,7 @@ Here
 
 
 ### Rule: qe-writing-002
-**Category:** style  
+**Type:** style  
 **Title:** Keep writing clear, concise, and valuable
 
 **Description:**  
@@ -90,7 +90,7 @@ This is a judgment call that requires understanding context and content value. F
 
 
 ### Rule: qe-writing-003
-**Category:** style  
+**Type:** style  
 **Title:** Maintain logical flow
 
 **Description:**  
@@ -110,7 +110,7 @@ Each new paragraph or section should build naturally from the previous one.
 
 
 ### Rule: qe-writing-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Avoid unnecessary capitalization in narrative text
 
 **Description:**  
@@ -142,7 +142,7 @@ Can detect capitalized words mid-sentence that aren't proper nouns or at the sta
 
 
 ### Rule: qe-writing-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Use bold for definitions, italic for emphasis
 
 **Description:**  
@@ -171,7 +171,7 @@ All consumers have **identical** endowments.
 
 
 ### Rule: qe-writing-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Capitalize lecture titles properly
 
 **Description:**  
@@ -198,7 +198,7 @@ Use capitalization of all words only for lecture titles. For all other headings 
 
 
 ### Rule: qe-writing-007
-**Category:** style  
+**Type:** style  
 **Title:** Use visual elements to enhance understanding
 
 **Description:**  
@@ -219,7 +219,7 @@ https://continuous-time-mcs.quantecon.org/kolmogorov_fwd.html
 
 
 ### Rule: qe-writing-008
-**Category:** rule  
+**Type:** rule  
 **Title:** Remove excessive whitespace between words
 
 **Description:**  

@@ -36,9 +36,9 @@ Each rule is categorized as either:
    - **Suggested Fix**: Specific corrected version of the code
 
 5. **Prioritize actionable feedback**:
-   - Focus on `rule` category violations first (these are clear-cut)
-   - Include `migrate` category suggestions for outdated patterns
-   - Include `style` category suggestions when they significantly impact code quality
+   - Focus on `rule` type violations first (these are clear-cut)
+   - Include `migrate` type suggestions for outdated patterns
+   - Include `style` type suggestions when they significantly impact code quality
    - For style/migrate suggestions, explain your reasoning clearly
 
 6. **Be thorough but practical**:

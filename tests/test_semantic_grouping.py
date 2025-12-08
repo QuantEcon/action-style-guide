@@ -38,9 +38,9 @@ def test_group_extraction():
     for group_name, rules in sorted(all_groups.items()):
         print(f"   • {group_name}: {len(rules)} rules")
     
-    # Test with category filter
-    print(f"\n📦 Testing get_all_groups_with_rules(category='rule'):")
-    actionable_groups = style_guide.get_all_groups_with_rules(category='rule')
+    # Test with type filter
+    print(f"\n📦 Testing get_all_groups_with_rules(rule_type='rule'):")
+    actionable_groups = style_guide.get_all_groups_with_rules(rule_type='rule')
     print(f"   Actionable groups: {len(actionable_groups)}")
     total_actionable = 0
     for group_name, rules in sorted(actionable_groups.items()):

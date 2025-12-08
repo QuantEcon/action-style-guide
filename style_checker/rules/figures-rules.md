@@ -9,7 +9,7 @@ This document contains only the **figures-focused rules** for QuantEcon lecture 
 ## Figure Rules
 
 ### Rule: qe-fig-001
-**Category:** style  
+**Type:** style  
 **Title:** Do not set figure size unless necessary
 
 **Description:**  
@@ -22,7 +22,7 @@ Do not set figure size and style unless there is a good reason. QuantEcon lectur
 ---
 
 ### Rule: qe-fig-002
-**Category:** style  
+**Type:** style  
 **Title:** Prefer code-generated figures
 
 **Description:**  
@@ -35,7 +35,7 @@ Use code-generated figures whenever possible rather than static image files.
 ---
 
 ### Rule: qe-fig-003
-**Category:** rule  
+**Type:** rule  
 **Title:** No matplotlib embedded titles
 
 **Description:**  
@@ -52,7 +52,7 @@ Do not use `ax.set_title()` to embed titles in matplotlib figures. Titles should
 ---
 
 ### Rule: qe-fig-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Caption formatting conventions
 
 **Description:**  
@@ -68,7 +68,7 @@ Figure captions must follow proper formatting:
 ---
 
 ### Rule: qe-fig-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Descriptive figure names for cross-referencing
 
 **Description:**  
@@ -83,7 +83,7 @@ Every figure must have a descriptive `name` field for cross-referencing with `nu
 ---
 
 ### Rule: qe-fig-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Lowercase axis labels
 
 **Description:**  
@@ -97,7 +97,7 @@ Axis labels in matplotlib figures should be lowercase (except for proper nouns).
 ---
 
 ### Rule: qe-fig-007
-**Category:** rule  
+**Type:** rule  
 **Title:** Keep figure box and spines
 
 **Description:**  
@@ -111,7 +111,7 @@ Keep the default box around matplotlib figures. Do not remove spines unless ther
 ---
 
 ### Rule: qe-fig-008
-**Category:** rule  
+**Type:** rule  
 **Title:** Use lw=2 for line charts
 
 **Description:**  
@@ -125,7 +125,7 @@ Line charts should use `lw=2` (line width of 2) for better visibility and consis
 ---
 
 ### Rule: qe-fig-009
-**Category:** rule  
+**Type:** rule  
 **Title:** Figure sizing
 
 **Description:**  
@@ -139,7 +139,7 @@ Figures should be 80-100% of text width for optimal readability and layout.
 ---
 
 ### Rule: qe-fig-010
-**Category:** rule  
+**Type:** rule  
 **Title:** Plotly figures require latex directive
 
 **Description:**  
@@ -152,7 +152,7 @@ Plotly figures must include a `{only} latex` directive after the figure with a l
 ---
 
 ### Rule: qe-fig-011
-**Category:** rule  
+**Type:** rule  
 **Title:** Use image directive when nested in other directives
 
 **Description:**  

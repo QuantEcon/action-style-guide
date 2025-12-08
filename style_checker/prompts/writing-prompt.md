@@ -10,7 +10,7 @@ You will receive:
 1. **One specific writing style rule** to check
 2. **A lecture document** to review
 
-The rule's `Category:` field indicates how to apply it:
+The rule's `Type:` field indicates how to apply it:
 - **`rule`**: Mechanical, objective violations - report all instances found
 - **`style`**: Subjective, advisory guidelines - use judgment, only report significant issues
 
@@ -32,8 +32,8 @@ The rule's `Category:` field indicates how to apply it:
    - **Suggested Fix**: Specific corrected version of the text
 
 6. **Apply the rule appropriately**:
-   - **`rule` category**: Report all clear violations mechanically
-   - **`style` category**: Use judgment - only report when significantly impacting readability
+   - **`rule` type**: Report all clear violations mechanically
+   - **`style` type**: Use judgment - only report when significantly impacting readability
    - Always explain your reasoning clearly
 
 ## Output Format
@@ -98,7 +98,7 @@ The rule's `Category:` field indicates how to apply it:
 
 1. **Issues Found**: Must contain ONLY a number (e.g., `3`, not `3 issues found`)
 2. **Violation numbering**: Use sequential numbers (Violation 1, Violation 2, etc.)
-3. **Severity levels**: Use `error` for `rule` category, `warning` or `info` for `style` category
+3. **Severity levels**: Use `error` for `rule` type, `warning` or `info` for `style` type
 4. **Code blocks**: Current text and Suggested fix MUST be in triple-tilde fenced blocks (`~~~markdown`)
 5. **Do NOT include** a "Corrected Content" section - fixes will be applied programmatically
 6. **Do NOT deviate** from this structure - the parser depends on it

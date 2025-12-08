@@ -45,6 +45,14 @@ def load_file(filepath):
         sys.exit(1)
 
 
+def get_main_action_path():
+    """Get the path to the main style_checker directory."""
+    # This tool lives in tool-style-checker/, main action is in style_checker/
+    tool_dir = Path(__file__).parent
+    repo_root = tool_dir.parent
+    return repo_root / "style_checker"
+
+
 def check_lecture_style(
     lecture_content,
     category,
@@ -61,9 +69,10 @@ def check_lecture_style(
     Returns:
         String containing Claude's output (both review and corrected file)
     """
-    # Load focused prompt and rules for the specified category
-    prompt_path = f"prompts/{category}-prompt.md"
-    rules_path = f"rules/{category}-rules.md"
+    # Load focused prompt and rules from the MAIN ACTION (single source of truth)
+    main_action_path = get_main_action_path()
+    prompt_path = main_action_path / "prompts" / f"{category}-prompt.md"
+    rules_path = main_action_path / "rules" / f"{category}-rules.md"
     
     print(f"  Using focused prompt: {prompt_path}")
     prompt = load_file(prompt_path)

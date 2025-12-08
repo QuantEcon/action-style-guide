@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.3.17-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.3.24-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.3.17**: LLM prompts now use tilde fences in output examples - complete consistency!
+> 🚀 **Version 0.3.24**: Rule type classification renamed from Category to Type for clarity
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
@@ -116,21 +116,35 @@ The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) by default,
 
 The focused prompts architecture (85-line instructions + 120-235 line rules) ensures efficient token usage while maintaining comprehensive analysis.
 
-## Rule Categories
+## Rule Types
 
-The style guide uses a three-tier category system:
+The style guide uses a three-tier type system:
 
-### Category: `rule` (Actionable) ✅
+### Type: `rule` (Actionable) ✅
 Rules that are clearly actionable and will be automatically applied by the action:
 - **Writing**: One sentence per paragraph, capitalization, bold/italic usage
 - **Mathematics**: Transpose notation (`\top`), matrix brackets, sequence notation
-- **Code**: Unicode Greek letters, package installation placement, `quantecon.Timer()` usage
+- **Code**: Unicode Greek letters, package installation placement
 - **Figures**: Caption formatting, figure naming, axis labels, line width
 - **References**: Citation style (`{cite}` vs `{cite:t}`), cross-references
 - **Links**: Internal vs cross-series linking syntax
 - **Admonitions**: Exercise/solution syntax, nested directive tick counts
 
-**These rules are automatically checked and fixed by the action.**
+### Type: `style` (Advisory) 💡
+Subjective guidelines that require human judgment:
+- Writing clarity and conciseness
+- Logical flow between sections
+- Visual element opportunities
+- Figure size decisions
+
+### Type: `migrate` (Code Modernization) 🔄
+Legacy patterns that should be updated (JAX and code categories only):
+- `tic/toc` → `quantecon.Timer()` context manager
+- `%timeit` → `quantecon.timeit()` function
+- NumPy in-place operations → JAX functional updates
+- Implicit random state → explicit JAX PRNG key management
+
+**`rule` types are automatically applied. `style` and `migrate` types are reported as suggestions.**
 
 ## Architecture
 
@@ -195,7 +209,31 @@ See commits for detailed explanations of each change.
 
 ## Development
 
-### Local Testing
+### Local CLI Tool
+
+For local testing without GitHub infrastructure, use the standalone CLI in `tool-style-checker/`:
+
+```bash
+cd tool-style-checker
+
+# Install requirements
+pip install anthropic
+export ANTHROPIC_API_KEY='your-api-key'
+
+# Check a lecture against specific categories
+python style_checker.py lecture.md --focus writing
+python style_checker.py lecture.md --focus writing,math,code
+
+# Output files created:
+# - lecture-suggestions.md (detailed review)
+# - lecture-corrected.md (corrected version)
+```
+
+The CLI uses the **same prompts and rules** as the GitHub Action (loaded from `style_checker/prompts/` and `style_checker/rules/`), ensuring local testing matches production behavior.
+
+See [tool-style-checker/README.md](tool-style-checker/README.md) for full documentation.
+
+### Running Tests
 
 ```bash
 # Install dependencies
@@ -206,13 +244,6 @@ pytest tests/ -v
 
 # Run specific test file
 pytest tests/test_github_handler.py -v
-
-# Check specific lecture (without creating PR)
-python -m style_checker.main \
-  --mode single \
-  --repository owner/repo \
-  --comment-body "@qe-style-checker lecture_name" \
-  --create-pr false
 ```
 
 See [docs/testing-quick-reference.md](docs/testing-quick-reference.md) for more testing options.

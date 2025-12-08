@@ -37,9 +37,9 @@ Each rule is categorized as either:
    - **Suggested Fix**: Specific corrected version with proper formatting
 
 5. **Prioritize actionable feedback**:
-   - Focus on `rule` category violations first (these are clear-cut)
-   - Include `style` category suggestions when they significantly impact learning experience
-   - For style suggestions, explain reasoning clearly
+   - Focus on `rule` type violations first (these are clear-cut)
+   - Include `style` type suggestions when they significantly impact learning experience
+   - For style suggestions, explain your reasoning clearly
 
 6. **Be thorough but practical**:
    - If a pattern repeats (e.g., multiple improperly formatted exercises), note the first 2-3 instances and mention "This pattern occurs throughout the document"

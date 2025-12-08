@@ -9,7 +9,7 @@ This document contains only the **JAX-focused rules** for QuantEcon lecture cont
 ## JAX Conversion Rules
 
 ### Rule: qe-jax-001
-**Category:** style  
+**Type:** style  
 **Title:** Use functional programming patterns
 
 **Description:**  
@@ -36,7 +36,7 @@ def good_update(state, shock):
 ---
 
 ### Rule: qe-jax-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use NamedTuple for model parameters
 
 **Description:**  
@@ -74,7 +74,7 @@ class EconomicModel:
 ---
 
 ### Rule: qe-jax-003
-**Category:** style  
+**Type:** style  
 **Title:** Use generate_path for sequence generation
 
 **Description:**  
@@ -99,7 +99,7 @@ def generate_path(f, initial_state, num_steps, **kwargs):
 ---
 
 ### Rule: qe-jax-004
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use functional update patterns
 
 **Description:**  
@@ -123,7 +123,7 @@ arr = arr + 1
 ---
 
 ### Rule: qe-jax-005
-**Category:** style  
+**Type:** style  
 **Title:** Use jax.lax for control flow
 
 **Description:**  
@@ -149,7 +149,7 @@ _, result = jax.lax.scan(step, None, jnp.arange(n))
 ---
 
 ### Rule: qe-jax-006
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Explicit PRNG key management
 
 **Description:**  
@@ -175,7 +175,7 @@ shocks = jr.normal(key, (100,))
 ---
 
 ### Rule: qe-jax-007
-**Category:** style  
+**Type:** style  
 **Title:** Use consistent function naming for updates
 
 **Description:**  

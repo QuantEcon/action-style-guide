@@ -1,6 +1,24 @@
-# QuantEcon Lecture Style Checker
+# QuantEcon Lecture Style Checker (Development Tool)
+
+> ⚠️ **NOTE:** This is a standalone development tool for **local testing** of the style checker.
+> It is **NOT part of the GitHub Action** itself - use the main GitHub Action for production.
 
 Focused style checking for QuantEcon lecture materials using Claude Sonnet 4.5.
+
+## Purpose
+
+This tool is for **local development and testing**:
+- Testing lectures locally before submitting to CI
+- Quick iteration without GitHub infrastructure  
+- Validating prompt/rule changes work correctly
+
+## Shared Resources
+
+This tool **uses the same prompts and rules** as the main GitHub Action:
+- Prompts loaded from: `../style_checker/prompts/`
+- Rules loaded from: `../style_checker/rules/`
+
+This ensures local testing uses identical rules to production.
 
 ## Overview
 

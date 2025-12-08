@@ -279,6 +279,9 @@ python style_checker/main.py --mode single --repository owner/repo --comment-bod
 # Run tests
 pytest tests/
 
+# Run tests with nox (when available)
+nox -s tests
+
 # Check version
 python -c "from style_checker import __version__; print(__version__)"
 
@@ -286,6 +289,21 @@ python -c "from style_checker import __version__; print(__version__)"
 gh release create v0.3.7 --title "..." --notes "..."
 git tag -f v0.3 && git push origin v0.3 --force
 ```
+
+## GitHub CLI Note
+
+**Important:** When using `gh` CLI commands that produce large output (e.g., `gh pr view`, `gh api`), redirect output to a `/tmp` file to see complete results:
+
+```bash
+# Write gh output to temp file for inspection
+gh pr view 123 --json body > /tmp/pr-body.json
+cat /tmp/pr-body.json
+
+# For API calls with large responses
+gh api repos/QuantEcon/lecture-python.myst/pulls/123 > /tmp/pr-details.json
+```
+
+This is particularly useful when debugging GitHub integration issues or inspecting PR/issue content.
 
 ## Remember
 

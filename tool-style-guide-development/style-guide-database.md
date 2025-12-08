@@ -12,7 +12,7 @@ Rules are organized by category and can be referenced individually or by group f
 ## Writing Rules
 
 ### Rule: qe-writing-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use one sentence per paragraph
 
 **Description:**  
@@ -41,7 +41,7 @@ Can be checked by counting sentences (periods followed by space/newline) within 
 ---
 
 ### Rule: qe-writing-002
-**Category:** style  
+**Type:** style  
 **Title:** Keep writing clear, concise, and valuable
 
 **Description:**  
@@ -59,7 +59,7 @@ This is a judgment call that requires understanding context and content value. F
 ---
 
 ### Rule: qe-writing-003
-**Category:** style  
+**Type:** style  
 **Title:** Maintain logical flow
 
 **Description:**  
@@ -77,7 +77,7 @@ Each new paragraph or section should build naturally from the previous one.
 ---
 
 ### Rule: qe-writing-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Avoid unnecessary capitalization in narrative text
 
 **Description:**  
@@ -107,7 +107,7 @@ Can detect capitalized words mid-sentence that aren't proper nouns or at the sta
 ---
 
 ### Rule: qe-writing-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Use bold for definitions, italic for emphasis
 
 **Description:**  
@@ -134,7 +134,7 @@ All consumers have **identical** endowments.
 ---
 
 ### Rule: qe-writing-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Capitalize lecture titles properly
 
 **Description:**  
@@ -159,7 +159,7 @@ Use capitalization of all words only for lecture titles. For all other headings 
 ---
 
 ### Rule: qe-writing-007
-**Category:** style  
+**Type:** style  
 **Title:** Use visual elements to enhance understanding
 
 **Description:**  
@@ -184,7 +184,7 @@ https://continuous-time-mcs.quantecon.org/kolmogorov_fwd.html
 ## Mathematics Rules
 
 ### Rule: qe-math-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Prefer UTF-8 unicode for simple parameter mentions, be consistent
 
 **Description:**  
@@ -220,7 +220,7 @@ The utility function is $u(c) = \frac{c^{1-α}}{1-α}$ where $α > 0$.
 ---
 
 ### Rule: qe-math-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use \top for transpose notation
 
 **Description:**  
@@ -244,7 +244,7 @@ $$A^{\prime} B$$
 ---
 
 ### Rule: qe-math-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Use square brackets for matrix notation
 
 **Description:**  
@@ -278,7 +278,7 @@ $$
 ---
 
 ### Rule: qe-math-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Do not use bold face for matrices or vectors
 
 **Description:**  
@@ -303,7 +303,7 @@ $$\boldsymbol{y} = \mathbf{X} \boldsymbol{\beta}$$
 ---
 
 ### Rule: qe-math-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Use curly brackets for sequences
 
 **Description:**  
@@ -321,7 +321,7 @@ $$[ x_t ]_{t=0}^{\infty}$$
 ---
 
 ### Rule: qe-math-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Use aligned environment correctly for PDF compatibility
 **Builder:** pdf
 
@@ -354,7 +354,7 @@ $$
 ---
 
 ### Rule: qe-math-007
-**Category:** rule  
+**Type:** rule  
 **Title:** Use automatic equation numbering, not manual tags
 
 **Description:**  
@@ -382,7 +382,7 @@ $$
 ---
 
 ### Rule: qe-math-008
-**Category:** rule  
+**Type:** rule  
 **Title:** Explain special notation (vectors/matrices)
 
 **Description:**  
@@ -395,7 +395,7 @@ Use `\mathbb{1}` ($\mathbb{1}$) to represent vectors or matrices of ones and exp
 ---
 
 ### Rule: qe-math-009
-**Category:** style  
+**Type:** style  
 **Title:** Choose simplicity in mathematical notation
 
 **Description:**  
@@ -417,7 +417,7 @@ This requires judgment about mathematical context and what "simpler" means in ea
 ## Code Style Rules
 
 ### Rule: qe-code-001
-**Category:** style  
+**Type:** style  
 **Title:** Follow PEP8 unless closer to mathematical notation
 
 **Description:**  
@@ -430,7 +430,7 @@ Follow PEP8 conventions unless there is a good reason to do otherwise (e.g., to 
 ---
 
 ### Rule: qe-code-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use Unicode symbols for Greek letters in code
 
 **Description:**  
@@ -454,7 +454,7 @@ def utility_function(c, alpha=0.5, beta=0.95):
 ---
 
 ### Rule: qe-code-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Package installation at lecture top
 
 **Description:**  
@@ -486,7 +486,7 @@ tags: [hide-output]
 ---
 
 ### Rule: qe-code-004
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use quantecon Timer context manager
 
 **Description:**  
@@ -525,7 +525,7 @@ toc()
 ---
 
 ### Rule: qe-code-005
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use quantecon timeit for benchmarking
 
 **Description:**  
@@ -568,7 +568,7 @@ print(f"Mean: {sum(times)/len(times)}")
 ---
 
 ### Rule: qe-code-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Binary packages require installation notes
 
 **Description:**  
@@ -596,7 +596,7 @@ to be installed on your computer. Installation instructions for graphviz can be 
 ## JAX Conversion Rules
 
 ### Rule: qe-jax-001
-**Category:** style  
+**Type:** style  
 **Title:** Use functional programming patterns
 
 **Description:**  
@@ -623,7 +623,7 @@ def good_update(state, shock):
 ---
 
 ### Rule: qe-jax-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use NamedTuple for model parameters
 
 **Description:**  
@@ -661,7 +661,7 @@ class EconomicModel:
 ---
 
 ### Rule: qe-jax-003
-**Category:** style  
+**Type:** style  
 **Title:** Use generate_path for sequence generation
 
 **Description:**  
@@ -686,7 +686,7 @@ def generate_path(f, initial_state, num_steps, **kwargs):
 ---
 
 ### Rule: qe-jax-004
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use functional update patterns
 
 **Description:**  
@@ -710,7 +710,7 @@ arr = arr + 1
 ---
 
 ### Rule: qe-jax-005
-**Category:** style  
+**Type:** style  
 **Title:** Use jax.lax for control flow
 
 **Description:**  
@@ -736,7 +736,7 @@ _, result = jax.lax.scan(step, None, jnp.arange(n))
 ---
 
 ### Rule: qe-jax-006
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Explicit PRNG key management
 
 **Description:**  
@@ -762,7 +762,7 @@ shocks = jr.normal(key, (100,))
 ---
 
 ### Rule: qe-jax-007
-**Category:** style  
+**Type:** style  
 **Title:** Use consistent function naming for updates
 
 **Description:**  
@@ -792,7 +792,7 @@ def update(x, t, m):
 ## Figure Rules
 
 ### Rule: qe-fig-001
-**Category:** style  
+**Type:** style  
 **Title:** Do not set figure size unless necessary
 
 **Description:**  
@@ -805,7 +805,7 @@ Do not set figure size and style unless there is a good reason. QuantEcon lectur
 ---
 
 ### Rule: qe-fig-002
-**Category:** style  
+**Type:** style  
 **Title:** Prefer code-generated figures
 
 **Description:**  
@@ -818,7 +818,7 @@ Use code-generated figures whenever possible rather than static image files.
 ---
 
 ### Rule: qe-fig-003
-**Category:** rule  
+**Type:** rule  
 **Title:** No matplotlib embedded titles
 
 **Description:**  
@@ -897,7 +897,7 @@ ax1.plot(x, y)
 ---
 
 ### Rule: qe-fig-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Caption formatting conventions
 
 **Description:**  
@@ -962,7 +962,7 @@ ax.plot(x, y)
 ---
 
 ### Rule: qe-fig-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Descriptive figure names for cross-referencing
 
 **Description:**  
@@ -1029,7 +1029,7 @@ ax.plot(x, y)
 ---
 
 ### Rule: qe-fig-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Lowercase axis labels
 
 **Description:**  
@@ -1078,7 +1078,7 @@ ax.set_ylabel("GDP Per Capita")
 ---
 
 ### Rule: qe-fig-007
-**Category:** rule  
+**Type:** rule  
 **Title:** Keep figure box and spines
 
 **Description:**  
@@ -1118,7 +1118,7 @@ for spine in ax.spines.values():
 ---
 
 ### Rule: qe-fig-008
-**Category:** rule  
+**Type:** rule  
 **Title:** Use lw=2 for line charts
 
 **Description:**  
@@ -1164,7 +1164,7 @@ ax.set_xlabel("time")
 ---
 
 ### Rule: qe-fig-009
-**Category:** rule  
+**Type:** rule  
 **Title:** Figure sizing
 
 **Description:**  
@@ -1206,7 +1206,7 @@ ax.plot(x, y, lw=2)
 ---
 
 ### Rule: qe-fig-010
-**Category:** rule  
+**Type:** rule  
 **Title:** Plotly figures require latex directive
 
 **Description:**  
@@ -1233,7 +1233,7 @@ This figure is interactive you may [click here to see this figure on the website
 ---
 
 ### Rule: qe-fig-011
-**Category:** rule  
+**Type:** rule  
 **Title:** Use image directive when nested in other directives
 
 **Description:**  
@@ -1278,7 +1278,7 @@ GDP growth over time
 ## Reference and Citation Rules
 
 ### Rule: qe-ref-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use correct citation style
 
 **Description:**  
@@ -1337,7 +1337,7 @@ Bellman (1957) introduced dynamic programming {cite}`Bellman1957`.
 ## Document Linking Rules
 
 ### Rule: qe-link-001
-**Category:** style  
+**Type:** style  
 **Title:** Use markdown style links for lectures in same lecture series
 
 **Description:**  
@@ -1374,7 +1374,7 @@ See [this lecture](https://python.quantecon.org/linear_equations.html) for more.
 ---
 
 ### Rule: qe-link-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use doc links for cross-series references
 
 **Description:**  
@@ -1430,7 +1430,7 @@ See [Kalman Filter](https://python.quantecon.org/kalman.html) for details.
 ## Admonition and Directive Rules
 
 ### Rule: qe-admon-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use gated syntax for executable code in exercises
 
 **Description:**  
@@ -1499,7 +1499,7 @@ The result holds.
 ---
 
 ### Rule: qe-admon-002
-**Category:** style  
+**Type:** style  
 **Title:** Use dropdown class for solutions
 
 **Description:**  
@@ -1525,7 +1525,7 @@ Solution content here.
 ---
 
 ### Rule: qe-admon-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Use tick count management for nested directives
 
 **Description:**  
@@ -1558,7 +1558,7 @@ x = y
 ---
 
 ### Rule: qe-admon-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Use prf prefix for proof directives
 
 **Description:**  
@@ -1615,7 +1615,7 @@ See [](#bellman-thm) for the theorem.
 ---
 
 ### Rule: qe-admon-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Link solutions to exercises
 
 **Description:**  
@@ -1727,12 +1727,12 @@ Use the group comments to extract sections:
 <!-- GROUP:ADMONITIONS-START --> ... <!-- GROUP:ADMONITIONS-END -->
 ```
 
-### Categories
+### Types
 - **rule**: Clearly actionable by LLM - can be checked and fixed programmatically
 - **style**: Advisory guideline - may require human judgment or context
 - **migrate**: Code migration patterns suitable for automated transformation tools (e.g., modernizing legacy patterns like `tic/toc` → `qe.Timer()`)
 
-### Category Breakdown
+### Type Breakdown
 - **rule**: 31 rules (actionable, can be automatically checked/fixed)
 - **style**: 13 rules (advisory, may require judgment)
 - **migrate**: 4 rules (qe-code-004, qe-code-005, qe-jax-004, qe-jax-006 - code transformation patterns)
@@ -1743,7 +1743,7 @@ This database is designed for LLM consumption. You can:
 2. **Targeted review**: Send specific groups (e.g., `GROUP:WRITING`, `GROUP:MATH`) for focused checking
 3. **Specific concerns**: Send individual rules (e.g., `qe-fig-003` for title checking)
 4. **Range checking**: Use rule codes in prompts: "Check lecture against qe-math-001 through qe-math-009"
-5. **Category filtering**: Request only "rule" category for automated fixes, or "migrate" for code modernization
+5. **Type filtering**: Request only "rule" type for automated fixes, or "migrate" for code modernization
 
 ### Rule Naming Convention
 Rules follow the pattern: `qe-{section}-{number}`

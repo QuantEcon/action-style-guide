@@ -37,8 +37,8 @@ Each rule is categorized as either:
    - **Suggested Fix**: Specific corrected version with proper formatting
 
 5. **Prioritize actionable feedback**:
-   - Focus on `rule` category violations first (these are clear-cut)
-   - Include `style` category suggestions when they significantly impact usability
+   - Focus on `rule` type violations first (these are clear-cut)
+   - Include `style` type suggestions when they significantly impact usability
    - For style suggestions, explain reasoning clearly
 
 6. **Be thorough but practical**:

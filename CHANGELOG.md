@@ -5,7 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2025-12-08
+
+### Changed
+
+- **Renamed rule classification from "Category" to "Type"** - Clearer terminology throughout
+  - Rule files: `**Category:** rule|style` → `**Type:** rule|style`
+  - Code: `rule_category` → `rule_type` in reviewer.py, parser_md.py
+  - Prompts: Updated all 8 category prompts to use "`rule` type" and "`style` type"
+  - Documentation: Updated ARCHITECTURE.md and README.md to use "Type" terminology
+  - Tests updated to use new terminology
+  - Prevents confusion with topic categories (writing, math, code, etc.)
+
+- **Documented `migrate` type** - Third rule type for legacy pattern updates
+  - Used in JAX and code categories for patterns like `tic/toc` → `qe.Timer()`
+  - Treated as suggestions (not auto-applied), similar to `style` type
+  - Added to Rule Types table in ARCHITECTURE.md
+  - Added new "Type: migrate" section in README.md
+
+- **tool-style-checker now shares prompts/rules with main action**
+  - Deleted duplicate `tool-style-checker/prompts/` and `tool-style-checker/rules/` directories
+  - Tool now loads from `style_checker/prompts/` and `style_checker/rules/`
+  - Single source of truth - local testing uses same rules as production
+  - Updated README to document shared resource architecture
+
+- **Updated tool-style-guide-development for Type terminology**
+  - `build_rules.py`: Updated regex to parse `**Type:**` instead of `**Category:**`
+  - `style-guide-database.md`: Renamed "Categories" section to "Types"
+  - Generated rule files in `rules/`: Updated all to use `**Type:**`
+  - README: Updated documentation to reflect changes
+
+### Added
+
+- **ARCHITECTURE.md** - Comprehensive developer documentation
+  - System architecture diagram (Mermaid)
+  - Data flow for single and weekly processing modes
+  - Component descriptions with key functions
+  - Configuration reference (inputs, environment variables)
+  - Development guide with testing instructions
+
+- **FUTURE-ENHANCEMENTS.md** - Roadmap and research notes
+  - GitHub inline suggestions approach (checkbox-based style suggestions)
+  - Incremental PR review mode proposal
+  - Batch processing improvements (resume capability, progress reporting)
+  - Multi-model support for cost optimization
+  - Rule confidence scoring concept
+
+- **docs/README.md** - Documentation index with quick links
+
+### Fixed
+
+- **LLM integration tests** - Updated to use current API signatures
+  - Changed from `review_lecture(rules_text=...)` to `review_lecture_single_rule(categories=...)`
+  - All 30 tests now passing (23 unit + 7 integration)
+  - Added new test for `review_lecture_smart()` method
+  - Test coverage improved from 36% to 53%
+
+- **README version badge** - Updated from 0.3.17 to match current version
 
 ## [0.3.24] - 2025-10-11
 

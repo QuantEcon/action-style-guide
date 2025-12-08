@@ -36,9 +36,9 @@ Each rule is categorized as either:
    - **Suggested Fix**: Specific corrected version using proper JAX patterns
 
 5. **Prioritize actionable feedback**:
-   - Focus on `rule` category violations first (these are clear-cut)
-   - Include `migrate` category suggestions for NumPy → JAX conversions
-   - Include `style` category suggestions when they significantly impact JAX performance or correctness
+   - Focus on `rule` type violations first (these are clear-cut)
+   - Include `migrate` type suggestions for NumPy → JAX conversions
+   - Include `style` type suggestions when they significantly impact JAX performance or correctness
    - For style/migrate suggestions, explain JAX-specific benefits clearly
 
 6. **Be thorough but practical**:

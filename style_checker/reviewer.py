@@ -56,22 +56,22 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
     
     # Extract individual rules using regex
     # Pattern matches: ### Rule: qe-writing-001 ... until next ### Rule: or end
-    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Category:\*\* (rule|style)\s*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
+    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Type:\*\* (rule|style)\s*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
     
     # First, extract all rules into a dict keyed by rule_id
     rules_dict = {}
     for match in re.finditer(rule_pattern, content, re.DOTALL):
         rule_id = match.group(1)
-        rule_category = match.group(2).strip()  # 'rule' or 'style'
+        rule_type = match.group(2).strip()  # 'rule' (auto-fix) or 'style' (suggestion)
         title = match.group(3).strip()
         rule_content = match.group(4).strip()
         
         # Reconstruct the full rule markdown
-        full_rule = f"### Rule: {rule_id}\n**Category:** {rule_category}\n**Title:** {title}\n\n{rule_content}"
+        full_rule = f"### Rule: {rule_id}\n**Type:** {rule_type}\n**Title:** {title}\n\n{rule_content}"
         
         rules_dict[rule_id] = {
             'rule_id': rule_id,
-            'rule_category': rule_category,  # NEW: Store rule category
+            'rule_type': rule_type,  # 'rule' = auto-fix, 'style' = suggestion
             'title': title,
             'content': full_rule
         }
@@ -392,8 +392,8 @@ class StyleReviewer:
             
             for i, rule in enumerate(rules, 1):
                 rule_id = rule['rule_id']
-                rule_category = rule.get('rule_category', 'rule')  # NEW: Get rule category, default to 'rule'
-                print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)}) [category: {rule_category}]")
+                rule_type = rule.get('rule_type', 'rule')  # 'rule' = auto-fix, 'style' = suggestion
+                print(f"    ⏳ Checking {rule_id}: {rule['title']} ({i}/{len(rules)}) [type: {rule_type}]")
                 
                 try:
                     # Create focused prompt for this specific rule using CURRENT content
@@ -413,8 +413,8 @@ class StyleReviewer:
                             print(f"      ⚠️  Fix quality warnings: {len(validation_warnings)}")
                             all_warnings.extend(validation_warnings)
                         
-                        # NEW: Separate by category - only auto-apply fixes for 'rule' category
-                        if rule_category == 'rule':
+                        # Separate by type - only auto-apply fixes for 'rule' type
+                        if rule_type == 'rule':
                             # Apply fixes immediately to current content
                             corrected_content, apply_warnings = apply_fixes(current_content, result['violations'])
                             

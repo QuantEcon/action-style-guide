@@ -12,9 +12,9 @@ This is the **development workspace** for maintaining style guide rules. The act
 
 Edit `style-guide-database.md` to add, modify, or remove rules. This is the central source for all rules.
 
-### 2. Generate Category-Specific Rule Files
+### 2. Generate Group-Specific Rule Files
 
-Run the build script to generate individual rule files by category:
+Run the build script to generate individual rule files by group:
 
 ```bash
 python build_rules.py
@@ -99,7 +99,7 @@ Rules in `style-guide-database.md` are organized by group sections:
 ## Writing Rules
 
 ### Rule: qe-writing-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Use one sentence per paragraph
 
 **Description:**  
@@ -137,7 +137,7 @@ The `build_rules.py` script parses these GROUP markers to extract rules.
 ### Script fails to parse database
 
 - Check that GROUP markers are present: `<!-- GROUP:WRITING-START -->` and `<!-- GROUP:WRITING-END -->`
-- Ensure rule format is correct: `### Rule: qe-category-NNN`
+- Ensure rule format is correct: `### Rule: qe-group-NNN` followed by `**Type:** rule|style|migrate`
 
 ### Generated files look wrong
 
@@ -152,5 +152,6 @@ The `build_rules.py` script parses these GROUP markers to extract rules.
 
 ## Related Directories
 
-- `../style_checker/rules/` - Rules used by GitHub Action (source of truth for action)
-- `../tool-style-checker/` - Standalone CLI tool (different codebase, separate rules)
+- `../style_checker/rules/` - Rules used by GitHub Action (source of truth)
+- `../style_checker/prompts/` - Prompts used by GitHub Action (source of truth)
+- `../tool-style-checker/` - Standalone CLI tool for local testing (uses same prompts/rules as action)

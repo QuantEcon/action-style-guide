@@ -37,8 +37,8 @@ Each rule is categorized as either:
    - **Suggested Fix**: Specific corrected version of the mathematical notation
 
 5. **Prioritize actionable feedback**:
-   - Focus on `rule` category violations first (these are clear-cut)
-   - Include `style` category suggestions when they significantly impact mathematical clarity
+   - Focus on `rule` type violations first (these are clear-cut)
+   - Include `style` type suggestions when they significantly impact mathematical clarity
    - For style suggestions, explain your reasoning clearly
 
 6. **Be thorough but practical**:

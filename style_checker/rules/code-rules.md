@@ -9,7 +9,7 @@ This document contains only the **code-focused rules** for QuantEcon lecture con
 ## Code Style Rules
 
 ### Rule: qe-code-001
-**Category:** style  
+**Type:** style  
 **Title:** Follow PEP8 unless closer to mathematical notation
 
 **Description:**  
@@ -22,7 +22,7 @@ Follow PEP8 conventions unless there is a good reason to do otherwise (e.g., to 
 ---
 
 ### Rule: qe-code-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use Unicode symbols for Greek letters in code
 
 **Description:**  
@@ -46,7 +46,7 @@ def utility_function(c, alpha=0.5, beta=0.95):
 ---
 
 ### Rule: qe-code-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Package installation at lecture top
 
 **Description:**  
@@ -78,7 +78,7 @@ tags: [hide-output]
 ---
 
 ### Rule: qe-code-004
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use quantecon Timer context manager
 
 **Description:**  
@@ -117,7 +117,7 @@ toc()
 ---
 
 ### Rule: qe-code-005
-**Category:** migrate  
+**Type:** migrate  
 **Title:** Use quantecon timeit for benchmarking
 
 **Description:**  
@@ -160,7 +160,7 @@ print(f"Mean: {sum(times)/len(times)}")
 ---
 
 ### Rule: qe-code-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Binary packages require installation notes
 
 **Description:**  

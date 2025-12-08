@@ -9,7 +9,7 @@ This document contains only the **mathematics-focused rules** for QuantEcon lect
 ## Mathematics Rules
 
 ### Rule: qe-math-001
-**Category:** rule  
+**Type:** rule  
 **Title:** Prefer UTF-8 unicode for simple parameter mentions, be consistent
 
 **Description:**  
@@ -45,7 +45,7 @@ The utility function is $u(c) = \frac{c^{1-α}}{1-α}$ where $α > 0$.
 ---
 
 ### Rule: qe-math-002
-**Category:** rule  
+**Type:** rule  
 **Title:** Use \top for transpose notation
 
 **Description:**  
@@ -69,7 +69,7 @@ $$A^{\prime} B$$
 ---
 
 ### Rule: qe-math-003
-**Category:** rule  
+**Type:** rule  
 **Title:** Use square brackets for matrix notation
 
 **Description:**  
@@ -103,7 +103,7 @@ $$
 ---
 
 ### Rule: qe-math-004
-**Category:** rule  
+**Type:** rule  
 **Title:** Do not use bold face for matrices or vectors
 
 **Description:**  
@@ -128,7 +128,7 @@ $$\boldsymbol{y} = \mathbf{X} \boldsymbol{\beta}$$
 ---
 
 ### Rule: qe-math-005
-**Category:** rule  
+**Type:** rule  
 **Title:** Use curly brackets for sequences
 
 **Description:**  
@@ -146,7 +146,7 @@ $$[ x_t ]_{t=0}^{\infty}$$
 ---
 
 ### Rule: qe-math-006
-**Category:** rule  
+**Type:** rule  
 **Title:** Use aligned environment correctly for PDF compatibility
 **Builder:** pdf
 
@@ -179,7 +179,7 @@ $$
 ---
 
 ### Rule: qe-math-007
-**Category:** rule  
+**Type:** rule  
 **Title:** Use automatic equation numbering, not manual tags
 
 **Description:**  
@@ -207,7 +207,7 @@ $$
 ---
 
 ### Rule: qe-math-008
-**Category:** rule  
+**Type:** rule  
 **Title:** Explain special notation (vectors/matrices)
 
 **Description:**  
@@ -220,7 +220,7 @@ Use `\mathbb{1}` ($\mathbb{1}$) to represent vectors or matrices of ones and exp
 ---
 
 ### Rule: qe-math-009
-**Category:** style  
+**Type:** style  
 **Title:** Choose simplicity in mathematical notation
 
 **Description:**  

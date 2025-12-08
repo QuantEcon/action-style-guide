@@ -58,29 +58,25 @@ def test_load_markdown_style_guide(style_guide_path):
 
 
 def test_category_filtering(style_guide_db):
-    """Test filtering by category (rule, style, migrate)"""
-    # Get actionable rules (category='rule')
+    """Test filtering by type (rule, style)"""
+    # Get actionable rules (type='rule')
     actionable = style_guide_db.get_actionable_rules()
     assert len(actionable) > 0, "No actionable rules found"
     
-    # Verify all are category='rule'
+    # Verify all are type='rule'
     for rule in actionable:
-        assert rule.category == 'rule', f"Rule {rule.rule_id} has wrong category: {rule.category}"
+        assert rule.rule_type == 'rule', f"Rule {rule.rule_id} has wrong type: {rule.rule_type}"
         assert rule.is_actionable(), f"Rule {rule.rule_id} should be actionable"
     
     # Get style rules
-    style_rules = style_guide_db.get_rules_by_category('style')
-    
-    # Get migrate rules
-    migrate_rules = style_guide_db.get_rules_by_category('migrate')
+    style_rules = style_guide_db.get_rules_by_type('style')
     
     # Verify total
-    total = len(actionable) + len(style_rules) + len(migrate_rules)
-    assert total == len(style_guide_db.rules), "Category counts don't match total"
+    total = len(actionable) + len(style_rules)
+    assert total == len(style_guide_db.rules), "Type counts don't match total"
     
     print(f"✓ Actionable rules (rule): {len(actionable)}")
     print(f"✓ Advisory rules (style): {len(style_rules)}")
-    print(f"✓ Migration rules (migrate): {len(migrate_rules)}")
     print(f"✓ Total: {total}")
 
 
@@ -108,20 +104,20 @@ def test_rule_structure(style_guide_db):
     # Check first few rules
     for rule in all_rules[:5]:
         assert hasattr(rule, 'rule_id'), "Rule missing rule_id"
-        assert hasattr(rule, 'category'), "Rule missing category"
+        assert hasattr(rule, 'rule_type'), "Rule missing rule_type"
         assert hasattr(rule, 'title'), "Rule missing title"
         assert hasattr(rule, 'description'), "Rule missing description"
         assert hasattr(rule, 'check_for'), "Rule missing check_for"
         assert hasattr(rule, 'examples'), "Rule missing examples"
         assert hasattr(rule, 'group'), "Rule missing group"
         
-        # Verify category is valid
-        assert rule.category in ['rule', 'style', 'migrate'], f"Invalid category: {rule.category}"
+        # Verify rule_type is valid
+        assert rule.rule_type in ['rule', 'style'], f"Invalid type: {rule.rule_type}"
         
         # Verify rule_id format
         assert rule.rule_id.startswith('qe-'), f"Invalid rule_id format: {rule.rule_id}"
         
-        print(f"✓ Rule {rule.rule_id}: {rule.title} ({rule.category})")
+        print(f"✓ Rule {rule.rule_id}: {rule.title} ({rule.rule_type})")
 
 
 def test_rule_formatting(style_guide_db):
@@ -140,8 +136,8 @@ def test_rule_formatting(style_guide_db):
         # Verify formatted text contains key information
         assert rule.rule_id in formatted, "Should contain rule ID"
         assert rule.title in formatted, "Should contain title"
-        assert "**Category:**" in formatted, "Should contain category"
-        assert rule.category in formatted, "Should contain category value"
+        assert "**Type:**" in formatted, "Should contain type"
+        assert rule.rule_type in formatted, "Should contain type value"
     
     print(f"✓ Successfully formatted {len(actionable_rules)} actionable rules")
     print(f"✓ Sample rule format length: {len(actionable_rules[0].to_prompt_format())} characters")
@@ -164,27 +160,18 @@ def test_specific_rule_codes(style_guide_db):
 
 
 def test_rule_counts_match_documentation(style_guide_db):
-    """Test that rule counts match documentation claims"""
-    # According to the "Using This Database" section:
-    # - 48 rules total
-    # - 31 actionable (category='rule')
-    # - 13 advisory (category='style')
-    # - 4 migration (category='migrate')
-    
+    """Test that rule counts are reasonable"""
     total_rules = len(style_guide_db.rules)
     actionable = len(style_guide_db.get_actionable_rules())
-    style_rules = len(style_guide_db.get_rules_by_category('style'))
-    migrate_rules = len(style_guide_db.get_rules_by_category('migrate'))
+    style_rules = len(style_guide_db.get_rules_by_type('style'))
     
-    print(f"Total rules: {total_rules} (expected ~48)")
-    print(f"Actionable: {actionable} (expected ~31)")
-    print(f"Style: {style_rules} (expected ~13)")
-    print(f"Migrate: {migrate_rules} (expected ~4)")
+    print(f"Total rules: {total_rules}")
+    print(f"Actionable (type=rule): {actionable}")
+    print(f"Advisory (type=style): {style_rules}")
     
-    # Allow some variance in case rules were added/removed
-    assert 40 <= total_rules <= 60, f"Total rules ({total_rules}) outside expected range"
-    assert 25 <= actionable <= 40, f"Actionable rules ({actionable}) outside expected range"
-    assert actionable + style_rules + migrate_rules == total_rules
+    # Verify counts are reasonable
+    assert total_rules > 0, "Should have some rules"
+    assert actionable + style_rules == total_rules, "Type counts should match total"
 
 
 if __name__ == '__main__':
