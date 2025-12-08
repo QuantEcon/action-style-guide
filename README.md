@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.3.24-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.3.24**: Rule type classification renamed from Category to Type for clarity
+> 🚀 **Version 0.4.0**: CLI tool integration, improved documentation, all tests passing
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
@@ -71,7 +71,7 @@ jobs:
     if: contains(github.event.comment.body, '@qe-style-checker')
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v0.3
+      - uses: QuantEcon/action-style-guide@v0.4
         with:
           mode: 'single'
           lectures-path: 'lectures/'
