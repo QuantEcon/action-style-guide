@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-12-08
+
+### Fixed
+
+- **Critical NameError Fix** - Fixed production bug preventing v0.5.0 from working
+  - Added `pr_labels` parameter to `review_single_lecture()` function
+  - Function now receives `pr_labels` as explicit parameter instead of accessing `args.pr_labels`
+  - Fixed variable naming conflict by renaming local `pr_labels` to `labels`
+  - This fixes the "NameError: name 'args' is not defined" error at line 109
+
 ## [0.5.0] - 2025-12-08
 
 ### Added
