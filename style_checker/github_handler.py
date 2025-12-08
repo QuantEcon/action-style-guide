@@ -36,9 +36,9 @@ class GitHubHandler:
         """
         Extract lecture name and categories from issue comment.
         
-        Supports both old and new syntax:
-        - Old: @quantecon-style-guide lecture_name
-        - New: @qe-style-checker lecture_name writing,math
+        Supported syntax:
+        - @qe-style-checker lectures/file.md math,code
+        - @qe-style-checker lectures/file.md
         
         Args:
             comment_body: Full comment text
@@ -47,7 +47,7 @@ class GitHubHandler:
             Tuple of (lecture_name, categories) or None if not found.
             Categories is a list like ["writing", "math"] or ["all"] if not specified.
         """
-        # New syntax: @qe-style-checker lecture_name [categories]
+        # @qe-style-checker syntax
         new_patterns = [
             r'@qe-style-checker\s+(\S+)\s+([\w,]+)',  # With categories
             r'@qe-style-checker\s+`(\S+)`\s+([\w,]+)',  # With backticks and categories
@@ -82,22 +82,7 @@ class GitHubHandler:
                 
                 return (lecture, categories)
         
-        # Fall back to old syntax for backward compatibility
-        old_patterns = [
-            r'@quantecon-style-guide\s+(\S+)',  # Basic pattern
-            r'@quantecon-style-guide\s+`(\S+)`',  # With backticks
-            r'@quantecon-style-guide\s+lectures/(\S+)',  # With lectures/ prefix
-        ]
-        
-        for pattern in old_patterns:
-            match = re.search(pattern, comment_body)
-            if match:
-                lecture = match.group(1)
-                # Clean up lecture name
-                lecture = lecture.replace('.md', '')  # Remove .md extension
-                lecture = lecture.replace('lectures/', '')  # Remove lectures/ prefix
-                lecture = lecture.strip('`')  # Remove backticks
-                return (lecture, ['all'])  # Old syntax defaults to all
+
         
         return None
     
