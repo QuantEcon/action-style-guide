@@ -90,7 +90,7 @@ def main():
     doc_files = [
         ("CONTRIBUTING.md", "Contributing guide"),
         ("CHANGELOG.md", "Changelog"),
-        ("docs/quickstart.md", "Quick start guide"),
+        ("docs/README.md", "Documentation index"),
         ("docs/github-app-setup.md", "GitHub App setup"),
     ]
     
