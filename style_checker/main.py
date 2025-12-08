@@ -26,7 +26,8 @@ def review_single_lecture(
     lectures_path: str,
     create_pr: bool,
     pr_branch_prefix: str,
-    categories: Optional[List[str]] = None
+    categories: Optional[List[str]] = None,
+    pr_labels: str = ''
 ) -> dict:
     """
     Review a single lecture and optionally create PR.
@@ -40,6 +41,7 @@ def review_single_lecture(
         pr_branch_prefix: Prefix for PR branch name
         categories: Optional list of categories to check (e.g., ["writing", "math"])
                    If None or ["all"], uses sequential category processing
+        pr_labels: Comma-separated custom PR labels
     
     Returns:
         Dictionary with review results and PR info
@@ -105,16 +107,16 @@ def review_single_lecture(
         pr_body = gh_handler.format_pr_body(review_result, lecture_name)
         
         # Parse PR labels
-        pr_labels = ['automated', 'style-guide', 'review']
-        if args.pr_labels:
-            custom_labels = [l.strip() for l in args.pr_labels.split(',') if l.strip()]
-            pr_labels.extend(custom_labels)
+        labels = ['automated', 'style-guide', 'review']
+        if pr_labels:
+            custom_labels = [l.strip() for l in pr_labels.split(',') if l.strip()]
+            labels.extend(custom_labels)
         
         pr_number, pr_url = gh_handler.create_pull_request(
             title=pr_title,
             body=pr_body,
             head_branch=branch_name,
-            labels=pr_labels
+            labels=labels
         )
         print(f"✓ Created PR #{pr_number}: {pr_url}")
         
@@ -358,7 +360,8 @@ def main():
                 lectures_path=args.lectures_path,
                 create_pr=create_pr,
                 pr_branch_prefix=args.pr_branch_prefix,
-                categories=categories
+                categories=categories,
+                pr_labels=args.pr_labels
             )
             
             # Set outputs for GitHub Actions (using environment file)
