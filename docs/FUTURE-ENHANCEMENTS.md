@@ -102,7 +102,76 @@ def integration(session):
 
 ## Medium Priority
 
-### 3. Incremental Review Mode (PR Integration)
+### 3. Token Usage and Cost Tracking
+
+**Status:** Planned
+
+**Description:** Add token usage tracking and cost estimation to help monitor and optimize API usage.
+
+**Current Limitation:**
+- No visibility into token consumption per review
+- Unable to estimate costs before running
+- Difficult to optimize prompt efficiency
+- No data for budget planning
+
+**Proposed Features:**
+
+1. **Token Tracking per Review:**
+   - Track input/output tokens for each LLM call
+   - Aggregate by rule, category, and lecture
+   - Report in PR comment and logs
+   
+2. **Cost Estimation:**
+   - Calculate estimated cost based on Claude pricing
+   - Show breakdown: input tokens vs output tokens
+   - Display per-lecture and total costs
+   
+3. **Usage Report Format:**
+   ```markdown
+   ### Token Usage Summary
+   
+   **Total Cost:** ~$0.15
+   
+   | Category | Rules Checked | Input Tokens | Output Tokens | Cost |
+   |----------|---------------|--------------|---------------|------|
+   | math     | 9             | 8,234        | 1,456         | $0.04 |
+   | code     | 4             | 6,891        | 892           | $0.03 |
+   | writing  | 12            | 12,456       | 2,134         | $0.08 |
+   
+   **Details:**
+   - Claude Sonnet 4.5 pricing: $3/MTok (input), $15/MTok (output)
+   - Average tokens per rule: 1,850 input, 450 output
+   ```
+
+4. **Optimization Insights:**
+   - Identify expensive rules for prompt optimization
+   - Track token usage trends over time
+   - Compare before/after prompt changes
+   
+5. **Budget Controls (Optional):**
+   - Set token/cost limits per run
+   - Warning when approaching limits
+   - Abort if limit exceeded
+
+**Implementation:**
+- Parse `usage` field from Anthropic API responses
+- Aggregate in `reviewer.py` during review
+- Add to PR comment via `github_handler.py`
+- Store in action outputs for workflow access
+- Optional: Log to file for historical tracking
+
+**Benefits:**
+- Visibility into API costs
+- Data-driven prompt optimization
+- Budget planning and control
+- Justify infrastructure costs
+
+**Estimated Effort:** Small (1-2 days)
+- API already returns usage data
+- Just needs aggregation and reporting
+- No LLM changes required
+
+### 4. Incremental Review Mode (PR Integration)
 
 **Description:** Integrate style checking into the normal PR workflow, reviewing only files changed in a PR.
 
@@ -147,7 +216,7 @@ Some rules require full-document context and don't work well on diffs alone:
 - No manual trigger needed
 - Faster feedback loop
 
-### 4. Batch Processing Improvements
+### 5. Batch Processing Improvements
 
 **Description:** Improve bulk review mode for large lecture series.
 
@@ -197,7 +266,7 @@ Some rules require full-document context and don't work well on diffs alone:
 
 ## Lower Priority
 
-### 5. Rule Confidence Scoring
+### 6. Rule Confidence Scoring
 
 **Description:** Track how reliably each rule performs to guide refinement efforts.
 
@@ -245,7 +314,7 @@ Some rules require full-document context and don't work well on diffs alone:
 
 **Recommendation:** Start with manual tracking during active development. Consider reaction-based feedback once rules stabilize. Full automation is lower priority.
 
-### 6. Multi-Model Support
+### 7. Multi-Model Support
 
 **Description:** Allow selection of different LLM models as part of cost optimization and quality tuning.
 
