@@ -8,6 +8,7 @@ This directory contains documentation for the QuantEcon Style Guide Checker.
 
 | Document | Description |
 |----------|-------------|
+| [Style Guide Rules](RULES.md) | Complete reference of all 48 rules with types and descriptions |
 | [GitHub App Setup](github-app-setup.md) | Configure GitHub App for production use |
 | [CI/CD Setup](ci-cd-setup.md) | Set up automated testing with pytest and GitHub Actions |
 
