@@ -104,7 +104,7 @@ jobs:
     
     - name: Verify setup script
       run: |
-        python verify_setup.py
+        python tests/verify_setup.py
       env:
         # These are dummy values for CI - won't actually call APIs
         ANTHROPIC_API_KEY: "sk-test-dummy-key-for-ci"
