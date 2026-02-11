@@ -2,7 +2,6 @@
 Tests for fix_applier.py — apply_fixes() and validate_fix_quality()
 """
 
-import pytest
 from style_checker.fix_applier import apply_fixes, validate_fix_quality
 
 

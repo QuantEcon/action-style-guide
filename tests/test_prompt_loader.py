@@ -3,7 +3,6 @@ Tests for prompt_loader.py — PromptLoader class
 """
 
 import pytest
-from pathlib import Path
 from style_checker.prompt_loader import PromptLoader, load_prompt
 
 

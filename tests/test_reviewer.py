@@ -2,7 +2,6 @@
 Tests for reviewer.py — extract_individual_rules() and RULE_EVALUATION_ORDER
 """
 
-import pytest
 from style_checker.reviewer import (
     extract_individual_rules,
     RULE_EVALUATION_ORDER,

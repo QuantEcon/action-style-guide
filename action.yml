@@ -94,5 +94,4 @@ runs:
           --create-pr "${{ inputs.create-pr }}" \
           --pr-branch-prefix "${{ inputs.pr-branch-prefix }}" \
           --comment-body "${{ inputs.comment-body }}" \
-          --repository "${{ github.repository }}" \
-          --github-ref "${{ github.ref }}"
+          --repository "${{ github.repository }}"

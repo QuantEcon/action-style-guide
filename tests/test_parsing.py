@@ -7,7 +7,7 @@ not a reimplemented copy.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from style_checker.github_handler import GitHubHandler
 
 
