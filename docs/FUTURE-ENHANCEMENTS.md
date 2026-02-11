@@ -4,7 +4,120 @@
 
 ## High Priority
 
-### 1. GitHub Inline Suggestions
+### 1. Large-Context Model Batch Evaluation
+
+**Status:** Research / Testing needed
+
+**Description:** The current architecture makes **49 separate LLM calls** per full review (one per rule), because Claude Sonnet 4.5 (~200K context) was found to silently skip rules when given multiple rules at once. With next-generation models like Claude Opus 4.6 (1M+ context), we should test whether batch evaluation becomes reliable — potentially reducing 49 calls to 1-8 calls.
+
+**Current Architecture (Single-Rule):**
+- One LLM call per rule, 49 calls total for a full review
+- Each call sends: category prompt + one rule + full lecture document (~5-12K tokens)
+- Fixes applied between rules — Rule N+1 sees the document with Rule N's fixes
+- Total input: ~400K tokens across all calls (document sent 49 times)
+- Proven reliable: every rule gets checked, no silent skips
+
+**Why This Matters:**
+- **Latency**: 49 sequential API calls take minutes; 1-8 calls could take seconds
+- **Cost**: The full document is repeated in every call; batch sends it once
+- **New models**: 1M+ context windows change the feasibility calculus
+- **But**: Context window size ≠ attention quality. "Lost in the middle" is a real phenomenon — rules in the middle of a long list may get less attention
+
+**Testing Roadmap — Three Progressive Strategies:**
+
+#### Strategy A: Category-Level Batching (8 calls) — Test First
+
+Send all rules for one category in a single call. 8 calls instead of 49.
+
+```
+Call 1: writing prompt + 8 writing rules + document
+Call 2: math prompt + 9 math rules + document (with writing fixes applied)
+...
+Call 8: admonitions prompt + 5 admonition rules + document (with all prior fixes)
+```
+
+**Advantages:**
+- Rules within a category are thematically related — model attends to them as a group
+- Still allows sequential fix application *between* categories
+- Modest complexity increase over current approach
+- 6x reduction in API calls
+
+**Risks:**
+- Categories with many rules (figures: 11, math: 9) may still see skips
+- Output parsing becomes more complex (multiple rules' violations in one response)
+
+**Test plan:**
+- Run category-level batching on 5-10 real lectures
+- Compare violations found vs single-rule baseline
+- Measure: rule skip rate, fix quality, response parsing reliability
+- Accept if skip rate < 5% across all categories
+
+#### Strategy B: Two-Pass Detect-Then-Fix (2+ calls) — Test Second
+
+First pass sends all 49 rules in one call for **detection only** (no fixes requested). Second pass does targeted single-rule calls only for rules that found violations.
+
+```
+Pass 1: All rules + document → "List which rules have violations" (1 call)
+Pass 2: For each violated rule → single-rule prompt for precise fixes (N calls)
+```
+
+**Advantages:**
+- Clean lectures (no violations) complete in 1 call instead of 49
+- Focuses expensive fix-generation calls on actual violations
+- Maintains fix quality from single-rule approach where it matters
+
+**Risks:**
+- False negatives in Pass 1 mean violations are missed entirely
+- Still requires single-rule calls for fix generation
+- Net benefit depends on violation rate — highly compliant lectures benefit most
+
+**Test plan:**
+- Run Pass 1 on lectures with known violations (from single-rule baseline)
+- Measure detection recall: what % of known violations does Pass 1 catch?
+- Accept if recall > 90% (remaining 10% caught by periodic full single-rule runs)
+
+#### Strategy C: Full Single-Call Batch (1 call) — Test Last
+
+All 49 rules + document in one call. Maximum speed, maximum risk.
+
+```
+Single call: master prompt + all 49 rules + document → all violations + fixes
+```
+
+**Advantages:**
+- Fastest possible: one call per lecture
+- Simplest architecture (no sequencing logic)
+- Model sees full rule set — may catch rule interactions
+
+**Risks:**
+- Silent rule skips (the original problem with Sonnet 4.5)
+- Fix conflicts: two rules editing the same text with no sequencing
+- Very long structured output — parsing fragility
+- Hardest to debug when things go wrong
+
+**Test plan:**
+- Run on 10+ lectures, compare violations found vs single-rule baseline
+- Measure: skip rate per rule, fix conflict rate, output parsing success
+- Require < 2% skip rate and < 5% fix conflict rate to adopt
+- Consider a "verification call" that asks the model to confirm it checked all 49 rules
+
+**Key Design Decisions to Make:**
+
+1. **Fix sequencing**: Batch modes lose the "each rule sees prior fixes" guarantee. Is this actually important? Test by comparing fix quality with/without sequential application.
+
+2. **Output format**: Single-rule responses are simple markdown. Batch responses need clear per-rule sections. May need structured output (JSON mode) for reliability.
+
+3. **Fallback strategy**: Should we always fall back to single-rule for rules that batch mode tends to skip? This could be a per-rule configuration.
+
+4. **Model selection**: This enhancement pairs with Multi-Model Support (#7). Different models may have different batch reliability thresholds.
+
+**Estimated Effort:** Medium (1-2 weeks including testing)
+- Prompt engineering for batch mode
+- Response parsing updates
+- Comparison testing infrastructure
+- Decision criteria and cutover plan
+
+### 2. GitHub Inline Suggestions
 
 **Status:** Research needed
 
@@ -62,7 +175,7 @@
 1. **Near-term:** Improve formatting of style suggestions with clear copy-friendly blocks (useful regardless of other approaches)
 2. **Future:** Implement checkbox-based style suggestions with `/apply-style` trigger for user-controlled application
 
-### 2. Complete Test Suite with Nox
+### 3. Complete Test Suite with Nox
 
 **Status:** Planned
 
@@ -102,7 +215,7 @@ def integration(session):
 
 ## Medium Priority
 
-### 3. Token Usage and Cost Tracking
+### 4. Token Usage and Cost Tracking
 
 **Status:** Planned
 
@@ -171,7 +284,7 @@ def integration(session):
 - Just needs aggregation and reporting
 - No LLM changes required
 
-### 4. Incremental Review Mode (PR Integration)
+### 5. Incremental Review Mode (PR Integration)
 
 **Description:** Integrate style checking into the normal PR workflow, reviewing only files changed in a PR.
 
@@ -216,7 +329,7 @@ Some rules require full-document context and don't work well on diffs alone:
 - No manual trigger needed
 - Faster feedback loop
 
-### 5. Batch Processing Improvements
+### 6. Batch Processing Improvements
 
 **Description:** Improve bulk review mode for large lecture series.
 
@@ -266,7 +379,7 @@ Some rules require full-document context and don't work well on diffs alone:
 
 ## Lower Priority
 
-### 6. Rule Confidence Scoring
+### 7. Rule Confidence Scoring
 
 **Description:** Track how reliably each rule performs to guide refinement efforts.
 
@@ -314,7 +427,7 @@ Some rules require full-document context and don't work well on diffs alone:
 
 **Recommendation:** Start with manual tracking during active development. Consider reaction-based feedback once rules stabilize. Full automation is lower priority.
 
-### 7. Multi-Model Support
+### 8. Multi-Model Support
 
 **Description:** Allow selection of different LLM models as part of cost optimization and quality tuning.
 
@@ -358,7 +471,7 @@ Some rules require full-document context and don't work well on diffs alone:
 - Estimate cost before bulk runs
 - Set budget alerts or limits
 
-**Recommendation:** Start with per-category model selection (simplest). Measure actual cost/quality tradeoffs before adding complexity. This pairs well with Rule Confidence Scoring (#5) to identify which rules can safely use cheaper models.
+**Recommendation:** Start with per-category model selection (simplest). Measure actual cost/quality tradeoffs before adding complexity. This pairs well with Rule Confidence Scoring (#7) to identify which rules can safely use cheaper models.
 
 ## Completed Enhancements
 
