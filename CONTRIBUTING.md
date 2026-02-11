@@ -94,11 +94,13 @@ Rules are now organized in category-specific files in `style_checker/rules/`:
 
 ### Adding New LLM Providers
 
-1. Create new provider class in `style_checker/reviewer.py`
-2. Inherit from `LLMProvider` abstract base class
-3. Implement `check_style()` method
-4. Add to `StyleReviewer.__init__()` provider selection
-5. Update documentation and requirements.txt
+The action currently uses Claude Sonnet 4.5 via the Anthropic API. The provider logic is in `style_checker/reviewer.py`.
+
+To switch or add a provider:
+1. Update the API client setup in `AnthropicProvider.__init__()`
+2. Adjust model name and parameters as needed
+3. Update `requirements.txt` with new dependencies
+4. Test with real lecture files
 
 ### Improving Prompts
 
@@ -192,12 +194,11 @@ When adding or modifying style guide rules:
 
 1. **Clear and specific**: Rules should be unambiguous
 2. **Actionable**: Include examples of correct/incorrect usage
-3. **Categorized properly**: Use existing categories when possible
-4. **Prioritized correctly**: 
-   - `critical`: Breaks builds
-   - `mandatory`: Must follow for consistency
-   - `best_practice`: Strongly recommended
-   - `preference`: Style choice
+3. **Categorized properly**: Use one of the 8 categories (writing, math, code, jax, figures, references, links, admonitions)
+4. **Typed correctly**: 
+   - `rule`: Actionable, automatically applied
+   - `style`: Advisory, requires human judgment
+   - `migrate`: Legacy pattern modernization
 
 ## Questions?
 

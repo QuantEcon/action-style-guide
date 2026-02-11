@@ -1,12 +1,10 @@
 # Core dependencies
-PyYAML>=6.0
 PyGithub>=2.1.1
 
 # LLM provider
 anthropic>=0.18.0
 
 # Utilities
-python-dateutil>=2.8.2
 requests>=2.31.0
 
 # Testing

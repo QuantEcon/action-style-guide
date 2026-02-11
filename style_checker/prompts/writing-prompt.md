@@ -1,4 +1,4 @@
-<!-- Prompt Version: 0.3.23 | Last Updated: 2025-10-11 | Single rule per LLM call -->
+<!-- Prompt Version: 0.5.1 | Last Updated: 2026-02-12 | Single rule per LLM call -->
 
 # QuantEcon Writing Style Checker Prompt
 

@@ -1,119 +1,78 @@
 #!/usr/bin/env python3
 """
-Test comment parsing for new @qe-style-checker syntax.
+Test comment parsing for @qe-style-checker syntax.
+
+Tests the actual GitHubHandler.extract_lecture_from_comment() method,
+not a reimplemented copy.
 """
 
-from pathlib import Path
-import sys
-
-# Add parent to path
-sys.path.insert(0, str(Path(__file__).parent))
-
+import pytest
+from unittest.mock import patch, MagicMock
 from style_checker.github_handler import GitHubHandler
 
-def test_comment_parsing():
-    """Test comment parsing with various formats."""
-    
-    print("Testing Comment Parsing...")
-    print("=" * 60)
-    
-    # Mock handler (we don't need actual GitHub connection for parsing)
-    # We'll test the extract_lecture_from_comment method directly
-    
-    test_cases = [
-        # New syntax
-        ("@qe-style-checker aiyagari", ("aiyagari", ["all"])),
-        ("@qe-style-checker aiyagari writing,math", ("aiyagari", ["writing", "math"])),
-        ("@qe-style-checker lectures/aiyagari.md code,jax", ("aiyagari", ["code", "jax"])),
-        ("@qe-style-checker `aiyagari` all", ("aiyagari", ["all"])),
-        
-        # Legacy syntax
-        ("@quantecon-style-guide aiyagari", ("aiyagari", ["all"])),
-        ("@quantecon-style-guide lectures/aiyagari.md", ("aiyagari", ["all"])),
-        ("@quantecon-style-guide `aiyagari`", ("aiyagari", ["all"])),
-        
-        # Invalid
-        ("Just a regular comment", None),
-        ("@something-else aiyagari", None),
-    ]
-    
-    # Create a minimal handler class for testing
-    class TestHandler:
-        def extract_lecture_from_comment(self, comment_body):
-            # Import the method from github_handler
-            import re
-            from typing import Optional, List, Tuple
-            
-            # This is a copy of the updated method
-            new_patterns = [
-                r'@qe-style-checker\s+(\S+)\s+([\w,]+)',
-                r'@qe-style-checker\s+`(\S+)`\s+([\w,]+)',
-                r'@qe-style-checker\s+lectures/(\S+)\s+([\w,]+)',
-                r'@qe-style-checker\s+(\S+)',
-                r'@qe-style-checker\s+`(\S+)`',
-                r'@qe-style-checker\s+lectures/(\S+)',
-            ]
-            
-            for pattern in new_patterns:
-                match = re.search(pattern, comment_body)
-                if match:
-                    lecture = match.group(1)
-                    lecture = lecture.replace('.md', '')
-                    lecture = lecture.replace('lectures/', '')
-                    lecture = lecture.strip('`')  # Remove backticks
-                    
-                    if len(match.groups()) > 1 and match.group(2):
-                        categories = [cat.strip() for cat in match.group(2).split(',')]
-                    else:
-                        categories = ['all']
-                    
-                    return (lecture, categories)
-            
-            # Fall back to old syntax
-            old_patterns = [
-                r'@quantecon-style-guide\s+(\S+)',
-                r'@quantecon-style-guide\s+`(\S+)`',
-                r'@quantecon-style-guide\s+lectures/(\S+)',
-            ]
-            
-            for pattern in old_patterns:
-                match = re.search(pattern, comment_body)
-                if match:
-                    lecture = match.group(1)
-                    lecture = lecture.replace('.md', '')
-                    lecture = lecture.replace('lectures/', '')
-                    lecture = lecture.strip('`')  # Remove backticks
-                    return (lecture, ['all'])
-            
-            return None
-    
-    handler = TestHandler()
-    
-    passed = 0
-    failed = 0
-    
-    for comment, expected in test_cases:
-        result = handler.extract_lecture_from_comment(comment)
-        
-        if result == expected:
-            print(f"✓ '{comment[:50]}...' -> {result}")
-            passed += 1
-        else:
-            print(f"✗ '{comment[:50]}...'")
-            print(f"  Expected: {expected}")
-            print(f"  Got:      {result}")
-            failed += 1
-    
-    print("\n" + "=" * 60)
-    if failed == 0:
-        print(f"✅ All {passed} tests passed!")
-        print("=" * 60)
-        return True
-    else:
-        print(f"❌ {failed} test(s) failed, {passed} passed")
-        print("=" * 60)
-        return False
 
-if __name__ == "__main__":
-    success = test_comment_parsing()
-    sys.exit(0 if success else 1)
+@pytest.fixture
+def handler():
+    """Create a GitHubHandler without connecting to GitHub."""
+    with patch.object(GitHubHandler, '__init__', lambda self, *a, **kw: None):
+        h = GitHubHandler.__new__(GitHubHandler)
+        # Set the class attribute that extract_lecture_from_comment uses
+        h.VALID_CATEGORIES = GitHubHandler.VALID_CATEGORIES
+        return h
+
+
+class TestCommentParsing:
+    """Test GitHubHandler.extract_lecture_from_comment()"""
+
+    def test_basic_syntax(self, handler):
+        """@qe-style-checker lecture_name"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker aiyagari")
+        assert result == ("aiyagari", ["all"])
+
+    def test_with_categories(self, handler):
+        """@qe-style-checker lecture_name writing,math"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker aiyagari writing,math")
+        assert result == ("aiyagari", ["writing", "math"])
+
+    def test_with_path(self, handler):
+        """@qe-style-checker lectures/lecture.md categories"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker lectures/aiyagari.md code,jax")
+        assert result == ("aiyagari", ["code", "jax"])
+
+    def test_with_backticks(self, handler):
+        """@qe-style-checker `lecture_name` all"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker `aiyagari` all")
+        assert result == ("aiyagari", ["all"])
+
+    def test_backticks_no_categories(self, handler):
+        """@qe-style-checker `lecture_name`"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker `aiyagari`")
+        assert result == ("aiyagari", ["all"])
+
+    def test_regular_comment_returns_none(self, handler):
+        """Non-trigger comments should return None"""
+        assert handler.extract_lecture_from_comment("Just a regular comment") is None
+
+    def test_wrong_trigger_returns_none(self, handler):
+        """Wrong trigger prefix should return None"""
+        assert handler.extract_lecture_from_comment("@something-else aiyagari") is None
+
+    def test_single_category(self, handler):
+        """Single category without comma"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker intro writing")
+        assert result == ("intro", ["writing"])
+
+    def test_all_categories_keyword(self, handler):
+        """Explicit 'all' keyword"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker intro all")
+        assert result == ("intro", ["all"])
+
+    def test_md_extension_stripped(self, handler):
+        """The .md extension should be stripped from lecture name"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker intro.md")
+        assert result == ("intro", ["all"])
+
+    def test_invalid_category_returns_none(self, handler):
+        """Invalid category names should return None"""
+        result = handler.extract_lecture_from_comment("@qe-style-checker intro invalid_cat")
+        assert result is None

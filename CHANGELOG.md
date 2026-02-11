@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Fixed `review_lecture_smart()` architecture bug** — Was passing all rules at once to LLM despite documented evidence that single-rule evaluation is far more reliable. Now delegates to `review_lecture_single_rule()` for every category.
+- **Removed duplicate `format_pr_body()`** — Two implementations existed in `github_handler.py`; kept the concise second version.
+- **Removed dead code** — Deleted `parser_md.py` (unused module), `_review_category()`, `review_lecture()`, `check_style()` methods, unused `load_prompt` import, and `--github-ref` CLI argument.
+- **Removed dead test files** — Deleted `test_parser_md.py`, `test_semantic_grouping.py`, `test_migration.py`, `verify_setup.py` (all tested removed code).
+- **Cleaned up dependencies** — Removed `PyYAML` and `python-dateutil` from `requirements.txt` (neither imported by action code).
+- **Rebuilt RULES.md from source** — Many rules had wrong types and descriptions. Regenerated from rule files (source of truth): 49 rules (32 rule, 13 style, 4 migrate). Previously said 48 rules with 15+ type/description mismatches.
+- **Fixed README version consistency** — Updated badge and text from 0.5.0 to 0.5.1, fixed "50+ rules" to "49 rules".
+- **Fixed CONTRIBUTING.md stale references** — Removed references to nonexistent `LLMProvider` abstract base class and `check_style()` method. Updated priority taxonomy from `critical/mandatory/best_practice/preference` to `rule/style/migrate`.
+- **Fixed tests/README.md** — Removed references to deleted `test_basic.py` and `verify_setup.py`. Updated to list current test files.
+- **Fixed testing-quick-reference.md** — Updated test file references, coverage stats, removed claims about CI pipeline that didn't exist.
+- **Fixed production-testing.md** — Updated workflow example from `@v0.4` to `@v0.5`.
+- **Fixed ci-cd-setup.md** — Added note about original document, updated status.
+- **Fixed `migrate` type rule extraction** — The regex in `extract_individual_rules()` only matched `rule|style` types, silently dropping all 4 `migrate` rules (code-004, code-005, jax-004, jax-006). Now matches `rule|style|migrate`.
+
+### Added
+
+- **Prompt version tracking** — Added `<!-- Prompt Version: 0.5.1 | ... -->` comments to all 8 prompt files. Previously only `writing-prompt.md` had version tracking.
+- **`RULE_EVALUATION_ORDER` for all categories** — Defined optimal evaluation order (mechanical → structural → stylistic → migrate) for all 8 categories in `reviewer.py`. Previously only `writing` had a defined order.
+- **`test_fix_applier.py`** (13 tests) — Tests `apply_fixes()` and `validate_fix_quality()`.
+- **`test_prompt_loader.py`** (9 tests) — Tests `PromptLoader` class: single/multi category loading, all categories loadable, invalid category, version tracking.
+- **`test_reviewer.py`** (15 tests) — Tests `extract_individual_rules()` and `RULE_EVALUATION_ORDER`: rule counts (49 total, 32/13/4 by type), field presence, evaluation order consistency.
+
+### Changed
+
+- **Rewrote `test_parsing.py`** — Was reimplementing comment parsing with a `TestHandler` class instead of testing the real `GitHubHandler.extract_lecture_from_comment()` method. Now tests the actual code with 11 focused test cases. Fixes `PytestReturnNotNoneWarning`.
+- **Updated CI pipeline** — Removed stale `verify_setup.py` reference, switched from flake8/black/isort to ruff, narrowed Python matrix to 3.11-3.13, removed `develop` branch trigger, removed integration job that depended on deleted file.
+
 ## [0.5.1] - 2025-12-08
 
 ### Fixed

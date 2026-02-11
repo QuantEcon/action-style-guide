@@ -1,7 +1,11 @@
 # CI/CD and Testing Setup
 
 **Date:** October 1, 2025  
-**Status:** ✅ Complete
+**Status:** ✅ CI pipeline updated and functional
+
+> **Note:** This document describes the original pytest migration. Some file references
+> may be outdated. See `tests/README.md` for the current test inventory.
+> The CI pipeline was updated in Phase 3 — see `.github/workflows/ci.yml`.
 
 ## Summary
 

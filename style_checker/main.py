@@ -64,10 +64,10 @@ def review_single_lecture(
     
     # Perform review
     if not categories or categories == ['all']:
-        # Use smart sequential category processing (default behavior)
+        # Default: check all categories using single-rule evaluation
         review_result = reviewer.review_lecture_smart(content, lecture_name)
     else:
-        # Use single-rule evaluation for comprehensive coverage
+        # Specific categories requested
         print(f"🎯 Checking specific categories: {', '.join(categories)}")
         review_result = reviewer.review_lecture_single_rule(content, categories, lecture_name)
     
@@ -320,7 +320,6 @@ def main():
     parser.add_argument('--comment-body', help='Issue comment body (for single mode)')
     parser.add_argument('--repository', required=True,
                        help='GitHub repository (owner/repo)')
-    parser.add_argument('--github-ref', help='GitHub ref')
     
     args = parser.parse_args()
     

@@ -1,16 +1,16 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.5.0**: Production testing infrastructure, PR labels, @qe-style-checker syntax
+> 🚀 **Version 0.5.1**: Production testing infrastructure, PR labels, @qe-style-checker syntax
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
 ## Overview
 
-This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses category-specific focused prompts to check 50+ style rules covering writing, mathematics, code, JAX patterns, figures, and more.
+This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses category-specific focused prompts to check 49 style rules covering writing, mathematics, code, JAX patterns, figures, and more.
 
 ## Features
 

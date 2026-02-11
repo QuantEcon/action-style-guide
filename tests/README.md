@@ -1,18 +1,14 @@
 # Tests
 
-[![CI](https://github.com/QuantEcon/action-style-guide/workflows/CI/badge.svg)](https://github.com/QuantEcon/action-style-guide/actions)
-
 This directory contains all test files for the action-style-guide project using the **pytest** framework.
 
 ## Test Files
 
-### `test_basic.py`
-Tests core functionality of the style guide checker:
-- Style guide YAML loading
-- Rule formatting for LLM
-- Rule querying and filtering by category and priority
-- Rule uniqueness and required fields validation
-- GitHub comment parsing (if credentials available)
+### `test_github_handler.py`
+Tests GitHub API interaction logic:
+- Comment parsing for `@qe-style-checker` triggers
+- Lecture name and category extraction from comments
+- PR body formatting
 
 ### `test_markdown_parser.py`
 Tests the Markdown response parser used for LLM responses:
@@ -22,11 +18,41 @@ Tests the Markdown response parser used for LLM responses:
 - Handling of code blocks and special characters
 - Error handling for malformed responses
 
+### `test_parsing.py`
+Tests comment parsing using the real `GitHubHandler.extract_lecture_from_comment()` method:
+- Basic and backtick syntax
+- Category extraction
+- Path handling and `.md` extension stripping
+- Invalid inputs return None
+
+### `test_fix_applier.py`
+Tests the fix application engine:
+- Single and multiple fix application
+- Missing current_text / suggested_fix handling
+- Text-not-found graceful skipping
+- First-occurrence-only replacement
+- Fix quality validation warnings
+
+### `test_prompt_loader.py`
+Tests prompt and rules loading:
+- Single and multi-category prompt loading
+- All 8 categories loadable
+- Invalid category error handling
+- Prompt version tracking presence
+- Rules file content validation
+
+### `test_reviewer.py`
+Tests rule extraction and evaluation order:
+- Rule counts per category (49 total)
+- Rule type distribution (32 rule, 13 style, 4 migrate)
+- RULE_EVALUATION_ORDER consistency with rule files
+- Rule field validation and ID format
+- No duplicate rule IDs
+
 ### `test_llm_integration.py`
 **Integration tests** that make real LLM API calls (marked with `@pytest.mark.integration`):
 - End-to-end LLM style checking with sample lecture
-- Violation detection with real LLM providers
-- Corrected content generation
+- Single-rule evaluation with real LLM providers
 - Markdown response format validation
 - Tests work with Claude Sonnet 4.5
 
@@ -53,21 +79,16 @@ pytest --cov=style_checker --cov-report=term-missing
 
 Run specific test file:
 ```bash
-pytest tests/test_basic.py
+pytest tests/test_github_handler.py
 pytest tests/test_markdown_parser.py
 ```
 
 Run specific test function:
 ```bash
-pytest tests/test_basic.py::test_load_style_guide
+pytest tests/test_github_handler.py::test_extract_lecture_from_comment
 ```
 
 ### Using pytest markers
-
-Run only fast tests (excluding slow integration tests):
-```bash
-pytest -m "not slow"
-```
 
 Exclude integration tests (default behavior):
 ```bash
@@ -76,48 +97,11 @@ pytest -m "not integration"
 
 Run ONLY integration tests (requires API keys):
 ```bash
-# Set API key first
 export ANTHROPIC_API_KEY="your-key-here"
-# Set your API key
-export ANTHROPIC_API_KEY="your-key-here"
-# or: export GOOGLE_API_KEY="your-key-here"
-
-# Run integration tests
 pytest -m integration -v
 ```
 
-**⚠️ Warning:** Integration tests make real API calls and will cost money!
-
-### Legacy Method
-
-Tests can also be run directly (backwards compatible):
-```bash
-python tests/test_basic.py
-python tests/test_markdown_parser.py
-```
-
-## Continuous Integration
-
-Tests run automatically on GitHub Actions for:
-- Every push to `main` and `develop` branches
-- Every pull request
-- Python versions: 3.9, 3.10, 3.11, 3.12
-
-The CI workflow also includes:
-- **Linting**: Code quality checks with flake8
-- **Formatting**: Black and isort checks
-- **Coverage**: Code coverage reporting to Codecov
-
-See `.github/workflows/ci.yml` for full CI configuration.
-
-## Setup Verification
-
-For initial setup verification (checking environment, dependencies, API keys), run:
-```bash
-python verify_setup.py
-```
-
-This is located in the root directory as it's a setup/diagnostic tool rather than a unit test.
+**Warning:** Integration tests make real API calls and will cost money!
 
 ## Test Requirements
 

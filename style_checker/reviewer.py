@@ -10,7 +10,6 @@ import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from .fix_applier import apply_fixes, validate_fix_quality
-from .prompt_loader import load_prompt
 
 
 # Rule evaluation order - defines the sequence for checking rules
@@ -26,8 +25,61 @@ RULE_EVALUATION_ORDER = {
         'qe-writing-003',  # Logical flow (creative)
         'qe-writing-007',  # Visual elements (creative)
     ],
-    # Other categories can be added here with their optimal order
-    # 'math': ['qe-math-001', 'qe-math-002', ...],
+    'math': [
+        'qe-math-001',  # UTF-8 unicode for parameters (mechanical)
+        'qe-math-002',  # Transpose notation (mechanical)
+        'qe-math-003',  # Square brackets for matrices (mechanical)
+        'qe-math-004',  # No bold face for matrices/vectors (mechanical)
+        'qe-math-005',  # Curly brackets for sequences (mechanical)
+        'qe-math-007',  # Automatic equation numbering (mechanical)
+        'qe-math-006',  # Aligned environment for PDF (structural)
+        'qe-math-008',  # Explain special notation (structural)
+        'qe-math-009',  # Simplicity in notation (stylistic)
+    ],
+    'code': [
+        'qe-code-002',  # Unicode Greek letters in code (mechanical)
+        'qe-code-003',  # Package installation at top (structural)
+        'qe-code-006',  # Binary package installation notes (structural)
+        'qe-code-001',  # PEP8 / math notation (stylistic)
+        'qe-code-004',  # quantecon Timer (migrate)
+        'qe-code-005',  # quantecon timeit (migrate)
+    ],
+    'jax': [
+        'qe-jax-002',  # NamedTuple for parameters (structural)
+        'qe-jax-001',  # Functional programming patterns (stylistic)
+        'qe-jax-003',  # generate_path for sequences (stylistic)
+        'qe-jax-005',  # jax.lax for control flow (stylistic)
+        'qe-jax-007',  # Consistent function naming (stylistic)
+        'qe-jax-004',  # Functional update patterns (migrate)
+        'qe-jax-006',  # Explicit PRNG key management (migrate)
+    ],
+    'figures': [
+        'qe-fig-003',  # No matplotlib embedded titles (mechanical)
+        'qe-fig-004',  # Caption formatting (mechanical)
+        'qe-fig-005',  # Descriptive figure names (mechanical)
+        'qe-fig-006',  # Lowercase axis labels (mechanical)
+        'qe-fig-007',  # Keep figure box and spines (mechanical)
+        'qe-fig-008',  # lw=2 for line charts (mechanical)
+        'qe-fig-010',  # Plotly latex directive (structural)
+        'qe-fig-011',  # Image directive when nested (structural)
+        'qe-fig-009',  # Figure sizing (structural)
+        'qe-fig-001',  # Figure size only when necessary (stylistic)
+        'qe-fig-002',  # Prefer code-generated figures (stylistic)
+    ],
+    'references': [
+        'qe-ref-001',  # Correct citation style (mechanical)
+    ],
+    'links': [
+        'qe-link-002',  # Doc links for cross-series (mechanical)
+        'qe-link-001',  # Markdown links for same series (stylistic)
+    ],
+    'admonitions': [
+        'qe-admon-001',  # Gated syntax for exercises (structural)
+        'qe-admon-003',  # Tick count for nested directives (mechanical)
+        'qe-admon-004',  # prf prefix for proofs (mechanical)
+        'qe-admon-005',  # Link solutions to exercises (structural)
+        'qe-admon-002',  # Dropdown class for solutions (stylistic)
+    ],
 }
 
 
@@ -56,13 +108,13 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
     
     # Extract individual rules using regex
     # Pattern matches: ### Rule: qe-writing-001 ... until next ### Rule: or end
-    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Type:\*\* (rule|style)\s*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
+    rule_pattern = r'### Rule: (qe-[a-z]+-\d+)\s*\n\*\*Type:\*\* (rule|style|migrate)\s*\n\*\*Title:\*\* ([^\n]+)\s*\n(.+?)(?=\n### Rule: |$)'
     
     # First, extract all rules into a dict keyed by rule_id
     rules_dict = {}
     for match in re.finditer(rule_pattern, content, re.DOTALL):
         rule_id = match.group(1)
-        rule_type = match.group(2).strip()  # 'rule' (auto-fix) or 'style' (suggestion)
+        rule_type = match.group(2).strip()  # 'rule' (auto-fix), 'style' (suggestion), or 'migrate' (modernize)
         title = match.group(3).strip()
         rule_content = match.group(4).strip()
         
@@ -269,38 +321,6 @@ class AnthropicProvider:
         except ImportError:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
-    def check_style(self, content: str, categories: List[str]) -> Dict[str, Any]:
-        """Check style using Anthropic Claude with automatic streaming for large requests"""
-        # Load prompt using category-specific templates
-        prompt = load_prompt(categories, content)
-        
-        # Try non-streaming first, fall back to streaming if required
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=64000,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            full_response = response.content[0].text
-        except Exception as e:
-            # If we get the streaming error, use streaming
-            if "Streaming is required" in str(e) or "10 minutes" in str(e):
-                print(f"    ℹ️  Using streaming for large request...")
-                full_response = ""
-                with self.client.messages.stream(
-                    model=self.model,
-                    max_tokens=64000,
-                    messages=[{"role": "user", "content": prompt}]
-                ) as stream:
-                    for text in stream.text_stream:
-                        full_response += text
-            else:
-                # Re-raise if it's a different error
-                raise
-        
-        # Parse the Markdown response
-        return parse_markdown_response(full_response)
-    
     def check_single_rule(self, prompt: str) -> Dict[str, Any]:
         """Check a single rule using provided prompt"""
         # Try non-streaming first, fall back to streaming if required
@@ -459,63 +479,6 @@ class StyleReviewer:
         
         return combined_result
     
-    def review_lecture(
-        self,
-        content: str,
-        categories: List[str],
-        lecture_name: str
-    ) -> Dict[str, Any]:
-        """
-        Review a lecture against specified style categories.
-        
-        Args:
-            content: Full lecture content
-            categories: List of category names to check (e.g., ["writing", "math"] or ["all"])
-            lecture_name: Name of the lecture
-            
-        Returns:
-            Dictionary with review results and corrected content
-        """
-        try:
-            result = self.provider.check_style(content, categories)
-            result['provider'] = self.provider_name
-            result['lecture_name'] = lecture_name
-            
-            # Apply fixes programmatically if we have violations
-            if result.get('violations'):
-                print(f"  🔧 Applying {len(result['violations'])} fixes programmatically...")
-                
-                # Validate fix quality
-                validation_warnings = validate_fix_quality(result['violations'])
-                if validation_warnings:
-                    print(f"  ⚠️  Fix quality warnings:")
-                    for warning in validation_warnings[:5]:  # Show first 5
-                        print(f"      - {warning}")
-                
-                # Apply fixes
-                corrected_content, apply_warnings = apply_fixes(content, result['violations'])
-                result['corrected_content'] = corrected_content
-                result['fix_warnings'] = apply_warnings
-                
-                # If we couldn't apply any fixes, keep original content
-                if corrected_content == content and result['violations']:
-                    print(f"  ⚠️  Could not apply any fixes - keeping original content")
-                    result['corrected_content'] = content
-            else:
-                # No violations, keep original content
-                result['corrected_content'] = content
-            
-            return result
-        except Exception as e:
-            return {
-                'error': str(e),
-                'issues_found': 0,
-                'violations': [],
-                'corrected_content': content,  # Return original on error
-                'provider': self.provider_name,
-                'lecture_name': lecture_name
-            }
-    
     def review_lecture_smart(
         self,
         content: str,
@@ -545,11 +508,8 @@ class StyleReviewer:
         Returns:
             Dictionary with all violations found across all categories
         """
-        print(f"\n🤖 Starting AI-powered review using sequential category processing...")
-        print(f"📊 Lecture: {lecture_name}")
-        
         # Define all categories to check (matches files in style_checker/rules/)
-        categories = [
+        all_categories = [
             'writing',
             'math',
             'code',
@@ -560,104 +520,14 @@ class StyleReviewer:
             'admonitions'
         ]
         
-        print(f"\n📦 Processing {len(categories)} categories sequentially:")
-        for category in categories:
+        print(f"\n🤖 Starting AI-powered review using single-rule evaluation...")
+        print(f"📊 Lecture: {lecture_name}")
+        print(f"\n📦 Processing {len(all_categories)} categories:")
+        for category in all_categories:
             print(f"   • {category}")
         
-        # Process categories sequentially, updating content after each
-        all_violations = []
-        current_content = content
-        
-        print(f"\n🔄 Processing categories one at a time...\n")
-        
-        for i, category in enumerate(categories, 1):
-            print(f"  [{i}/{len(categories)}] Processing {category}...")
-            
-            try:
-                result = self._review_category(
-                    current_content,
-                    category,
-                    lecture_name
-                )
-                
-                violations_count = len(result.get('violations', []))
-                
-                if violations_count > 0:
-                    print(f"       ✓ Found {violations_count} issues")
-                    
-                    # Apply fixes from this category to current content
-                    print(f"       🔧 Applying {violations_count} fixes...")
-                    
-                    # Validate fix quality
-                    validation_warnings = validate_fix_quality(result.get('violations', []))
-                    if validation_warnings:
-                        print(f"       ⚠️  Fix quality warnings:")
-                        for warning in validation_warnings[:3]:  # Show first 3
-                            print(f"           - {warning}")
-                    
-                    # Apply fixes to current content
-                    updated_content, fix_warnings = apply_fixes(
-                        current_content, 
-                        result.get('violations', [])
-                    )
-                    
-                    if updated_content != current_content:
-                        current_content = updated_content
-                        print(f"       ✓ Updated document with {category} fixes")
-                    else:
-                        print(f"       ⚠️  No changes applied (possible conflicts)")
-                    
-                    # Track all violations for reporting
-                    all_violations.extend(result.get('violations', []))
-                else:
-                    print(f"       ✓ No issues found")
-                
-            except Exception as e:
-                print(f"       ❌ Failed: {e}")
-        
-        print(f"\n📊 Total issues found across all categories: {len(all_violations)}")
-        
-        if all_violations:
-            print(f"  ✅ All fixes have been applied sequentially")
-        else:
-            print(f"  ✨ No issues found - lecture follows all style guide rules!")
-        
-        return {
-            'issues_found': len(all_violations),
-            'violations': all_violations,
-            'corrected_content': current_content,
-            'summary': f"Found {len(all_violations)} issues across {len(categories)} categories (processed sequentially)",
-            'provider': self.provider_name,
-            'lecture_name': lecture_name,
-            'categories_checked': categories
-        }
-    
-    def _review_category(
-        self,
-        content: str,
-        category: str,
-        lecture_name: str
-    ) -> Dict[str, Any]:
-        """
-        Review lecture content against a single category of rules.
-        
-        Uses markdown-based category prompts from style_checker/rules/
-        
-        Args:
-            content: Full lecture content
-            category: Name of the category (e.g., 'writing', 'math')
-            lecture_name: Name of the lecture file
-            
-        Returns:
-            Dictionary with violations found for this category
-        """
-        try:
-            result = self.provider.check_style(content, [category])
-            result['category'] = category
-            return result
-        except Exception as e:
-            return {
-                'error': str(e),
-                'violations': [],
-                'category': category
-            }
+        # Delegate to review_lecture_single_rule which handles:
+        # - Single-rule-per-LLM-call evaluation
+        # - Sequential fix application between rules
+        # - Rule vs style type separation
+        return self.review_lecture_single_rule(content, all_categories, lecture_name)
