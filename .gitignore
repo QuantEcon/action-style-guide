@@ -49,6 +49,9 @@ htmlcov/
 secrets/
 credentials/
 
+# Test repository (cloned for local testing)
+test-action-style-guide/
+
 # Logs
 *.log
 logs/
