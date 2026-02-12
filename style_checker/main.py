@@ -108,6 +108,8 @@ def review_single_lecture(
         
         # Parse PR labels
         labels = ['automated', 'style-guide', 'review']
+        if categories and categories != ['all']:
+            labels.extend(categories)
         if pr_labels:
             custom_labels = [l.strip() for l in pr_labels.split(',') if l.strip()]
             labels.extend(custom_labels)
