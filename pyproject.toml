@@ -1,6 +1,6 @@
 [project]
 name = "qestyle"
-version = "0.6.0"
+version = "0.6.1"
 description = "AI-powered style guide compliance checker for QuantEcon lecture materials"
 requires-python = ">=3.11"
 readme = "README.md"

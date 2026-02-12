@@ -9,9 +9,7 @@ Tests cover:
 Does NOT test LLM integration — that's covered by test_reviewer.py and test_llm_integration.py.
 """
 
-import pytest
 import subprocess
-import sys
 from pathlib import Path
 
 from style_checker.cli import format_report, ALL_CATEGORIES
