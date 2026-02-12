@@ -137,35 +137,29 @@ def test_format_style_suggestions_report_uses_tilde_fences():
 
 
 def test_tilde_fences_handle_nested_code_blocks():
-    """Test that ~~~ fences properly handle content with nested ```-backtick code blocks"""
+    """Test that ~~~ fences properly handle content with nested ```-backtick code blocks.
+    
+    The region-based report uses difflib to find changed regions. To verify ~~~
+    fencing works with nested backtick blocks, we create a change where the
+    backtick-fenced block itself is part of the diff (e.g. the directive type changes).
+    """
     handler = create_mock_handler()
     
-    # Content with nested 3-backtick code blocks (common in MyST Markdown directives)
+    # The directive type changes from code-cell to code-cell ipython3,
+    # making the backtick fence line part of the diff region
     original_content = """Here is a directive:
 
 ```{code-cell} python
 def example():
     return 42
 ```
-
-And another:
-
-```{note}
-This is a note
-```
 """
     
     final_content = """Here is a directive:
 
-```{code-cell} python
+```{code-cell} ipython3
 def better_example():
     return 42
-```
-
-And another:
-
-```{note}
-This is a note
 ```
 """
     
@@ -173,24 +167,26 @@ This is a note
         'original_content': original_content,
         'corrected_content': final_content,
         'fix_log': [{
-            'rule_id': 'qe-writing-001',
-            'rule_title': 'Test Rule',
-            'category': 'writing',
-            'current_text': 'def example():',
-            'suggested_fix': 'def better_example():',
-            'description': 'Improved naming',
-            'explanation': 'Better function name',
-            'location': 'Line 4',
+            'rule_id': 'qe-code-001',
+            'rule_title': 'Update code cell',
+            'category': 'code',
+            'current_text': '```{code-cell} python\ndef example():',
+            'suggested_fix': '```{code-cell} ipython3\ndef better_example():',
+            'description': 'Updated code cell type and function name',
+            'explanation': 'Use ipython3 kernel and better naming',
+            'location': 'Line 3',
         }],
     }
     
     report = handler.format_applied_fixes_report(review_result, 'test_lecture')
     
     assert report is not None
-    # The nested 3-backtick blocks should be preserved inside the ~~~ fence
+    # The outer fence should use tildes, not backticks (to avoid conflicts)
     assert '~~~markdown' in report
-    # The outer fence should use tildes
-    assert '~~~markdown' in report
+    # The nested 3-backtick directive should be preserved inside the ~~~ fence
+    assert '```{code-cell}' in report
+    # The actual changed content should appear
+    assert 'better_example' in report
 
 
 def test_region_based_report_combines_multi_rule_edits():

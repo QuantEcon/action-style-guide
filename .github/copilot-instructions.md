@@ -305,6 +305,21 @@ gh api repos/QuantEcon/lecture-python.myst/pulls/123 > /tmp/pr-details.json
 
 This is particularly useful when debugging GitHub integration issues or inspecting PR/issue content.
 
+## Terminal Multi-line Content Note
+
+**Important:** When writing multi-line content (PR descriptions, issue bodies, commit messages with special characters), **always use `create_file` to write content to a `/tmp` file first**, then reference that file in the CLI command. Do NOT use heredocs (`cat << EOF`), escaped strings, or inline multi-line content in terminal commands — these frequently fail due to escaping issues.
+
+```bash
+# ✅ Good: Write content to file, then reference it
+# (use create_file tool to write /tmp/pr-body.md)
+gh pr edit 9 --body-file /tmp/pr-body.md
+
+# ❌ Bad: Heredocs and escaped strings break often
+cat << 'EOF' > /tmp/file.md
+content with $special chars...
+EOF
+```
+
 ## Remember
 
 - **Development phase** = freedom to improve without legacy concerns

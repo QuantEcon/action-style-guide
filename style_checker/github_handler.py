@@ -342,7 +342,7 @@ class GitHubHandler:
         
         return report
 
-    def format_applied_fixes_report(self, review_result: Dict[str, Any], lecture_name: str) -> str:
+    def format_applied_fixes_report(self, review_result: Dict[str, Any], lecture_name: str) -> Optional[str]:
         """
         Format report of automatically applied fixes using region-based diff.
         
@@ -672,8 +672,8 @@ def _build_changed_regions(original: str, final: str, fix_log: List[Dict[str, An
             # Check if this fix's text overlaps with the changed region
             # A fix contributed if its current_text appears in the original region
             # or its suggested_fix appears in the final region
-            if _text_overlaps_region(fix_current, orig_text, orig_lines, i1, i2) or \
-               _text_overlaps_region(fix_suggested, final_text, final_lines, j1, j2):
+            if _text_overlaps_region(fix_current, orig_text) or \
+               _text_overlaps_region(fix_suggested, final_text):
                 rule_id = fix['rule_id']
                 rules.add(rule_id)
                 if fix.get('description'):
@@ -701,13 +701,13 @@ def _build_changed_regions(original: str, final: str, fix_log: List[Dict[str, An
     return merged
 
 
-def _text_overlaps_region(text: str, region_text: str, lines: List[str], start: int, end: int) -> bool:
+def _text_overlaps_region(text: str, region_text: str) -> bool:
     """
     Check if a fix's text overlaps with a changed region.
     
     Uses two strategies:
     1. Direct substring match of the fix text within the region text
-    2. Line-range overlap: check if the fix text appears in the broader region lines
+    2. Line-based overlap: check if substantial lines from the fix appear in the region
     """
     if not text or not region_text:
         return False

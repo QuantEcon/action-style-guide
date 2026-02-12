@@ -447,9 +447,6 @@ class StyleReviewer:
                         
                         # Separate by type - only auto-apply fixes for 'rule' type
                         if rule_type == 'rule':
-                            # Snapshot content before this rule's fixes
-                            pre_rule_content = current_content
-                            
                             # Apply fixes immediately to current content
                             corrected_content, apply_warnings, applied = apply_fixes(current_content, result['violations'])
                             
