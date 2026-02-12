@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Region-based combined Applied Fixes report** — Replaced per-violation reporting with region-based diff reporting. When multiple rules edit the same line (e.g., math converts `$\alpha$` → `α`, then writing bolds `learning rate`), the report now shows one combined entry with the true original → true final text and all contributing rules attributed. Eliminates confusing "identical original/fix" entries caused by sequential rule processing.
+- **Skip no-op fixes in fix_applier** — When `current_text == suggested_fix` (LLM found no violation but emitted a violation block anyway), the fix is now skipped rather than applied as a no-op. `apply_fixes()` now returns a 3-tuple `(content, warnings, applied_violations)` so callers know which fixes actually changed content.
 - **Fixed zero-violation parser bug** — When the LLM reported `Issues Found: 0` but still emitted violation blocks with commentary like `[No change needed]` as the suggested fix, the fix_applier would replace real lecture content with that commentary text. Parser now short-circuits when `Issues Found` is 0, skipping all violation parsing. All 8 prompts updated with stronger instructions to not emit violation blocks when no violations are found.
 - **Fixed `review_lecture_smart()` architecture bug** — Was passing all rules at once to LLM despite documented evidence that single-rule evaluation is far more reliable. Now delegates to `review_lecture_single_rule()` for every category.
 - **Removed duplicate `format_pr_body()`** — Two implementations existed in `github_handler.py`; kept the concise second version.

@@ -405,6 +405,8 @@ class StyleReviewer:
         style_violations = []  # NEW: Track style category violations (suggestions only)
         all_warnings = []
         current_content = content  # Track the evolving content as fixes are applied
+        original_content = content  # Snapshot before any rules run
+        fix_log = []  # Track each applied fix with rule attribution
         
         for category in categories:
             print(f"  📋 Checking {category} rules individually...")
@@ -441,8 +443,11 @@ class StyleReviewer:
                         
                         # Separate by type - only auto-apply fixes for 'rule' type
                         if rule_type == 'rule':
+                            # Snapshot content before this rule's fixes
+                            pre_rule_content = current_content
+                            
                             # Apply fixes immediately to current content
-                            corrected_content, apply_warnings = apply_fixes(current_content, result['violations'])
+                            corrected_content, apply_warnings, applied = apply_fixes(current_content, result['violations'])
                             
                             if apply_warnings:
                                 all_warnings.extend(apply_warnings)
@@ -450,12 +455,25 @@ class StyleReviewer:
                             # Update current content for next rule
                             if corrected_content != current_content:
                                 current_content = corrected_content
-                                print(f"      ✓ Applied {violations_count} fix(es) automatically - content updated for next rule")
+                                print(f"      ✓ Applied {len(applied)} fix(es) automatically - content updated for next rule")
+                                
+                                # Log each actually-applied fix for region-based reporting
+                                for v in applied:
+                                    fix_log.append({
+                                        'rule_id': v.get('rule_id', 'unknown'),
+                                        'rule_title': v.get('rule_title', ''),
+                                        'category': category,
+                                        'current_text': v.get('current_text', '').strip(),
+                                        'suggested_fix': v.get('suggested_fix', '').strip(),
+                                        'description': v.get('description', ''),
+                                        'explanation': v.get('explanation', ''),
+                                        'location': v.get('location', ''),
+                                    })
                             else:
                                 print(f"      ⚠️  Could not apply fixes - content unchanged")
                             
-                            # Store rule violations for applied fixes report
-                            rule_violations.extend(result['violations'])
+                            # Store only actually-applied violations for reporting
+                            rule_violations.extend(applied)
                         else:
                             # Style category - collect suggestions but don't auto-apply
                             print(f"      ℹ️  Style suggestions collected (not auto-applied) - requires human review")
@@ -475,12 +493,14 @@ class StyleReviewer:
         combined_result = {
             'issues_found': len(all_violations),
             'violations': all_violations,
-            'rule_violations': rule_violations,  # NEW: Automatic fixes applied
-            'style_violations': style_violations,  # NEW: Suggestions for human review
+            'rule_violations': rule_violations,  # Automatic fixes actually applied
+            'style_violations': style_violations,  # Suggestions for human review
             'provider': self.provider_name,
             'lecture_name': lecture_name,
             'warnings': all_warnings,
-            'corrected_content': current_content  # Final content after all rule fixes
+            'corrected_content': current_content,  # Final content after all rule fixes
+            'original_content': original_content,  # Snapshot before any fixes
+            'fix_log': fix_log,  # Per-fix log with rule attribution
         }
         
         return combined_result

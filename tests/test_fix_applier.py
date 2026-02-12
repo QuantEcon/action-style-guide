@@ -17,9 +17,11 @@ class TestApplyFixes:
             'suggested_fix': 'new text',
             'location': 'paragraph 1',
         }]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         assert result == "This is the new text in a document."
         assert len(warnings) == 0
+        assert len(applied) == 1
+        assert applied[0]['rule_id'] == 'qe-writing-001'
 
     def test_multiple_fixes_applied(self):
         """Multiple non-overlapping fixes should all be applied"""
@@ -38,10 +40,11 @@ class TestApplyFixes:
                 'location': 'line 1',
             },
         ]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         assert 'α' in result
         assert 'β' in result
         assert len(warnings) == 0
+        assert len(applied) == 2
 
     def test_missing_current_text_skipped(self):
         """Violations without current_text should be skipped with warning"""
@@ -51,10 +54,11 @@ class TestApplyFixes:
             'current_text': '',
             'suggested_fix': 'something',
         }]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         assert result == content
         assert len(warnings) == 1
         assert 'No current_text' in warnings[0]
+        assert len(applied) == 0
 
     def test_missing_suggested_fix_skipped(self):
         """Violations without suggested_fix should be skipped with warning"""
@@ -64,10 +68,11 @@ class TestApplyFixes:
             'current_text': 'old text',
             'suggested_fix': '',
         }]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         assert result == content
         assert len(warnings) == 1
         assert 'No suggested_fix' in warnings[0]
+        assert len(applied) == 0
 
     def test_text_not_found_skipped(self):
         """Violations where current_text isn't in content should be skipped"""
@@ -78,17 +83,19 @@ class TestApplyFixes:
             'suggested_fix': 'replacement',
             'location': 'unknown',
         }]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         assert result == content
         assert len(warnings) == 1
         assert 'Could not find' in warnings[0]
+        assert len(applied) == 0
 
     def test_empty_violations_list(self):
         """Empty violations list should return content unchanged"""
         content = "Unchanged."
-        result, warnings = apply_fixes(content, [])
+        result, warnings, applied = apply_fixes(content, [])
         assert result == content
         assert len(warnings) == 0
+        assert len(applied) == 0
 
     def test_fix_replaces_only_first_occurrence(self):
         """Fix should apply to only the first occurrence"""
@@ -99,9 +106,47 @@ class TestApplyFixes:
             'suggested_fix': 'WORD',
             'location': 'line 1',
         }]
-        result, warnings = apply_fixes(content, violations)
+        result, warnings, applied = apply_fixes(content, violations)
         # Only first 'word' replaced
         assert result == "WORD word word"
+        assert len(applied) == 1
+
+    def test_identical_text_skipped(self):
+        """Violations where current_text == suggested_fix should be skipped (no-op)"""
+        content = "We use α for the learning rate."
+        violations = [{
+            'rule_id': 'qe-code-002',
+            'current_text': 'We use α for the learning rate.',
+            'suggested_fix': 'We use α for the learning rate.',
+            'location': 'line 29',
+        }]
+        result, warnings, applied = apply_fixes(content, violations)
+        assert result == content  # Content unchanged
+        assert len(applied) == 0  # Not counted as applied
+        assert any('identical' in w.lower() or 'no change' in w.lower() for w in warnings)
+
+    def test_identical_text_mixed_with_real_fixes(self):
+        """Real fixes should apply while identical-text no-ops are skipped"""
+        content = "Alpha is first. Same text stays."
+        violations = [
+            {
+                'rule_id': 'qe-test-001',
+                'current_text': 'Alpha',
+                'suggested_fix': 'α',
+                'location': 'line 1',
+            },
+            {
+                'rule_id': 'qe-test-002',
+                'current_text': 'Same text stays.',
+                'suggested_fix': 'Same text stays.',
+                'location': 'line 1',
+            },
+        ]
+        result, warnings, applied = apply_fixes(content, violations)
+        assert 'α is first' in result
+        assert 'Same text stays.' in result
+        assert len(applied) == 1
+        assert applied[0]['rule_id'] == 'qe-test-001'
 
 
 class TestValidateFixQuality:
