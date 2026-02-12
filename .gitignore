@@ -62,7 +62,6 @@ logs/
 # Temporary files
 tmp/
 temp/
-*.tmp
 
 # Output files
 output/
