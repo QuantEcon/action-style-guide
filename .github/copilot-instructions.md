@@ -34,13 +34,14 @@ This is a GitHub Action that performs AI-powered style guide compliance checking
 ```
 action-style-guide/
 ├── action.yml                    # GitHub Action definition
-├── style_checker/                # Main action code
+├── style_checker/                # Main package
 │   ├── __init__.py              # Version info (__version__)
-│   ├── main.py                  # Entry point, CLI handling
-│   ├── reviewer.py              # LLM interaction, response parsing
-│   ├── github_handler.py        # GitHub API interactions
-│   ├── fix_applier.py           # Apply fixes to markdown files
-│   ├── prompt_loader.py         # Load prompts and rules
+│   ├── cli.py                   # Local CLI entry point (qestyle)
+│   ├── github.py                # GitHub Action entry point
+│   ├── reviewer.py              # LLM interaction, response parsing (shared)
+│   ├── github_handler.py        # GitHub API interactions (action only)
+│   ├── fix_applier.py           # Apply fixes to markdown files (shared)
+│   ├── prompt_loader.py         # Load prompts and rules (shared)
 │   ├── prompts/                 # Category-specific prompts
 │   │   ├── writing-prompt.md
 │   │   ├── math-prompt.md
@@ -51,30 +52,14 @@ action-style-guide/
 │       └── ...
 ├── tests/                       # Test files
 ├── docs/                        # Documentation
-└── tool-*/                      # Independent development tools (NOT part of action)
-    ├── tool-style-checker/      # Prototype for testing prompts/rules
-    └── tool-style-guide-development/  # Rule development utilities
+└── examples/                    # Example GitHub workflows
 ```
 
-### Important: tool-* Folders
+### Two Entry Points, One Engine
 
-**The `tool-*` directories are independent projects for developing and testing prompts and rules.**
-
-- ❌ **NOT part of the GitHub Action** - Not loaded or used by the action
-- ✅ **Development utilities** - Used for prototyping and testing rule changes
-- ✅ **Standalone tools** - Can be run independently for prompt/rule development
-- 📝 **May have different dependencies** - Don't assume they share code with `style_checker/`
-
-**When to use:**
-- Testing new prompts before adding to `style_checker/prompts/`
-- Developing new rules before adding to `style_checker/rules/`
-- Experimenting with rule formatting or LLM behavior
-- Quick prototyping without affecting the action
-
-**When NOT to use:**
-- Production runs (use the GitHub Action)
-- Expecting changes in `tool-*` to affect the action behavior
-- Assuming code consistency with `style_checker/`
+- **`cli.py`** (`qestyle` command): Local CLI for authors. Reads files from disk, prints reports, optionally applies fixes.
+- **`github.py`**: GitHub Action entry point. Reads files via GitHub API, creates PRs with fixes.
+- Both use the **same `StyleReviewer`**, prompts, rules, and `fix_applier` — results are identical.
 
 ## Key Technical Decisions
 
@@ -165,9 +150,9 @@ assert github_token
 
 ```python
 # In __init__.py
-__version__ = "0.3.7"  # Bump for every release
+__version__ = "0.6.1"  # Bump for every release
 
-# In main.py - print version at startup
+# In github.py - print version at startup
 print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ```
 
@@ -273,8 +258,12 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ## Useful Commands
 
 ```bash
-# Test locally
-python style_checker/main.py --mode single --repository owner/repo --comment-body "..."
+# Test locally with CLI
+qestyle lecture.md --categories writing
+qestyle lecture.md --fix
+
+# Test GitHub Action entry point
+python style_checker/github.py --mode single --repository owner/repo --comment-body "..."
 
 # Run tests
 pytest tests/
@@ -284,10 +273,14 @@ nox -s tests
 
 # Check version
 python -c "from style_checker import __version__; print(__version__)"
+qestyle --version
+
+# Install locally (editable)
+pip install -e .
 
 # Create release
-gh release create v0.3.7 --title "..." --notes "..."
-git tag -f v0.3 && git push origin v0.3 --force
+gh release create v0.6.1 --title "..." --notes "..."
+git tag -f v0.6 && git push origin v0.6 --force
 ```
 
 ## GitHub CLI Note

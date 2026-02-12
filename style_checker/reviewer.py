@@ -301,7 +301,7 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
         
         # Note: Corrected content is not extracted from LLM response anymore
         # Fixes are applied programmatically using apply_fixes() function
-        # This reduces output tokens by ~50% and matches tool-style-checker approach
+        # This reduces output tokens by ~50%
         
     except Exception as e:
         result['error'] = f'Markdown parsing failed: {str(e)}'
@@ -515,8 +515,8 @@ class StyleReviewer:
         Smart review strategy using sequential category processing.
         
         Processes categories one at a time, feeding the updated document from
-        one category into the next. This matches the tool-style-checker approach
-        and ensures all fixes are applied without conflicts.
+        one category into the next. This ensures all fixes are applied without
+        conflicts.
         
         Benefits:
         - All fixes applied without conflicts

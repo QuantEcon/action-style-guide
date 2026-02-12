@@ -9,10 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Local CLI: `qestyle`** — New command-line tool that shares the same review engine, prompts, rules, and fix logic as the GitHub Action. Install with `pip install git+https://github.com/QuantEcon/action-style-guide.git`. Run `qestyle lecture.md` for a report, or `qestyle lecture.md --fix` to apply rule-type fixes in place. Supports `--categories`, `--output`, `--model`, and `--temperature` options.
 - **Category names as PR labels** — When specific categories are requested (e.g., `@qe-style-checker lectures/file.md code,math`), the category names are added as labels on the generated PR. Default labels (`automated`, `style-guide`, `review`) are always included.
+- **`--interactive` mode planned** — Future development: step-through TUI for reviewing suggestions one at a time (see `docs/FUTURE-ENHANCEMENTS.md`).
+
+### Changed
+
+- **Renamed `main.py` → `github.py`** — Clarifies that this is the GitHub Action entry point, distinct from the new `cli.py` local entry point.
+- **Package renamed to `qestyle`** — `pyproject.toml` updated with proper metadata, dependencies, and `[project.scripts]` entry point. Installable from GitHub via pip.
 
 ### Removed
 
+- **Removed `tool-style-checker/` directory** — Replaced by the built-in `qestyle` CLI. The standalone tool had diverged from the main action (different LLM calling strategy, stale rule counts, old output format). The CLI uses the exact same `StyleReviewer` code path.
 - **Removed `tool-style-guide-development/` directory** — Rules are now edited directly in `style_checker/rules/`; the standalone development tool and `style-guide-database.md` are no longer needed.
 
 ## [0.6.0] - 2026-02-12

@@ -1,10 +1,10 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.5.1**: Production testing infrastructure, PR labels, @qe-style-checker syntax
+> 🚀 **Version 0.6.1**: Local CLI (`qestyle`), unified codebase for Action + CLI
 
 A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
@@ -166,7 +166,7 @@ The action processes categories in order, ensuring all fixes are applied without
 3. **Category 3 (e.g., Code)**: Reviews **updated document** → finds violations → applies fixes → **updated document**
 4. Continue for all 8 categories...
 
-This approach matches `tool-style-checker` and ensures:
+This approach ensures:
 - ✅ All fixes are applied without conflicts
 - ✅ Later categories see changes made by earlier categories
 - ✅ More coherent and complete final output
@@ -207,31 +207,77 @@ This PR addresses style guide compliance issues found in the Aiyagari model lect
 See commits for detailed explanations of each change.
 ```
 
-## Development
+## Local CLI: `qestyle`
 
-### Local CLI Tool
+The `qestyle` command lets you run the **exact same** review engine locally — same prompts, rules, and fix logic as the GitHub Action.
 
-For local testing without GitHub infrastructure, use the standalone CLI in `tool-style-checker/`:
+### Installation
+
+Install directly from GitHub (no PyPI registration needed):
 
 ```bash
-cd tool-style-checker
+# Latest release
+pip install git+https://github.com/QuantEcon/action-style-guide.git
 
-# Install requirements
-pip install anthropic
-export ANTHROPIC_API_KEY='your-api-key'
+# Specific version
+pip install git+https://github.com/QuantEcon/action-style-guide.git@v0.6
 
-# Check a lecture against specific categories
-python style_checker.py lecture.md --focus writing
-python style_checker.py lecture.md --focus writing,math,code
-
-# Output files created:
-# - lecture-suggestions.md (detailed review)
-# - lecture-corrected.md (corrected version)
+# Development (editable install from local clone)
+git clone https://github.com/QuantEcon/action-style-guide.git
+cd action-style-guide
+pip install -e .
 ```
 
-The CLI uses the **same prompts and rules** as the GitHub Action (loaded from `style_checker/prompts/` and `style_checker/rules/`), ensuring local testing matches production behavior.
+Set your Anthropic API key:
 
-See [tool-style-checker/README.md](tool-style-checker/README.md) for full documentation.
+```bash
+export ANTHROPIC_API_KEY='your-key-here'
+```
+
+### Usage
+
+```bash
+# Report all categories (prints to stdout)
+qestyle lecture.md
+
+# Report specific categories
+qestyle lecture.md --categories writing
+qestyle lecture.md --categories math,code
+
+# Apply rule-type fixes in place
+qestyle lecture.md --fix
+qestyle lecture.md --fix --categories writing,math
+
+# Save report to file
+qestyle lecture.md -o report.md
+
+# Use a specific model or temperature
+qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 0
+```
+
+### Output
+
+**Report mode** (default): Prints a Markdown report to stdout with:
+- **Rule violations** — auto-fixable issues (use `--fix` to apply)
+- **Style suggestions** — advisory items requiring human judgment
+- **Warnings** — any processing issues
+
+**Fix mode** (`--fix`): Applies rule-type fixes directly to the file and prints the report. Style suggestions are still reported but not applied. Since lectures live in Git repos, you can review changes with `git diff`.
+
+### Categories
+
+| Category | Focus |
+|----------|-------|
+| `writing` | Writing style and formatting |
+| `math` | Mathematics notation and LaTeX |
+| `code` | Python code style |
+| `jax` | JAX-specific patterns |
+| `figures` | Figure formatting and captions |
+| `references` | Citations and bibliography |
+| `links` | Hyperlinks and cross-references |
+| `admonitions` | Note/warning/tip blocks |
+
+## Development
 
 ### Testing
 
@@ -272,12 +318,12 @@ See [docs/production-testing.md](docs/production-testing.md) for complete testin
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
 ├── style_checker/            # Main package
-│   ├── main.py              # Entry point
-│   ├── parser_md.py         # Comment parsing
-│   ├── reviewer.py          # LLM review logic
-│   ├── github_handler.py    # PR/issue management
-│   ├── fix_applier.py       # Apply fixes to files
-│   ├── prompt_loader.py     # Load prompts + rules
+│   ├── cli.py               # Local CLI entry point (qestyle)
+│   ├── github.py            # GitHub Action entry point
+│   ├── reviewer.py          # LLM review engine (shared)
+│   ├── fix_applier.py       # Apply fixes to files (shared)
+│   ├── github_handler.py    # GitHub API (action only)
+│   ├── prompt_loader.py     # Load prompts + rules (shared)
 │   ├── prompts/             # Category-specific prompts
 │   └── rules/               # Category-specific rules
 ├── tests/                    # Test suite

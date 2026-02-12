@@ -90,7 +90,7 @@ runs:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        python ${{ github.action_path }}/style_checker/main.py \
+        python ${{ github.action_path }}/style_checker/github.py \
           --mode "${{ inputs.mode }}" \
           --lectures-path "${{ inputs.lectures-path }}" \
           --llm-model "${{ inputs.llm-model }}" \
