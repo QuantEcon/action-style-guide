@@ -285,32 +285,61 @@ git tag -f v0.6 && git push origin v0.6 --force
 
 ## GitHub CLI Note
 
-**Important:** When using `gh` CLI commands that produce large output (e.g., `gh pr view`, `gh api`), redirect output to a `/tmp` file to see complete results:
+**Important:** When using `gh` CLI commands that produce large output (e.g., `gh pr view`, `gh api`), redirect output to a `.tmp/` file to see complete results:
 
 ```bash
 # Write gh output to temp file for inspection
-gh pr view 123 --json body > /tmp/pr-body.json
-cat /tmp/pr-body.json
+gh pr view 123 --json body > .tmp/pr-body.json
+cat .tmp/pr-body.json
 
 # For API calls with large responses
-gh api repos/QuantEcon/lecture-python.myst/pulls/123 > /tmp/pr-details.json
+gh api repos/QuantEcon/lecture-python.myst/pulls/123 > .tmp/pr-details.json
 ```
 
 This is particularly useful when debugging GitHub integration issues or inspecting PR/issue content.
 
 ## Terminal Multi-line Content Note
 
-**Important:** When writing multi-line content (PR descriptions, issue bodies, commit messages with special characters), **always use `create_file` to write content to a `/tmp` file first**, then reference that file in the CLI command. Do NOT use heredocs (`cat << EOF`), escaped strings, or inline multi-line content in terminal commands — these frequently fail due to escaping issues.
+**Important:** When writing multi-line content (PR descriptions, issue bodies, commit messages with special characters), **always use `create_file` to write content to a `.tmp/` file first**, then reference that file in the CLI command. Do NOT use heredocs (`cat << EOF`), escaped strings, or inline multi-line content in terminal commands — these frequently fail due to escaping issues.
 
 ```bash
 # ✅ Good: Write content to file, then reference it
-# (use create_file tool to write /tmp/pr-body.md)
-gh pr edit 9 --body-file /tmp/pr-body.md
+# (use create_file tool to write .tmp/pr-body.md)
+gh pr edit 9 --body-file .tmp/pr-body.md
 
 # ❌ Bad: Heredocs and escaped strings break often
-cat << 'EOF' > /tmp/file.md
+cat << 'EOF' > .tmp/file.md
 content with $special chars...
 EOF
+```
+
+**Use `.tmp/` not `/tmp/`** — the local `.tmp/` folder (in the repo root) avoids file collisions with other projects. Its contents are git-ignored.
+
+## Test Repository
+
+**`test-action-style-guide/`** is a local clone of [QuantEcon/test-action-style-guide](https://github.com/QuantEcon/test-action-style-guide) used for local testing.
+
+- Git-ignored — not committed to this repo
+- Contains test lecture files with intentional style violations
+- Used for both **CLI testing** (`qestyle test-action-style-guide/lectures/file.md`) and **GitHub Action integration testing**
+- Clone if missing: `git clone https://github.com/QuantEcon/test-action-style-guide.git`
+
+**When to use:**
+- Testing `qestyle` CLI against realistic lectures
+- Validating prompt/rule changes produce correct results
+- Testing GitHub Action workflows (push to test repo, trigger action)
+- Regression testing before releases
+
+**Workflow:**
+```bash
+# Test CLI on a test lecture
+qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --categories writing
+
+# Test with fix mode
+qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --fix --categories math
+
+# Reset test files after testing
+cd test-action-style-guide && git checkout -- . && cd ..
 ```
 
 ## Remember
