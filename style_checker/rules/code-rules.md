@@ -50,19 +50,26 @@ def utility_function(c, alpha=0.5, beta=0.95):
 **Title:** Package installation at lecture top
 
 **Description:**  
-Lectures should run in a base installation of Anaconda Python. Any additional packages must be installed at the top of the lecture using `!pip install` with `tags: [hide-output]`.
+Lectures should run in a base installation of Anaconda Python. Any additional packages not included in Anaconda must be installed near the top of the lecture, in one of the first code cells (after the title and any introductory text). The installation cell should use `!pip install` commands with `tags: [hide-output]` to suppress verbose installation output. A brief introductory sentence should precede the installation cell explaining what additional libraries are needed.
+
+**Important:** This rule only applies when the lecture imports packages that are NOT part of the standard Anaconda distribution (e.g., `quantecon`, `yfinance`). Common packages like `numpy`, `matplotlib`, `scipy`, and `pandas` are included in Anaconda and do NOT require installation cells.
 
 **Check for:**
-- Missing package installations for non-Anaconda packages
-- Package installations in the middle of lectures
-- Missing hide-output tags
+- Non-Anaconda packages imported but not installed at the top of the lecture
+- Package installation commands (`!pip install`) appearing in the middle or end of the lecture instead of near the top
+- Missing `hide-output` tags on installation code cells
+- Do NOT flag lectures that only use standard Anaconda packages (numpy, matplotlib, scipy, pandas, sympy, etc.)
 
 **Examples:**
 ````markdown
-<!-- ✅ Correct -->
+<!-- ✅ Correct: Installation cell near the top, after title/intro -->
+# Lecture Title
+
+Introduction paragraph explaining the lecture topic.
+
 In addition to what's in Anaconda, this lecture will need the following libraries:
 
-```{code-cell} ipython
+```{code-cell} ipython3
 ---
 tags: [hide-output]
 ---
@@ -70,9 +77,17 @@ tags: [hide-output]
 !pip install --upgrade yfinance
 ```
 
-<!-- ❌ Incorrect -->
-# (Later in lecture)
+<!-- ❌ Incorrect: Installation buried in the middle of the lecture -->
+## Some Later Section
+
+```{code-cell} ipython3
 !pip install quantecon
+```
+
+<!-- ❌ Incorrect: Missing hide-output tag -->
+```{code-cell} ipython3
+!pip install quantecon
+```
 ````
 
 ---

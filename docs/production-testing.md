@@ -123,7 +123,7 @@ jobs:
     
     steps:
       - name: Run Style Checker
-        uses: QuantEcon/action-style-guide@v0.4
+        uses: QuantEcon/action-style-guide@v0.5
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

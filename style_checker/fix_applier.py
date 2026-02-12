@@ -4,7 +4,7 @@ Apply style guide fixes programmatically to lecture content
 from typing import List, Dict, Any, Tuple
 
 
-def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, List[str]]:
+def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, List[str], List[Dict[str, Any]]]:
     """
     Apply fixes from violations to content programmatically.
     
@@ -13,12 +13,13 @@ def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, Li
         violations: List of violations with current_text and suggested_fix
         
     Returns:
-        Tuple of (corrected_content, list of warnings)
+        Tuple of (corrected_content, list of warnings, list of actually applied violations)
     """
     corrected = content
     applied_count = 0
     skipped_count = 0
     warnings = []
+    applied_violations = []  # Track which violations actually changed content
     
     # Debug: Show LLM's original order
     print(f"  ℹ️  LLM identified violations in this rule order:")
@@ -32,8 +33,27 @@ def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, Li
     violations_with_pos = []
     for v in violations:
         current_text = v.get('current_text', '').strip()
+        suggested_fix = v.get('suggested_fix', '').strip()
+        
         if not current_text:
             warnings.append(f"⚠️  Skipping {v.get('rule_id', 'unknown')}: No current_text provided")
+            skipped_count += 1
+            continue
+        
+        if not suggested_fix:
+            warnings.append(
+                f"⚠️  Skipping {v.get('rule_id', 'unknown')}: "
+                f"No suggested_fix provided"
+            )
+            skipped_count += 1
+            continue
+        
+        # Skip no-op fixes where original and fix are identical
+        if current_text == suggested_fix:
+            warnings.append(
+                f"ℹ️  Skipping {v.get('rule_id', 'unknown')}: "
+                f"No change needed (original and fix are identical)"
+            )
             skipped_count += 1
             continue
         
@@ -63,20 +83,13 @@ def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, Li
         current_text = violation.get('current_text', '').strip()
         suggested_fix = violation.get('suggested_fix', '').strip()
         
-        if not suggested_fix:
-            warnings.append(
-                f"⚠️  Skipping {violation.get('rule_id', 'unknown')}: "
-                f"No suggested_fix provided"
-            )
-            skipped_count += 1
-            continue
-        
         # Apply the fix
         try:
             # Find and replace
             if current_text in corrected:
                 corrected = corrected.replace(current_text, suggested_fix, 1)
                 applied_count += 1
+                applied_violations.append(violation)
                 print(f"    ✓ Applied fix for {violation.get('rule_id', 'unknown')}")
             else:
                 warnings.append(
@@ -95,7 +108,7 @@ def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, Li
     if skipped_count > 0:
         print(f"  ⚠️  Skipped {skipped_count} fixes (see warnings)")
     
-    return corrected, warnings
+    return corrected, warnings, applied_violations
 
 
 def validate_fix_quality(violations: List[Dict[str, Any]]) -> List[str]:

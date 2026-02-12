@@ -64,10 +64,10 @@ def review_single_lecture(
     
     # Perform review
     if not categories or categories == ['all']:
-        # Use smart sequential category processing (default behavior)
+        # Default: check all categories using single-rule evaluation
         review_result = reviewer.review_lecture_smart(content, lecture_name)
     else:
-        # Use single-rule evaluation for comprehensive coverage
+        # Specific categories requested
         print(f"🎯 Checking specific categories: {', '.join(categories)}")
         review_result = reviewer.review_lecture_single_rule(content, categories, lecture_name)
     
@@ -309,6 +309,8 @@ def main():
     parser.add_argument('--lectures-path', default='lectures/',
                        help='Path to lectures directory')
     parser.add_argument('--llm-model', help='Specific Claude model (default: claude-sonnet-4-5-20250929)')
+    parser.add_argument('--temperature', type=float, default=0.0,
+                       help='LLM temperature (0=deterministic, 1=creative, default: 0)')
     parser.add_argument('--rule-categories', default='',
                        help='Comma-separated rule categories to check')
     parser.add_argument('--create-pr', default='true',
@@ -320,7 +322,6 @@ def main():
     parser.add_argument('--comment-body', help='Issue comment body (for single mode)')
     parser.add_argument('--repository', required=True,
                        help='GitHub repository (owner/repo)')
-    parser.add_argument('--github-ref', help='GitHub ref')
     
     args = parser.parse_args()
     
@@ -334,7 +335,7 @@ def main():
     
     # Initialize handlers
     gh_handler = GitHubHandler(github_token, args.repository)
-    reviewer = StyleReviewer(model=args.llm_model)
+    reviewer = StyleReviewer(model=args.llm_model, temperature=args.temperature)
     
     # Run review
     try:
