@@ -309,6 +309,8 @@ def main():
     parser.add_argument('--lectures-path', default='lectures/',
                        help='Path to lectures directory')
     parser.add_argument('--llm-model', help='Specific Claude model (default: claude-sonnet-4-5-20250929)')
+    parser.add_argument('--temperature', type=float, default=0.0,
+                       help='LLM temperature (0=deterministic, 1=creative, default: 0)')
     parser.add_argument('--rule-categories', default='',
                        help='Comma-separated rule categories to check')
     parser.add_argument('--create-pr', default='true',
@@ -333,7 +335,7 @@ def main():
     
     # Initialize handlers
     gh_handler = GitHubHandler(github_token, args.repository)
-    reviewer = StyleReviewer(model=args.llm_model)
+    reviewer = StyleReviewer(model=args.llm_model, temperature=args.temperature)
     
     # Run review
     try:

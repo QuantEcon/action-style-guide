@@ -318,9 +318,10 @@ class AnthropicProvider:
     For latest models and limits, see: https://docs.anthropic.com/en/docs/about-claude/models
     """
     
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929"):
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929", temperature: float = 0.0):
         self.api_key = api_key
         self.model = model
+        self.temperature = temperature
         try:
             from anthropic import Anthropic
             self.client = Anthropic(api_key=api_key)
@@ -334,6 +335,7 @@ class AnthropicProvider:
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=64000,
+                temperature=self.temperature,
                 messages=[{"role": "user", "content": prompt}]
             )
             full_response = response.content[0].text
@@ -344,6 +346,7 @@ class AnthropicProvider:
                 with self.client.messages.stream(
                     model=self.model,
                     max_tokens=64000,
+                    temperature=self.temperature,
                     messages=[{"role": "user", "content": prompt}]
                 ) as stream:
                     for text in stream.text_stream:
@@ -359,13 +362,14 @@ class AnthropicProvider:
 class StyleReviewer:
     """Main style reviewer using Claude Sonnet 4.5"""
     
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None, temperature: float = 0.0):
         """
         Initialize reviewer with Claude Sonnet 4.5
         
         Args:
             api_key: Anthropic API key (or will use ANTHROPIC_API_KEY environment variable)
             model: Specific Claude model to use (default: claude-sonnet-4-5-20250929)
+            temperature: LLM temperature (0=deterministic, 1=creative, default: 0)
         """
         self.provider_name = 'claude'
         
@@ -377,7 +381,7 @@ class StyleReviewer:
             raise ValueError("No API key provided. Set ANTHROPIC_API_KEY environment variable or pass api_key parameter")
         
         # Initialize Claude provider
-        self.provider = AnthropicProvider(api_key, model) if model else AnthropicProvider(api_key)
+        self.provider = AnthropicProvider(api_key, model, temperature=temperature) if model else AnthropicProvider(api_key, temperature=temperature)
     
     def review_lecture_single_rule(
         self,

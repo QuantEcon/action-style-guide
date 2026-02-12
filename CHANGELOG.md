@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Configurable `temperature` parameter** — Added `temperature` input to action.yml, CLI, and LLM provider. Defaults to `0` (deterministic) for consistent rule checking. Set to higher values (e.g., 0.5, 1.0) for more varied suggestions. Previously used Anthropic's default of 1.0, causing run-to-run variation.
 - **Prompt version tracking** — Added `<!-- Prompt Version: 0.5.1 | ... -->` comments to all 8 prompt files. Previously only `writing-prompt.md` had version tracking.
 - **`RULE_EVALUATION_ORDER` for all categories** — Defined optimal evaluation order (mechanical → structural → stylistic → migrate) for all 8 categories in `reviewer.py`. Previously only `writing` had a defined order.
 - **`test_fix_applier.py`** (13 tests) — Tests `apply_fixes()` and `validate_fix_quality()`.

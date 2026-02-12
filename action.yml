@@ -43,6 +43,10 @@ inputs:
     description: 'Comma-separated list of labels to add to the PR'
     required: false
     default: ''
+  temperature:
+    description: 'LLM temperature (0=deterministic, 1=creative). Lower values give more consistent results.'
+    required: false
+    default: '0'
 
 outputs:
   pr-number:
@@ -93,5 +97,6 @@ runs:
           --rule-categories "${{ inputs.rule-categories }}" \
           --create-pr "${{ inputs.create-pr }}" \
           --pr-branch-prefix "${{ inputs.pr-branch-prefix }}" \
+          --temperature "${{ inputs.temperature }}" \
           --comment-body "${{ inputs.comment-body }}" \
           --repository "${{ github.repository }}"
