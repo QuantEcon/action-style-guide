@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Category names as PR labels** — When specific categories are requested (e.g., `@qe-style-checker lectures/file.md code,math`), the category names are added as labels on the generated PR. Default labels (`automated`, `style-guide`, `review`) are always included.
 
+### Removed
+
+- **Removed `tool-style-guide-development/` directory** — Rules are now edited directly in `style_checker/rules/`; the standalone development tool and `style-guide-database.md` are no longer needed.
+
 ## [0.6.0] - 2026-02-12
 
 ### Fixed
