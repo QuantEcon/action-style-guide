@@ -242,6 +242,12 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
         if issues_match:
             result['issues_found'] = int(issues_match.group(1))
         
+        # Short-circuit: if Issues Found is 0, skip violation parsing entirely.
+        # This prevents the LLM's "no change needed" commentary from being
+        # treated as a suggested fix and replacing actual content.
+        if result['issues_found'] == 0:
+            return result
+        
         # Extract violations
         violations_section = re.search(r'## Violations\s*\n(.+?)(?=\n## Corrected Content|\Z)', response, re.DOTALL)
         if violations_section:

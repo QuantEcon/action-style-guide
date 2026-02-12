@@ -200,6 +200,71 @@ def test_violation_fields_present(sample_markdown_response):
         assert 'suggested_fix' in violation
 
 
+def test_zero_issues_skips_violation_parsing():
+    """Test that Issues Found: 0 causes parser to skip violation blocks entirely.
+    
+    This is the critical fix for the bug where the LLM reports 0 issues but
+    still emits violation blocks with commentary like '[No change needed]'
+    as the suggested fix, which would replace real content with that text.
+    """
+    # Simulate the exact bug: LLM says 0 issues but includes a phantom violation
+    response_with_phantom = """# Review Results
+
+## Summary
+No mathematical notation violations found. The lecture follows all math guidelines.
+
+## Issues Found
+0
+
+## Violations
+
+### Violation 1: qe-math-001 - Prefer UTF-8 unicode for simple parameter mentions
+
+**Severity:** info
+
+**Location:** Lines 30, 32 / Section "Inline Math in Wrong Context"
+
+**Description:** These uses of inline math are correct.
+
+**Current text:**
+~~~markdown
+The equation $E[X] = \\sum_{i=1}^{n} x_i p_i$ should be display math.
+~~~
+
+**Suggested fix:**
+~~~markdown
+[No change needed - this usage is acceptable per rule guidelines]
+~~~
+
+**Explanation:** Complex math expressions should keep LaTeX delimiters.
+"""
+    result = parse_markdown_response(response_with_phantom)
+    
+    assert result['issues_found'] == 0
+    # The key assertion: no violations should be parsed when issues_found is 0
+    assert len(result['violations']) == 0, (
+        "Parser should skip violation blocks when Issues Found is 0. "
+        "Phantom violations with commentary fixes cause content deletion."
+    )
+
+
+def test_zero_issues_preserves_summary():
+    """Test that the summary is still parsed when Issues Found is 0."""
+    response = """# Review Results
+
+## Summary
+No code formatting violations found. The lecture follows all code guidelines.
+
+## Issues Found
+0
+"""
+    result = parse_markdown_response(response)
+    
+    assert result['issues_found'] == 0
+    assert len(result['violations']) == 0
+    assert 'No code formatting violations found' in result['summary']
+
+
 if __name__ == '__main__':
     # Allow running directly for backwards compatibility
     pytest.main([__file__, '-v'])

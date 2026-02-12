@@ -104,7 +104,7 @@ The rule's `Type:` field indicates how to apply it:
 6. **Do NOT deviate** from this structure - the parser depends on it
 7. **Do NOT report** violations of other rules - only the specific rule provided
 
-**Important**: If NO violations are found for the specific rule, still use this format:
+**Important**: If NO violations are found for the specific rule, return ONLY this response:
 
 ```markdown
 # Review Results
@@ -114,8 +114,6 @@ No violations found for [rule-code]. The lecture follows this rule correctly.
 
 ## Issues Found
 0
-
-## Violations
-
-[Leave empty]
 ```
+
+**CRITICAL**: When Issues Found is 0, do NOT include a Violations section. Do NOT create violation blocks with "No change needed" or similar commentary as the suggested fix — this causes content to be deleted.

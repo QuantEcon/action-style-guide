@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Fixed zero-violation parser bug** — When the LLM reported `Issues Found: 0` but still emitted violation blocks with commentary like `[No change needed]` as the suggested fix, the fix_applier would replace real lecture content with that commentary text. Parser now short-circuits when `Issues Found` is 0, skipping all violation parsing. All 8 prompts updated with stronger instructions to not emit violation blocks when no violations are found.
 - **Fixed `review_lecture_smart()` architecture bug** — Was passing all rules at once to LLM despite documented evidence that single-rule evaluation is far more reliable. Now delegates to `review_lecture_single_rule()` for every category.
 - **Removed duplicate `format_pr_body()`** — Two implementations existed in `github_handler.py`; kept the concise second version.
 - **Removed dead code** — Deleted `parser_md.py` (unused module), `_review_category()`, `review_lecture()`, `check_style()` methods, unused `load_prompt` import, and `--github-ref` CLI argument.
