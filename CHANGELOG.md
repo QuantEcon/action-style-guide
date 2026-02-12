@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-12
+
 ### Fixed
 
 - **Clarified qe-code-003 rule** — Specified that package installation cells belong near the top of the lecture in one of the first code cells. Explicitly states that standard Anaconda packages (numpy, matplotlib, scipy, pandas, sympy) do NOT require installation cells. Previously the vague rule caused the LLM to hallucinate installation blocks and overwrite section headers.
