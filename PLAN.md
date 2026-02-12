@@ -151,11 +151,73 @@ The test suite has gaps and some tests don't test the right things.
 
 ---
 
-## Phase 4: Improve Style Suggestion UX
+## Phase 4: Reliability Improvements
+
+Reduce LLM hallucinations, improve fix accuracy, and move mechanical rules to deterministic checking.
+Full analysis and rule-by-rule review in [IMPROVEMENTS.md](IMPROVEMENTS.md).
+
+### 4.1 Structural Guardrails
+
+Add validation to `fix_applier.py` to prevent destructive fixes:
+
+- [ ] Reject fixes that replace headings (`#`) with non-heading content
+- [ ] Reject fixes that replace/remove directives (`` ``` ``)
+- [ ] Reject fixes where `current_text` and `suggested_fix` have very low similarity (edit distance check)
+- [ ] Reject fixes that change more than 10 lines
+- [ ] Validate resulting markdown structure after all fixes applied
+
+### 4.2 Line-Number Anchoring
+
+Replace free-text quoting with line-number targeting:
+
+- [ ] Add `add_line_numbers(content)` utility to prepend `L001:` to each line
+- [ ] Update all 8 prompt templates to instruct LLM to reference line ranges
+- [ ] Update `parse_markdown_response()` to extract line ranges
+- [ ] Update `fix_applier.py` to use line-based targeting instead of `str.replace()`
+
+### 4.3 Deterministic Checkers for Mechanical Rules
+
+Move ~13 rules to regex/programmatic checking (zero hallucination risk):
+
+- [ ] Create `deterministic_checker.py` with pattern-matching checks
+- [ ] Move qe-writing-008 (whitespace), qe-math-002 (transpose), qe-math-003 (pmatrix), qe-math-004 (mathbf), qe-math-006 (aligned), qe-math-007 (\tag detection)
+- [ ] Move qe-fig-003 (set_title detection), qe-fig-007 (spine removal), qe-admon-004 (prf prefix)
+- [ ] Move qe-code-004 (time.time detection), qe-code-005 (%timeit detection)
+- [ ] Run deterministic checks before LLM calls to reduce API usage
+- [ ] Integrate results into existing violation/fix pipeline
+
+### 4.4 Rule Clarity Improvements
+
+Improve rule descriptions to reduce LLM misinterpretation (12 rules):
+
+- [ ] qe-writing-001: Add exclusion list (code blocks, math, lists, frontmatter, edge cases)
+- [ ] qe-writing-002: Raise word threshold, add "show which words to remove" guidance
+- [ ] qe-writing-004: Add proper noun exception list for economics/math terms
+- [ ] qe-writing-005: Add exclusions (links, admonitions, slang); narrow "definition"
+- [ ] qe-math-001: Restrict to Greek letters only, don't convert `$x$` → `x`
+- [ ] qe-math-008: Clarify scope (first use, define before use)
+- [ ] qe-math-009: Narrow to avoid flagging standard mathematical notation
+- [ ] qe-code-003: Add explicit Anaconda package list, structural fix guardrail
+- [ ] qe-fig-004: Relax word count limit, focus on formatting rules
+- [ ] qe-admon-001: Add examples showing gated syntax pattern
+- [ ] qe-admon-003: Add examples showing tick count nesting
+- [ ] qe-admon-005: Add examples showing solution-exercise linking
+
+### 4.5 Reduce Scope of Subjective Rules
+
+Reconsider rules that produce noise:
+
+- [ ] qe-writing-003 (logical flow) — make advisory-only or remove
+- [ ] qe-writing-007 (visual elements) — make advisory-only or remove
+- [ ] qe-fig-002 (prefer code-generated) — make advisory-only or remove
+
+---
+
+## Phase 5: Improve Style Suggestion UX
 
 The core goal: make it easy for authors to review and accept/reject style suggestions.
 
-### 4.1 Better Formatting (Quick Win)
+### 5.1 Better Formatting (Quick Win)
 
 Improve `format_style_suggestions_report()` output:
 
@@ -164,7 +226,7 @@ Improve `format_style_suggestions_report()` output:
 - [ ] Cap displayed suggestions (e.g., top 10) to prevent suggestion fatigue
 - [ ] Improve language: "suggestion" not "violation" throughout
 
-### 4.2 PR Reviews with GitHub Suggestion Blocks
+### 5.2 PR Reviews with GitHub Suggestion Blocks
 
 **The big UX win.** Post style suggestions as PR review comments with `suggestion` blocks. Authors get a one-click "Commit suggestion" button.
 
@@ -180,7 +242,7 @@ Improve `format_style_suggestions_report()` output:
    ````
 3. Author clicks "Commit suggestion" to accept, or ignores it
 
-**Constraint:** Suggestion blocks only work on lines in the PR diff. For lines not in the diff, fall back to the formatted comment approach from 4.1.
+**Constraint:** Suggestion blocks only work on lines in the PR diff. For lines not in the diff, fall back to the formatted comment approach from 5.1.
 
 **Implementation:**
 - [ ] Add line-number tracking to violation data (LLM already provides `location`)
@@ -190,7 +252,7 @@ Improve `format_style_suggestions_report()` output:
 - [ ] Fall back to comment-based format for suggestions not in diff
 - [ ] Test with real lectures
 
-### 4.3 Token/Cost Tracking
+### 5.3 Token/Cost Tracking
 
 - [ ] Parse `usage` field from Anthropic API responses
 - [ ] Aggregate tokens by rule, category, and lecture
@@ -199,21 +261,21 @@ Improve `format_style_suggestions_report()` output:
 
 ---
 
-## Phase 5: New Capabilities
+## Phase 6: New Capabilities
 
 Longer-term features, after the foundation is solid.
 
-### 5.1 Incremental PR Review Mode
+### 6.1 Incremental PR Review Mode
 
 Trigger style checking automatically when a PR is opened against the lecture repo.
 
 - [ ] New `--mode pr` option
 - [ ] Parse PR diff to identify changed `.md` files
 - [ ] Review only changed files
-- [ ] Post results as PR review comments (integrates with 4.2)
+- [ ] Post results as PR review comments (integrates with 5.2)
 - [ ] Tag rules with `scope: line` vs `scope: document` metadata
 
-### 5.2 Checkbox + `/apply-style` Command
+### 6.2 Checkbox + `/apply-style` Command
 
 For style suggestions not in the diff (can't use suggestion blocks):
 
@@ -221,20 +283,20 @@ For style suggestions not in the diff (can't use suggestion blocks):
 - [ ] Author checks desired items, comments `/apply-style`
 - [ ] Action triggers, parses checked items, applies as new commit
 
-### 5.3 Batch Processing Improvements
+### 6.3 Batch Processing Improvements
 
 - [ ] Resume capability for bulk reviews (track progress in state file)
 - [ ] Progress reporting: `[15/47] Reviewing: intro_to_python.md`
 - [ ] Estimated time remaining
 - [ ] Partial failure handling with retry
 
-### 5.4 Rule Confidence Scoring
+### 6.4 Rule Confidence Scoring
 
 - [ ] Track suggestion acceptance rates (manual initially)
 - [ ] Use data to promote reliable style → rule
 - [ ] Use data to identify rules needing prompt improvements
 
-### 5.5 Local CLI Tool Enhancement
+### 6.5 Local CLI Tool Enhancement
 
 Improve `tool-style-checker/` for pre-submission author workflow:
 
@@ -248,10 +310,10 @@ Improve `tool-style-checker/` for pre-submission author workflow:
 ## Phase Order & Dependencies
 
 ```
-Phase 1 (Bugs)  ──→  Phase 2 (Docs)  ──→  Phase 3 (Tests)  ──→  Phase 4 (UX)  ──→  Phase 5 (Features)
-     │                     │                     │
-     │                     │                     └── 3.5 CI blocks nothing but should
-     │                     │                          land before Phase 4+
+Phase 1 (Bugs)  ──→  Phase 2 (Docs)  ──→  Phase 3 (Tests)  ──→  Phase 4 (Reliability)  ──→  Phase 5 (UX)  ──→  Phase 6 (Features)
+     │                     │                     │                       │
+     │                     │                     │                       └── 4.3 (deterministic) enables 4.2 (line numbers)
+     │                     │                     └── 3.5 CI should land before Phase 4+
      │                     └── Can run parallel with Phase 1
      │
      └── 1.1 (architecture fix) is prerequisite for everything else
@@ -261,8 +323,12 @@ Phase 1 (Bugs)  ──→  Phase 2 (Docs)  ──→  Phase 3 (Tests)  ──→
 - **1.2, 1.3, 1.4** are independent and quick
 - **Phase 2** can start in parallel with Phase 1 (different files)
 - **Phase 3** depends on Phase 1 (dead code removal changes what tests exist)
-- **Phase 4** depends on Phases 1-3 being stable
-- **Phase 5** depends on Phase 4 patterns being proven
+- **Phase 4** depends on Phases 1-3 being stable — focuses on reducing hallucinations
+- **Phase 4.1** (guardrails) is the quickest safety win
+- **Phase 4.3** (deterministic) reduces the LLM surface area before 4.2 (line numbers) changes the prompt format
+- **Phase 4.4** (rule clarity) can run in parallel with 4.1-4.3
+- **Phase 5** depends on Phase 4 reliability improvements being proven
+- **Phase 6** depends on Phase 5 patterns being proven
 
 ---
 
@@ -272,6 +338,8 @@ Phase 1 (Bugs)  ──→  Phase 2 (Docs)  ──→  Phase 3 (Tests)  ──→
 |---------|----------|--------|
 | 0.6.0 | Phase 1 + Phase 2 (bugs & docs) | Not started |
 | 0.7.0 | Phase 3 (test improvements, CI) | Not started |
-| 0.8.0 | Phase 4.1-4.2 (suggestion blocks) | Not started |
-| 0.9.0 | Phase 4.3 + Phase 5.1 (tracking, PR mode) | Not started |
+| 0.8.0 | Phase 4.1 + 4.4 (guardrails, rule clarity) | Not started |
+| 0.9.0 | Phase 4.2 + 4.3 (line numbers, deterministic checkers) | Not started |
+| 0.10.0 | Phase 5.1-5.2 (suggestion UX, suggestion blocks) | Not started |
+| 0.11.0 | Phase 5.3 + Phase 6.1 (tracking, PR mode) | Not started |
 | 1.0.0 | Stable release after production validation | Not started |
