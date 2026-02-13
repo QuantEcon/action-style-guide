@@ -1,8 +1,9 @@
 """
-LLM-based Style Checker using Claude Sonnet 4.5
+LLM-based Style Checker using Claude Sonnet 4.5 with Extended Thinking
 Uses Markdown format for LLM responses (more reliable than JSON for long content)
 Applies fixes programmatically instead of relying on LLM-generated corrected content
 Uses markdown-based prompt templates for simplicity and maintainability
+Extended thinking lets Claude reason internally before responding, eliminating false positives
 """
 
 import os
@@ -301,7 +302,7 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
         
         # Note: Corrected content is not extracted from LLM response anymore
         # Fixes are applied programmatically using apply_fixes() function
-        # This reduces output tokens by ~50% and matches tool-style-checker approach
+        # This reduces output tokens by ~50%
         
     except Exception as e:
         result['error'] = f'Markdown parsing failed: {str(e)}'
@@ -310,18 +311,24 @@ def parse_markdown_response(response: str) -> Dict[str, Any]:
 
 
 class AnthropicProvider:
-    """Anthropic Claude provider
+    """Anthropic Claude provider with extended thinking
     
     Uses Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) by default.
-    Supports up to 64,000 output tokens.
+    Extended thinking lets the model reason internally before responding,
+    which dramatically reduces false positives (0% vs ~43% without).
+    
+    Extended thinking requires temperature=1.0 (Anthropic constraint).
+    The thinking budget controls how much internal reasoning the model does.
     
     For latest models and limits, see: https://docs.anthropic.com/en/docs/about-claude/models
     """
     
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929", temperature: float = 0.0):
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929",
+                 temperature: float = 1.0, thinking_budget: int = 10000):
         self.api_key = api_key
         self.model = model
-        self.temperature = temperature
+        self.temperature = temperature  # Must be 1.0 for extended thinking
+        self.thinking_budget = thinking_budget
         try:
             from anthropic import Anthropic
             self.client = Anthropic(api_key=api_key)
@@ -329,28 +336,36 @@ class AnthropicProvider:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
     
     def check_single_rule(self, prompt: str) -> Dict[str, Any]:
-        """Check a single rule using provided prompt"""
+        """Check a single rule using provided prompt with extended thinking"""
+        api_kwargs = dict(
+            model=self.model,
+            max_tokens=64000,
+            temperature=self.temperature,
+            messages=[{"role": "user", "content": prompt}],
+            thinking={
+                "type": "enabled",
+                "budget_tokens": self.thinking_budget,
+            },
+        )
+        
         # Try non-streaming first, fall back to streaming if required
         try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=64000,
-                temperature=self.temperature,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            full_response = response.content[0].text
+            response = self.client.messages.create(**api_kwargs)
+            full_response = ""
+            for block in response.content:
+                if block.type == "text":
+                    full_response = block.text
         except Exception as e:
             # If we get the streaming error, use streaming
             if "Streaming is required" in str(e) or "10 minutes" in str(e):
                 full_response = ""
-                with self.client.messages.stream(
-                    model=self.model,
-                    max_tokens=64000,
-                    temperature=self.temperature,
-                    messages=[{"role": "user", "content": prompt}]
-                ) as stream:
-                    for text in stream.text_stream:
-                        full_response += text
+                with self.client.messages.stream(**api_kwargs) as stream:
+                    for event in stream:
+                        # Only extract text blocks — thinking blocks are internal
+                        # reasoning and not needed in the final response
+                        if hasattr(event, 'type') and event.type == 'content_block_delta':
+                            if hasattr(event.delta, 'text'):
+                                full_response += event.delta.text
             else:
                 # Re-raise if it's a different error
                 raise
@@ -360,16 +375,18 @@ class AnthropicProvider:
 
 
 class StyleReviewer:
-    """Main style reviewer using Claude Sonnet 4.5"""
+    """Main style reviewer using Claude Sonnet 4.5 with extended thinking"""
     
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None, temperature: float = 0.0):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None,
+                 temperature: float = 1.0, thinking_budget: int = 10000):
         """
         Initialize reviewer with Claude Sonnet 4.5
         
         Args:
             api_key: Anthropic API key (or will use ANTHROPIC_API_KEY environment variable)
             model: Specific Claude model to use (default: claude-sonnet-4-5-20250929)
-            temperature: LLM temperature (0=deterministic, 1=creative, default: 0)
+            temperature: LLM temperature (must be 1.0 for extended thinking)
+            thinking_budget: Max tokens for internal reasoning (default: 10000)
         """
         self.provider_name = 'claude'
         
@@ -380,8 +397,11 @@ class StyleReviewer:
         if not api_key:
             raise ValueError("No API key provided. Set ANTHROPIC_API_KEY environment variable or pass api_key parameter")
         
-        # Initialize Claude provider
-        self.provider = AnthropicProvider(api_key, model, temperature=temperature) if model else AnthropicProvider(api_key, temperature=temperature)
+        # Initialize Claude provider with extended thinking
+        if model:
+            self.provider = AnthropicProvider(api_key, model, temperature=temperature, thinking_budget=thinking_budget)
+        else:
+            self.provider = AnthropicProvider(api_key, temperature=temperature, thinking_budget=thinking_budget)
     
     def review_lecture_single_rule(
         self,
@@ -515,8 +535,8 @@ class StyleReviewer:
         Smart review strategy using sequential category processing.
         
         Processes categories one at a time, feeding the updated document from
-        one category into the next. This matches the tool-style-checker approach
-        and ensures all fixes are applied without conflicts.
+        one category into the next. This ensures all fixes are applied without
+        conflicts.
         
         Benefits:
         - All fixes applied without conflicts

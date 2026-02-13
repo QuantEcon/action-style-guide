@@ -114,7 +114,6 @@ Available categories: `writing`, `math`, `code`, `jax`, `figures`, `references`,
 
 For complete rule details including examples and implementation notes, see:
 - **Individual rule files**: `style_checker/rules/*.md`
-- **Source database**: `tool-style-guide-development/style-guide-database.md`
 
 Each rule includes:
 - ✅ Correct examples

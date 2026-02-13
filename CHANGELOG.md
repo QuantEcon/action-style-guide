@@ -7,12 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-02-13
+
 ### Added
 
+- **Extended thinking** — Claude now reasons internally before responding, which eliminates false positives (0% vs ~43% previously). The model verifies each candidate violation before including it in the output. Requires `temperature=1.0` (Anthropic constraint for extended thinking). See [docs/testing-extended-thinking.md](docs/testing-extended-thinking.md) for experiment results.
+- **Prompt version archiving** — Previous prompts saved in `style_checker/prompts/v0.6.1/` for comparison. Future prompt changes will be archived similarly.
+- **Testing documentation** — New [docs/testing-extended-thinking.md](docs/testing-extended-thinking.md) documenting the extended thinking experiments, prompt iteration results, and ground truth validation.
+
+### Changed
+
+- **Minimal rule-agnostic prompts** — All 8 category-specific prompts replaced with a single unified ~40 line prompt (down from ~120 lines each). The prompt no longer contains category-specific instructions — scope and analysis context come from the rule definitions themselves. This reduces signal dilution and lets the model focus on the task.
+- **Default temperature changed to 1.0** — Required for extended thinking. The thinking budget (10,000 tokens) ensures careful reasoning despite higher temperature.
+- **Local CLI: `qestyle`** — New command-line tool that shares the same review engine, prompts, rules, and fix logic as the GitHub Action. Install with `pip install git+https://github.com/QuantEcon/action-style-guide.git`. Run `qestyle lecture.md` to review, apply fixes, and write a report (`qestyle-lecture.md`). Use `--dry-run` to skip applying fixes. Warns if the file has uncommitted changes before applying fixes. Supports `--categories`, `--output`, `--model`, and `--temperature` options.
 - **Category names as PR labels** — When specific categories are requested (e.g., `@qe-style-checker lectures/file.md code,math`), the category names are added as labels on the generated PR. Default labels (`automated`, `style-guide`, `review`) are always included.
 
 ### Removed
 
+- **Removed `tool-style-checker/` directory** — Replaced by the built-in `qestyle` CLI. The standalone tool had diverged from the main action (different LLM calling strategy, stale rule counts, old output format). The CLI uses the exact same `StyleReviewer` code path.
 - **Removed `tool-style-guide-development/` directory** — Rules are now edited directly in `style_checker/rules/`; the standalone development tool and `style-guide-database.md` are no longer needed.
 
 ## [0.6.0] - 2026-02-12

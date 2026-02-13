@@ -34,69 +34,57 @@ This is a GitHub Action that performs AI-powered style guide compliance checking
 ```
 action-style-guide/
 ├── action.yml                    # GitHub Action definition
-├── style_checker/                # Main action code
+├── style_checker/                # Main package
 │   ├── __init__.py              # Version info (__version__)
-│   ├── main.py                  # Entry point, CLI handling
-│   ├── reviewer.py              # LLM interaction, response parsing
-│   ├── github_handler.py        # GitHub API interactions
-│   ├── fix_applier.py           # Apply fixes to markdown files
-│   ├── prompt_loader.py         # Load prompts and rules
-│   ├── prompts/                 # Category-specific prompts
+│   ├── cli.py                   # Local CLI entry point (qestyle)
+│   ├── github.py                # GitHub Action entry point
+│   ├── reviewer.py              # LLM interaction with extended thinking (shared)
+│   ├── github_handler.py        # GitHub API interactions (action only)
+│   ├── fix_applier.py           # Apply fixes to markdown files (shared)
+│   ├── prompt_loader.py         # Load prompts and rules (shared)
+│   ├── prompts/                 # Minimal rule-agnostic prompt (identical for all categories)
 │   │   ├── writing-prompt.md
 │   │   ├── math-prompt.md
-│   │   └── ...
+│   │   ├── ...
+│   │   └── v0.6.1/             # Archived previous prompts
 │   └── rules/                   # Category-specific rules
 │       ├── writing-rules.md
 │       ├── math-rules.md
 │       └── ...
 ├── tests/                       # Test files
 ├── docs/                        # Documentation
-└── tool-*/                      # Independent development tools (NOT part of action)
-    ├── tool-style-checker/      # Prototype for testing prompts/rules
-    └── tool-style-guide-development/  # Rule development utilities
+└── examples/                    # Example GitHub workflows
 ```
 
-### Important: tool-* Folders
+### Two Entry Points, One Engine
 
-**The `tool-*` directories are independent projects for developing and testing prompts and rules.**
-
-- ❌ **NOT part of the GitHub Action** - Not loaded or used by the action
-- ✅ **Development utilities** - Used for prototyping and testing rule changes
-- ✅ **Standalone tools** - Can be run independently for prompt/rule development
-- 📝 **May have different dependencies** - Don't assume they share code with `style_checker/`
-
-**When to use:**
-- Testing new prompts before adding to `style_checker/prompts/`
-- Developing new rules before adding to `style_checker/rules/`
-- Experimenting with rule formatting or LLM behavior
-- Quick prototyping without affecting the action
-
-**When NOT to use:**
-- Production runs (use the GitHub Action)
-- Expecting changes in `tool-*` to affect the action behavior
-- Assuming code consistency with `style_checker/`
+- **`cli.py`** (`qestyle` command): Local CLI for authors. Reads files from disk, applies rule-type fixes by default, writes report to file. Use `--dry-run` to skip fixes.
+- **`github.py`**: GitHub Action entry point. Reads files via GitHub API, creates PRs with fixes.
+- Both use the **same `StyleReviewer`**, prompts, rules, and `fix_applier` — results are identical.
 
 ## Key Technical Decisions
 
 ### LLM Architecture
 - **Single model**: Claude Sonnet 4.5 only (no model switching complexity)
+- **Extended thinking**: Model reasons internally (10K token budget) before outputting, eliminating false positives
+- **Temperature 1.0**: Required by Anthropic for extended thinking
 - **Sequential rule processing**: Process one rule at a time within each category, apply fixes between each
 - **Sequential category processing**: Process categories one at a time, feed updated document to next category
-- **Prompt-driven**: Instructions in prompts, not hardcoded logic
+- **Minimal prompt**: Rule-agnostic ~40-line prompt (identity + task + format template)
 - **Simple parsing**: Regex-based markdown response parsing
 
 ### Rule System
 - **Category-based**: 8 categories (writing, math, code, jax, figures, references, links, admonitions)
-- **Prompt + Rules**: Each category has a prompt template and rules document
+- **Prompt + Rules**: Single minimal prompt template + per-category rules document
 - **One rule per LLM call**: Each rule checked individually, fixes applied before next rule
 - **Order matters**: Rules evaluated in specified order (mechanical → structural → stylistic → creative)
 - **Single source of truth**: Version in `__init__.py`
 
 ### Prompt Files
 - **Location**: `style_checker/prompts/*.md`
+- **Design**: All 8 prompt files are identical (rule-agnostic). Consolidation to single `prompt.md` planned (see PLAN.md 4.6).
 - **Version tracking**: Each prompt has version comment at top: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
-- **Update on modification**: Bump version when prompt content changes (usually to match release version)
-- **Purpose**: Track which prompt version generated historical LLM responses
+- **Archive**: Previous prompts archived in `style_checker/prompts/v0.6.1/`
 
 ### GitHub Integration
 - **Programmatic fixes**: Apply fixes via code, don't ask LLM for full corrected content
@@ -165,9 +153,9 @@ assert github_token
 
 ```python
 # In __init__.py
-__version__ = "0.3.7"  # Bump for every release
+__version__ = "0.6.1"  # Bump for every release
 
-# In main.py - print version at startup
+# In github.py - print version at startup
 print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ```
 
@@ -273,8 +261,12 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ## Useful Commands
 
 ```bash
-# Test locally
-python style_checker/main.py --mode single --repository owner/repo --comment-body "..."
+# Test locally with CLI
+qestyle lecture.md --categories writing
+qestyle lecture.md --dry-run
+
+# Test GitHub Action entry point
+python style_checker/github.py --mode single --repository owner/repo --comment-body "..."
 
 # Run tests
 pytest tests/
@@ -284,40 +276,73 @@ nox -s tests
 
 # Check version
 python -c "from style_checker import __version__; print(__version__)"
+qestyle --version
+
+# Install locally (editable)
+pip install -e .
 
 # Create release
-gh release create v0.3.7 --title "..." --notes "..."
-git tag -f v0.3 && git push origin v0.3 --force
+gh release create v0.6.1 --title "..." --notes "..."
+git tag -f v0.6 && git push origin v0.6 --force
 ```
 
 ## GitHub CLI Note
 
-**Important:** When using `gh` CLI commands that produce large output (e.g., `gh pr view`, `gh api`), redirect output to a `/tmp` file to see complete results:
+**Important:** When using `gh` CLI commands that produce large output (e.g., `gh pr view`, `gh api`), redirect output to a `.tmp/` file to see complete results:
 
 ```bash
 # Write gh output to temp file for inspection
-gh pr view 123 --json body > /tmp/pr-body.json
-cat /tmp/pr-body.json
+gh pr view 123 --json body > .tmp/pr-body.json
+cat .tmp/pr-body.json
 
 # For API calls with large responses
-gh api repos/QuantEcon/lecture-python.myst/pulls/123 > /tmp/pr-details.json
+gh api repos/QuantEcon/lecture-python.myst/pulls/123 > .tmp/pr-details.json
 ```
 
 This is particularly useful when debugging GitHub integration issues or inspecting PR/issue content.
 
 ## Terminal Multi-line Content Note
 
-**Important:** When writing multi-line content (PR descriptions, issue bodies, commit messages with special characters), **always use `create_file` to write content to a `/tmp` file first**, then reference that file in the CLI command. Do NOT use heredocs (`cat << EOF`), escaped strings, or inline multi-line content in terminal commands — these frequently fail due to escaping issues.
+**Important:** When writing multi-line content (PR descriptions, issue bodies, commit messages with special characters), **always use `create_file` to write content to a `.tmp/` file first**, then reference that file in the CLI command. Do NOT use heredocs (`cat << EOF`), escaped strings, or inline multi-line content in terminal commands — these frequently fail due to escaping issues.
 
 ```bash
 # ✅ Good: Write content to file, then reference it
-# (use create_file tool to write /tmp/pr-body.md)
-gh pr edit 9 --body-file /tmp/pr-body.md
+# (use create_file tool to write .tmp/pr-body.md)
+gh pr edit 9 --body-file .tmp/pr-body.md
 
 # ❌ Bad: Heredocs and escaped strings break often
-cat << 'EOF' > /tmp/file.md
+cat << 'EOF' > .tmp/file.md
 content with $special chars...
 EOF
+```
+
+**Use `.tmp/` not `/tmp/`** — the local `.tmp/` folder (in the repo root) avoids file collisions with other projects. Its contents are git-ignored.
+
+## Test Repository
+
+**`test-action-style-guide/`** is a local clone of [QuantEcon/test-action-style-guide](https://github.com/QuantEcon/test-action-style-guide) used for local testing.
+
+- Git-ignored — not committed to this repo
+- Contains test lecture files with intentional style violations
+- Used for both **CLI testing** (`qestyle test-action-style-guide/lectures/file.md`) and **GitHub Action integration testing**
+- Clone if missing: `git clone https://github.com/QuantEcon/test-action-style-guide.git`
+
+**When to use:**
+- Testing `qestyle` CLI against realistic lectures
+- Validating prompt/rule changes produce correct results
+- Testing GitHub Action workflows (push to test repo, trigger action)
+- Regression testing before releases
+
+**Workflow:**
+```bash
+# Test CLI on a test lecture
+qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --categories writing
+
+# Test with dry-run mode (no changes applied)
+qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --dry-run --categories math
+
+# Reset test files after testing
+cd test-action-style-guide && git checkout -- . && cd ..
 ```
 
 ## Remember

@@ -1,23 +1,24 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.5.1**: Production testing infrastructure, PR labels, @qe-style-checker syntax
+> 🚀 **Version 0.7.0**: Extended thinking for zero false positives, minimal unified prompts, local CLI (`qestyle`)
 
-A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
+A GitHub Action and local CLI for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
 ## Overview
 
-This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses category-specific focused prompts to check 49 style rules covering writing, mathematics, code, JAX patterns, figures, and more.
+This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses Claude Sonnet 4.5 with extended thinking to check 49 style rules covering writing, mathematics, code, JAX patterns, figures, and more.
 
 ## Features
 
-- 🤖 **AI-Powered Review**: Uses Claude Sonnet 4.5 for intelligent, nuanced style analysis
+- 🤖 **AI-Powered Review**: Uses Claude Sonnet 4.5 with extended thinking — zero false positives
 - 🏷️ **Category-Based Reviews**: Target specific areas (writing, math, code, jax, figures, references, links, admonitions)
-- 📝 **Focused Prompts**: Hand-crafted prompts + detailed rules = better quality, lower cost
+- 📝 **Minimal Prompts**: Rule-agnostic prompt + detailed rules = better quality, lower cost
 - 🎯 **Flexible Targeting**: Check all categories or focus on specific ones
+- 🖥️ **Local CLI**: `qestyle` command runs the same engine locally
 - 📅 **Scheduled Reviews**: Weekly automated reviews or on-demand via comments
 - 🔄 **Automated Fixes**: Applies fixes programmatically for reliable results
 - 🏷️ **PR Management**: Creates labeled PRs with detailed explanations
@@ -109,12 +110,11 @@ Ensure these labels exist in your repository:
 
 ### LLM Model
 
-The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) by default, which provides:
-- Excellent comprehension for nuanced style rules
-- Strong markdown and code understanding
-- Reliable structured output for suggestions and fixes
-
-The focused prompts architecture (85-line instructions + 120-235 line rules) ensures efficient token usage while maintaining comprehensive analysis.
+The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) with **extended thinking** by default:
+- Extended thinking lets the model reason internally before responding, eliminating false positives (0% FP rate)
+- Requires `temperature=1.0` (Anthropic constraint); thinking budget of 10,000 tokens
+- Minimal rule-agnostic prompt (~40 lines) + detailed rules (120-235 lines) per category
+- See [docs/testing-extended-thinking.md](docs/testing-extended-thinking.md) for experiment results
 
 ## Rule Types
 
@@ -148,14 +148,15 @@ Legacy patterns that should be updated (JAX and code categories only):
 
 ## Architecture
 
-The action uses a **focused prompts architecture** with **sequential category processing**:
+The action uses a **minimal prompt + extended thinking** architecture with **sequential category processing**:
 
-1. **Prompts** (`style_checker/prompts/*.md`): Concise instructions (~85 lines each) for LLM analysis
+1. **Prompt** (`style_checker/prompts/*.md`): A single minimal ~40-line prompt (identity + task + format)
 2. **Rules** (`style_checker/rules/*.md`): Detailed specifications (~120-235 lines each) with examples
-3. **Categories**: 8 focused areas (writing, math, code, jax, figures, references, links, admonitions)
-4. **Sequential Processing**: Processes categories one at a time, feeding the updated document from each category into the next
+3. **Extended Thinking**: Claude reasons internally (10K token budget) before outputting, eliminating false positives
+4. **Categories**: 8 focused areas (writing, math, code, jax, figures, references, links, admonitions)
+5. **Sequential Processing**: Processes categories one at a time, feeding the updated document from each category into the next
 
-Each category combines its prompt (how to check) with its rules (what to check) for targeted, efficient analysis.
+The prompt is rule-agnostic — scope and analysis context come from the rule definitions themselves.
 
 ### How Sequential Processing Works
 
@@ -166,7 +167,7 @@ The action processes categories in order, ensuring all fixes are applied without
 3. **Category 3 (e.g., Code)**: Reviews **updated document** → finds violations → applies fixes → **updated document**
 4. Continue for all 8 categories...
 
-This approach matches `tool-style-checker` and ensures:
+This approach ensures:
 - ✅ All fixes are applied without conflicts
 - ✅ Later categories see changes made by earlier categories
 - ✅ More coherent and complete final output
@@ -207,31 +208,80 @@ This PR addresses style guide compliance issues found in the Aiyagari model lect
 See commits for detailed explanations of each change.
 ```
 
-## Development
+## Local CLI: `qestyle`
 
-### Local CLI Tool
+The `qestyle` command lets you run the **exact same** review engine locally — same prompts, rules, and fix logic as the GitHub Action.
 
-For local testing without GitHub infrastructure, use the standalone CLI in `tool-style-checker/`:
+### Installation
+
+Install directly from GitHub (no PyPI registration needed):
 
 ```bash
-cd tool-style-checker
+# Latest release
+pip install git+https://github.com/QuantEcon/action-style-guide.git
 
-# Install requirements
-pip install anthropic
-export ANTHROPIC_API_KEY='your-api-key'
+# Specific version
+pip install git+https://github.com/QuantEcon/action-style-guide.git@v0.6
 
-# Check a lecture against specific categories
-python style_checker.py lecture.md --focus writing
-python style_checker.py lecture.md --focus writing,math,code
-
-# Output files created:
-# - lecture-suggestions.md (detailed review)
-# - lecture-corrected.md (corrected version)
+# Development (editable install from local clone)
+git clone https://github.com/QuantEcon/action-style-guide.git
+cd action-style-guide
+pip install -e .
 ```
 
-The CLI uses the **same prompts and rules** as the GitHub Action (loaded from `style_checker/prompts/` and `style_checker/rules/`), ensuring local testing matches production behavior.
+Set your Anthropic API key:
 
-See [tool-style-checker/README.md](tool-style-checker/README.md) for full documentation.
+```bash
+export ANTHROPIC_API_KEY='your-key-here'
+```
+
+### Usage
+
+```bash
+# Review all categories — applies fixes, writes report to qestyle(all)-lecture.md
+qestyle lecture.md
+
+# Check specific categories only
+qestyle lecture.md --categories writing
+qestyle lecture.md --categories math,code
+
+# Report only, don't modify the file
+qestyle lecture.md --dry-run
+
+# Write report to a custom path
+qestyle lecture.md -o custom-report.md
+
+# Use a specific model or temperature (default: 1.0 for extended thinking)
+qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 1.0
+```
+
+### Output
+
+By default, `qestyle` **applies rule-type fixes** directly to the lecture file and writes a Markdown report to `qestyle({category})-{lecture}.md` alongside the original file. Since lectures live in Git repos, you can review changes with `git diff` and restore with `git checkout`.
+
+If the lecture file has **uncommitted changes**, `qestyle` will warn you and ask to confirm before proceeding — giving you a chance to commit or stash first.
+
+The report contains:
+- **Style suggestions** — advisory items requiring human judgment (listed first)
+- **Applied fixes** — record of what was automatically changed (at the end)
+- **Warnings** — any processing issues
+
+**Dry-run mode** (`--dry-run`): Skips applying fixes — just writes the report. Useful to preview what would change.
+
+### Categories
+
+| Category | Focus |
+|----------|-------|
+| `writing` | Writing style and formatting |
+| `math` | Mathematics notation and LaTeX |
+| `code` | Python code style |
+| `jax` | JAX-specific patterns |
+| `figures` | Figure formatting and captions |
+| `references` | Citations and bibliography |
+| `links` | Hyperlinks and cross-references |
+| `admonitions` | Note/warning/tip blocks |
+
+## Development
 
 ### Testing
 
@@ -272,12 +322,12 @@ See [docs/production-testing.md](docs/production-testing.md) for complete testin
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
 ├── style_checker/            # Main package
-│   ├── main.py              # Entry point
-│   ├── parser_md.py         # Comment parsing
-│   ├── reviewer.py          # LLM review logic
-│   ├── github_handler.py    # PR/issue management
-│   ├── fix_applier.py       # Apply fixes to files
-│   ├── prompt_loader.py     # Load prompts + rules
+│   ├── cli.py               # Local CLI entry point (qestyle)
+│   ├── github.py            # GitHub Action entry point
+│   ├── reviewer.py          # LLM review engine (shared)
+│   ├── fix_applier.py       # Apply fixes to files (shared)
+│   ├── github_handler.py    # GitHub API (action only)
+│   ├── prompt_loader.py     # Load prompts + rules (shared)
 │   ├── prompts/             # Category-specific prompts
 │   └── rules/               # Category-specific rules
 ├── tests/                    # Test suite

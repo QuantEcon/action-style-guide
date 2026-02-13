@@ -211,6 +211,54 @@ Reconsider rules that produce noise:
 - [ ] qe-writing-007 (visual elements) — make advisory-only or remove
 - [ ] qe-fig-002 (prefer code-generated) — make advisory-only or remove
 
+### 4.6 Consolidate to Single Prompt File
+
+**Status: PLANNED**
+
+Currently 8 identical `{category}-prompt.md` files exist in `style_checker/prompts/`. They were made identical in v0.7.0 after experiments showed category-specific prompt instructions hurt accuracy (signal dilution, scope conflicts). The rule definitions already carry all category context.
+
+**What we learned (v0.7.0 experiments):**
+- Category-specific prompts were ~90% identical boilerplate with minor category wording
+- The boilerplate diluted the task signal (~60% format template, ~15% actual task)
+- "Decision process" instructions (e.g., "for each paragraph...") triggered exhaustive classify-everything behavior, generating false positives
+- Scope instructions (e.g., "skip code blocks") are rule-specific — writing rules check narrative, code rules check code blocks — so they can't be in a shared prompt
+- The RULE definition already specifies its own unit of analysis, scope, and violation criteria
+- A minimal rule-agnostic prompt (identity + task + format template) performs best
+
+**Plan:**
+- [ ] Consolidate 8 identical files into a single `style_checker/prompts/prompt.md`
+- [ ] Update `create_single_rule_prompt()` in `reviewer.py` to load the single file
+- [ ] Remove per-category file loading (`{category}-prompt.md` pattern)
+- [ ] Keep per-category files as a fallback option: if `{category}-prompt.md` exists, use it; otherwise fall back to `prompt.md`
+- [ ] Update `test_prompt_loader.py` tests
+- [ ] Update copilot-instructions.md to reflect single prompt architecture
+
+**Deferred until:** Extended thinking + minimal prompt approach is validated across all 8 categories in production use.
+
+### 4.7 Extended Thinking for False Positive Elimination
+
+**Status: DONE (v0.7.0)**
+
+Extended thinking lets Claude reason internally before outputting, which eliminates the report-then-retract pattern that caused false positives.
+
+**Experiment results (qe-writing-001 on test lecture):**
+
+| Approach | Violations | False Positives | FP Rate |
+|----------|-----------|-----------------|---------|
+| Baseline (verbose prompt, no thinking) | 21 | 9 | 43% |
+| Minimal prompt, no thinking | 27 | 13 | 48% |
+| Minimal prompt + "verify first" | 16 | 10 | 63% |
+| Minimal prompt + "analyze then report" | 20 | 8 | 40% |
+| **Minimal prompt + extended thinking** | **6** | **0** | **0%** |
+
+**Root cause:** Without extended thinking, the model commits tokens before finishing analysis (autoregressive generation). It reports a violation, then realizes the text is already compliant, and either retracts inline or emits identical current/suggested text. No amount of prompt instruction can fix this because the model can't "undo" tokens once written.
+
+**Implementation:**
+- [x] `AnthropicProvider` uses `thinking={"type": "enabled", "budget_tokens": 10000}`
+- [x] Temperature set to 1.0 (Anthropic requirement for extended thinking)
+- [x] Streaming fallback handles thinking + text content blocks
+- [x] Previous prompts archived in `style_checker/prompts/v0.6.1/`
+
 ---
 
 ## Phase 5: Improve Style Suggestion UX
@@ -336,10 +384,11 @@ Phase 1 (Bugs)  ──→  Phase 2 (Docs)  ──→  Phase 3 (Tests)  ──→
 
 | Version | Includes | Status |
 |---------|----------|--------|
-| 0.6.0 | Phase 1 + Phase 2 (bugs & docs) | Not started |
-| 0.7.0 | Phase 3 (test improvements, CI) | Not started |
+| 0.6.0 | Phase 1 + Phase 2 (bugs, docs, rule clarity) | Done |
+| 0.6.1 | Anti-false-positive prompt instruction (all 8 prompts) | Done |
+| 0.7.0 | Extended thinking, minimal unified prompt, qestyle CLI, test improvements | Done |
 | 0.8.0 | Phase 4.1 + 4.4 (guardrails, rule clarity) | Not started |
-| 0.9.0 | Phase 4.2 + 4.3 (line numbers, deterministic checkers) | Not started |
+| 0.9.0 | Phase 4.2 + 4.3 + 4.6 (line numbers, deterministic checkers, prompt consolidation) | Not started |
 | 0.10.0 | Phase 5.1-5.2 (suggestion UX, suggestion blocks) | Not started |
 | 0.11.0 | Phase 5.3 + Phase 6.1 (tracking, PR mode) | Not started |
 | 1.0.0 | Stable release after production validation | Not started |

@@ -49,8 +49,11 @@ htmlcov/
 secrets/
 credentials/
 
-# Development tools - generated files
-tool-style-guide-development/rules/
+# Test repository (cloned for local testing)
+test-action-style-guide/
+
+# Local temp files (use .tmp/ instead of /tmp/ to avoid collisions)
+# Contents ignored via .tmp/.gitignore; directory tracked via .tmp/.gitkeep
 
 # Logs
 *.log
@@ -59,7 +62,6 @@ logs/
 # Temporary files
 tmp/
 temp/
-*.tmp
 
 # Output files
 output/
