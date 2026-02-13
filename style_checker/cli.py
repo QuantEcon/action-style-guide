@@ -288,24 +288,21 @@ Categories:
     # --- Check for uncommitted changes (only in fix mode) ---
     if not args.dry_run and check_git_dirty(lecture_path):
         title = f"Uncommitted changes: {lecture_path.name}"
-        hint1 = "git commit  — save your current changes first"
-        hint2 = "git stash   — temporarily shelve changes"
+        hint1 = "git commit  -- save your current changes first"
+        hint2 = "git stash   -- temporarily shelve changes"
         body  = "qestyle will modify this file directly."
-        # Build lines with emoji, calculate width from display rendering
-        box_lines = [
-            f"  ⚠️  {title}",
-            "",
-            f"  {body}",
-            "",
-            f"  💡 {hint1}",
-            f"  💡 {hint2}",
-        ]
-        w = max(display_width(l) for l in box_lines) + 2
+        # Use plain ASCII for reliable width calculation
+        content_lines = [title, body, hint1, hint2]
+        inner = max(len(l) for l in content_lines) + 4
         print()
-        print(f"  ┌{'─' * w}┐")
-        for line in box_lines:
-            print(f"  │{pad_to_width(line, w)}│")
-        print(f"  └{'─' * w}┘")
+        print(f"  ┌{'─' * inner}┐")
+        print(f"  │  {title:<{inner - 2}}│")
+        print(f"  │{' ' * inner}│")
+        print(f"  │  {body:<{inner - 2}}│")
+        print(f"  │{' ' * inner}│")
+        print(f"  │  {hint1:<{inner - 2}}│")
+        print(f"  │  {hint2:<{inner - 2}}│")
+        print(f"  └{'─' * inner}┘")
         print()
         try:
             answer = input("  Continue anyway? [y/N] ").strip().lower()
