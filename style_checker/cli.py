@@ -17,6 +17,7 @@ import argparse
 import subprocess
 import sys
 import os
+import unicodedata
 from pathlib import Path
 from datetime import datetime
 
@@ -29,6 +30,31 @@ ALL_CATEGORIES = [
     "writing", "math", "code", "jax",
     "figures", "references", "links", "admonitions",
 ]
+
+
+def display_width(s: str) -> int:
+    """Calculate terminal display width, accounting for wide/emoji characters."""
+    w = 0
+    for c in s:
+        # Variation selector-16 (U+FE0F) forces emoji presentation (width 2),
+        # so add 1 to compensate for the base char already counted as 1
+        if c == '\ufe0f':
+            w += 1
+            continue
+        # Other zero-width characters
+        if unicodedata.category(c) in ('Mn', 'Me', 'Cf') or c == '\ufe0e':
+            continue
+        eaw = unicodedata.east_asian_width(c)
+        if eaw in ('W', 'F'):
+            w += 2
+        else:
+            w += 1
+    return w
+
+
+def pad_to_width(s: str, target: int) -> str:
+    """Pad string with spaces to reach target display width."""
+    return s + ' ' * max(0, target - display_width(s))
 
 
 def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
@@ -261,25 +287,43 @@ Categories:
 
     # --- Check for uncommitted changes (only in fix mode) ---
     if not args.dry_run and check_git_dirty(lecture_path):
-        print(f"Warning: {lecture_path.name} has uncommitted changes.")
-        print("  qestyle will modify this file. Consider committing or stashing first.")
+        title = f"Uncommitted changes: {lecture_path.name}"
+        hint1 = "git commit  — save your current changes first"
+        hint2 = "git stash   — temporarily shelve changes"
+        body  = "qestyle will modify this file directly."
+        # Build lines with emoji, calculate width from display rendering
+        box_lines = [
+            f"  ⚠️  {title}",
+            "",
+            f"  {body}",
+            "",
+            f"  💡 {hint1}",
+            f"  💡 {hint2}",
+        ]
+        w = max(display_width(l) for l in box_lines) + 2
+        print()
+        print(f"  ┌{'─' * w}┐")
+        for line in box_lines:
+            print(f"  │{pad_to_width(line, w)}│")
+        print(f"  └{'─' * w}┘")
+        print()
         try:
             answer = input("  Continue anyway? [y/N] ").strip().lower()
         except (EOFError, KeyboardInterrupt):
             answer = ""
         if answer not in ("y", "yes"):
-            print("Aborted. Commit or stash your changes, then try again.")
+            print("\n  Aborted — commit or stash your changes, then try again.\n")
             sys.exit(0)
         print()
 
     # --- Run review ---
-    print(f"qestyle v{__version__}")
-    print(f"Lecture: {lecture_path.name}")
-    print(f"Categories: {', '.join(categories)}")
+    print(f"📋 qestyle v{__version__}")
+    print(f"   Lecture:    {lecture_path.name}")
+    print(f"   Categories: {', '.join(categories)}")
     if args.dry_run:
-        print("Mode: dry-run (report only, no changes)")
+        print("   Mode:       dry-run (report only, no changes)")
     else:
-        print("Mode: fix (rule violations will be applied)")
+        print("   Mode:       fix (rule violations will be applied)")
     print()
 
     # Read lecture content
@@ -300,7 +344,7 @@ Categories:
     rule_count = len(result.get("rule_violations", []))
     style_count = len(result.get("style_violations", []))
 
-    print(f"\nReview complete: {issues_found} issue(s) found")
+    print(f"\n✅ Review complete — {issues_found} issue(s) found")
 
     # --- Apply fixes (default behavior, unless --dry-run) ---
     fixes_applied = False
@@ -309,15 +353,15 @@ Categories:
         if corrected != content:
             lecture_path.write_text(corrected, encoding="utf-8")
             fixes_applied = True
-            print(f"Applied {rule_count} fix(es) to {lecture_path.name}")
-            print(f"  Restore original: git checkout {lecture_path.name}")
+            print(f"   🔧 Applied {rule_count} fix(es) to {lecture_path.name}")
+            print(f"      Restore original: git checkout {lecture_path.name}")
         else:
-            print("No fixable changes to apply")
+            print("   No fixable changes to apply")
     elif args.dry_run and rule_count > 0:
-        print(f"  {rule_count} fix(es) available (run without --dry-run to apply)")
+        print(f"   🔧 {rule_count} fix(es) available (run without --dry-run to apply)")
 
     if style_count > 0:
-        print(f"  {style_count} style suggestion(s) for human review")
+        print(f"   📝 {style_count} style suggestion(s) for human review")
 
     # --- Write report ---
     report = format_report(result, str(lecture_path), dry_run=args.dry_run)
@@ -328,7 +372,8 @@ Categories:
         report_path = default_report_path(lecture_path)
 
     report_path.write_text(report, encoding="utf-8")
-    print(f"\nReport: {report_path}")
+    print(f"   📄 Report: {report_path}")
+    print()
 
 
 if __name__ == "__main__":
