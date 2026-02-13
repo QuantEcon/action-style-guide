@@ -105,14 +105,18 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
             if v.get('description'):
                 lines.append(f"**Description:** {v['description']}")
             if v.get('current_text'):
+                lines.append(f"")
                 lines.append(f"```")
                 lines.append(v['current_text'])
                 lines.append(f"```")
+                lines.append(f"")
             if v.get('suggested_fix'):
                 lines.append(f"**Suggestion:**")
+                lines.append(f"")
                 lines.append(f"```")
                 lines.append(v['suggested_fix'])
                 lines.append(f"```")
+                lines.append(f"")
             if v.get('explanation'):
                 lines.append(f"**Explanation:** {v['explanation']}")
             lines.append(f"")
@@ -149,17 +153,21 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
                 lines.append(f"**Description:** {v['description']}")
             if v.get('current_text'):
                 lines.append(f"**Current text:**")
+                lines.append(f"")
                 lines.append(f"```")
                 lines.append(v['current_text'])
                 lines.append(f"```")
+                lines.append(f"")
             if v.get('suggested_fix'):
                 if dry_run:
                     lines.append(f"**Suggested fix:**")
                 else:
                     lines.append(f"**Applied fix:**")
+                lines.append(f"")
                 lines.append(f"```")
                 lines.append(v['suggested_fix'])
                 lines.append(f"```")
+                lines.append(f"")
             if v.get('explanation'):
                 lines.append(f"**Explanation:** {v['explanation']}")
             lines.append(f"")
