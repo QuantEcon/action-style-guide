@@ -112,7 +112,7 @@ The LLM coordination layer that implements style checking:
    - `migrate` type: Legacy pattern updates (JAX/code), treated as suggestions
 
 **Key Classes:**
-- `AnthropicProvider` - Claude API wrapper with streaming fallback
+- `AnthropicProvider` - Claude API wrapper with extended thinking and streaming fallback
 - `StyleReviewer` - Main review orchestrator
 
 **Key Methods:**
@@ -128,15 +128,18 @@ Loads and combines category-specific prompts and rules:
 **File Structure:**
 ```
 style_checker/
-├── prompts/           # LLM instructions (~85 lines each)
+├── prompts/           # Minimal rule-agnostic prompt (~40 lines, identical for all categories)
 │   ├── writing-prompt.md
 │   ├── math-prompt.md
 │   └── ...
+│   └── v0.6.1/        # Archived previous prompts
 └── rules/             # Rule definitions (~120-235 lines each)
     ├── writing-rules.md
     ├── math-rules.md
     └── ...
 ```
+
+The prompt is rule-agnostic — all 8 category prompts are identical. Scope and analysis context come from the rule definitions themselves. This prevents signal dilution from category-specific instructions.
 
 **Combination Pattern:**
 ```
@@ -266,22 +269,29 @@ Each rule in `rules/*.md` follows this format:
 
 - **Provider:** Anthropic
 - **Model:** Claude Sonnet 4.5 (`claude-sonnet-4-5-20250929`)
+- **Extended Thinking:** Enabled with 10,000 token budget
+- **Temperature:** 1.0 (required for extended thinking)
 - **Max Tokens:** 64,000 output tokens
 - **Streaming:** Automatic fallback for large requests (>10 min)
+
+### Why Extended Thinking?
+
+Without extended thinking, the model would commit to writing a violation block before finishing its analysis, then realize the text was actually compliant. This caused ~43% false positive rate. Extended thinking lets the model reason internally before any output, reducing false positives to 0%.
+
+See [testing-extended-thinking.md](testing-extended-thinking.md) for experiment results.
 
 ### Prompt Structure
 
 ```
-[Category-specific instructions]
-- How to check
-- Output format specification
+[Minimal prompt]          ← ~40 lines, rule-agnostic
+- Identity: "You are a style checker..."
+- Task: "Find violations, verify, report confirmed only"
+- Response format template
 
-[Style Guide Rules]
-- Rule definitions
-- Examples
+[Style Guide Rule]        ← One rule at a time
+- Rule definition with scope, criteria, examples
 
-[Lecture Content]
-- Full lecture markdown
+[Lecture Content]          ← Full lecture markdown
 ```
 
 ### Response Format
@@ -388,13 +398,13 @@ PRs are automatically labeled:
 
 ```
 tests/
+├── test_fix_applier.py       # Fix application and validation tests
 ├── test_github_handler.py    # GitHub integration tests
 ├── test_llm_integration.py   # Real LLM API tests (marked @integration)
 ├── test_markdown_parser.py   # Response parsing tests
-├── test_parser_md.py         # Rule file parsing tests
 ├── test_parsing.py           # Comment parsing tests
-├── test_migration.py         # Prompt loader tests
-└── test_semantic_grouping.py # Category grouping tests
+├── test_prompt_loader.py     # Prompt loading tests
+└── test_reviewer.py          # Rule extraction and ordering tests
 ```
 
 ### Running Tests

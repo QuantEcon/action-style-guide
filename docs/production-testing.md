@@ -14,50 +14,37 @@ This guide covers **production testing** - testing the action as it will be used
 
 ## 1. Local Testing with CLI Tool
 
-The CLI tool (`tool-style-checker/`) provides the fastest way to test prompt and rule changes.
+The `qestyle` CLI provides the fastest way to test prompt and rule changes.
 
 ### Setup
 
 ```bash
-# Install dependencies
-pip install anthropic
+# Install from local clone (editable)
+pip install -e .
+
+# Or install from GitHub
+pip install git+https://github.com/QuantEcon/action-style-guide.git
 
 # Set API key
 export ANTHROPIC_API_KEY='your-key-here'
-
-# Navigate to tool directory
-cd tool-style-checker
 ```
 
 ### Basic Usage
 
 ```bash
 # Test a single category
-python style_checker.py lecture.md --focus writing
+qestyle lecture.md --categories writing
 
 # Test multiple categories
-python style_checker.py lecture.md --focus math,code
+qestyle lecture.md --categories math,code
 
 # Test all categories (sequential processing)
-python style_checker.py lecture.md --focus all
+qestyle lecture.md
 ```
 
-### Output Files
+### Output
 
-Each run creates two files:
-- `lecture-suggestions.md` - Human-readable suggestions report
-- `lecture-corrected.md` - Lecture with fixes applied
-
-### Using Test Lectures
-
-There's a built-in test lecture:
-
-```bash
-# Use the included test lecture
-python style_checker.py quantecon-test-lecture.md --focus writing
-```
-
-Or copy a real lecture from a lecture repository for testing.
+By default, `qestyle` prints a Markdown report to stdout. Use `--fix` to apply rule-type fixes in place, or `-o report.md` to save the report to a file.
 
 ### What to Check
 
@@ -300,8 +287,7 @@ When making changes to the action itself:
 
 3. **Test CLI tool with changes**:
    ```bash
-   cd tool-style-checker
-   python style_checker.py quantecon-test-lecture.md --focus writing
+   qestyle lecture.md --categories writing
    ```
 
 4. **Test on GitHub test repository**:

@@ -1,10 +1,8 @@
 """
 Simple utility to load markdown prompt templates by category.
 
-Uses the same approach as tool-style-checker:
-- Loads concise instruction prompts from prompts/
-- Loads detailed rules from rules/
-- Combines them for the LLM
+Loads concise instruction prompts from prompts/ and detailed rules from rules/,
+then combines them for the LLM.
 """
 
 from pathlib import Path
@@ -51,7 +49,7 @@ class PromptLoader:
         """
         Load and combine prompts + rules for specified categories.
         
-        Uses tool-style-checker approach:
+        Approach:
         1. Load concise instruction prompt
         2. Load detailed rules
         3. Combine: prompt + rules + lecture_content
@@ -86,7 +84,6 @@ class PromptLoader:
         """
         Load prompt and rules for a single category.
         
-        Follows tool-style-checker pattern:
         - prompt file: category-prompt.md
         - rules file: category-rules.md
         """
@@ -119,7 +116,6 @@ class PromptLoader:
             rules = f.read()
         
         # Combine: prompt + rules + lecture
-        # This matches tool-style-checker's approach
         full_prompt = f"""{prompt}
 
 ## Style Guide Database

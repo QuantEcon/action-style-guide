@@ -4,7 +4,58 @@
 
 ## High Priority
 
-### 1. Large-Context Model Batch Evaluation
+### 1. Interactive CLI Mode (`qestyle --interactive`)
+
+**Status:** Planned
+
+**Description:** Add an interactive review mode to `qestyle` where the author steps through each suggestion one at a time, with full context shown in the terminal. This creates a guided editing experience similar to `git add -p`.
+
+**Workflow:**
+```
+$ qestyle lecture.md --interactive --categories writing
+
+qestyle v0.6.1 — Interactive Mode
+Reviewing: lecture.md (writing)
+
+[1/5] qe-writing-001 — One sentence per paragraph
+Location: Line 42
+
+  Current:
+  > This paragraph contains multiple sentences. The first introduces a concept.
+  > The second elaborates on it.
+
+  Suggested fix:
+  > This paragraph contains multiple sentences.
+  >
+  > The first introduces a concept.
+  >
+  > The second elaborates on it.
+
+  Explanation: Split into separate paragraphs per style guide rule.
+
+  [a]pply  [s]kip  [e]dit  [q]uit  ?
+```
+
+**Key Features:**
+- Show surrounding context from the document (not just the matched text)
+- Accept (`a`), skip (`s`), edit in `$EDITOR` (`e`), or quit (`q`)
+- Applied changes are written incrementally so later suggestions see updated content
+- Summary at end: N applied, M skipped, K remaining
+- Works with both `rule` and `style` type violations
+
+**Implementation Approach:**
+- CLI TUI using a lightweight library (e.g., `rich` for formatting), no heavy framework needed
+- Reuses `StyleReviewer.review_lecture_single_rule()` — collects all violations first, then presents interactively
+- No VS Code dependency — pure terminal, works anywhere
+- A VS Code extension with inline annotations could be a later evolution if demand exists
+
+**Why CLI-first:**
+- Matches project philosophy: simple, standalone, no unnecessary dependencies
+- Authors already work in terminals with Git
+- Ships faster than an IDE extension
+- Portable across editors and environments
+
+### 2. Large-Context Model Batch Evaluation
 
 **Status:** Research / Testing needed
 
@@ -480,6 +531,6 @@ Some rules require full-document context and don't work well on diffs alone:
 - ✅ Rule vs style type separation (v0.3.14)
 - ✅ Programmatic fix application (v0.3.3)
 - ✅ Focused prompts architecture (v0.3.0)
-- ✅ CLI tool integration - `tool-style-checker/` shares prompts/rules with main action
+- ✅ CLI tool (`qestyle`) — unified codebase, shares review engine with GitHub Action
 - ✅ Documentation sync - single source of truth, stale generated files removed
 - ✅ LLM integration tests fixed - updated to current API, all 30 tests passing
