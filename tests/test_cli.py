@@ -3,6 +3,7 @@ Tests for the qestyle CLI (style_checker/cli.py)
 
 Tests cover:
 - Report formatting (format_report)
+- Default report path generation
 - Argument validation (categories, file existence)
 - CLI entry point error handling
 
@@ -12,7 +13,7 @@ Does NOT test LLM integration — that's covered by test_reviewer.py and test_ll
 import subprocess
 from pathlib import Path
 
-from style_checker.cli import format_report, ALL_CATEGORIES
+from style_checker.cli import format_report, default_report_path, ALL_CATEGORIES
 from style_checker import __version__
 
 
@@ -35,11 +36,12 @@ class TestFormatReport:
 
     def test_no_issues(self):
         result = self._make_result()
-        report = format_report(result, 'lecture.md', fix_mode=False)
+        report = format_report(result, 'lecture.md', dry_run=False)
         assert 'No issues found' in report
         assert 'Issues found:** 0' in report
 
-    def test_rule_violations_report_mode(self):
+    def test_rule_violations_dry_run(self):
+        """In dry-run mode, rule violations appear as 'Rule Violations'."""
         violations = [{
             'rule_id': 'qe-writing-001',
             'rule_title': 'One sentence per paragraph',
@@ -50,16 +52,17 @@ class TestFormatReport:
             'explanation': 'Split into separate paragraphs',
         }]
         result = self._make_result(rule_violations=violations, issues_found=1)
-        report = format_report(result, 'lecture.md', fix_mode=False)
+        report = format_report(result, 'lecture.md', dry_run=True)
 
         assert 'Rule Violations (1)' in report
-        assert 'auto-fixed with `qestyle --fix`' in report
+        assert 'without `--dry-run`' in report
         assert 'qe-writing-001' in report
         assert 'Line 42' in report
         assert 'First sentence. Second sentence.' in report
-        assert 'Split into separate paragraphs' in report
+        assert 'Suggested fix' in report
 
     def test_rule_violations_fix_mode(self):
+        """In default (fix) mode, rule violations appear as 'Applied Fixes'."""
         violations = [{
             'rule_id': 'qe-math-001',
             'rule_title': 'UTF-8 unicode',
@@ -70,10 +73,11 @@ class TestFormatReport:
             'explanation': 'Replace with unicode',
         }]
         result = self._make_result(rule_violations=violations, issues_found=1)
-        report = format_report(result, 'lecture.md', fix_mode=True)
+        report = format_report(result, 'lecture.md', dry_run=False)
 
         assert 'Applied Fixes (1)' in report
         assert 'automatically fixed' in report
+        assert 'Applied fix' in report
 
     def test_style_suggestions(self):
         suggestions = [{
@@ -86,15 +90,30 @@ class TestFormatReport:
             'explanation': 'Improves readability',
         }]
         result = self._make_result(style_violations=suggestions, issues_found=1)
-        report = format_report(result, 'my-lecture.md', fix_mode=False)
+        report = format_report(result, 'my-lecture.md', dry_run=False)
 
         assert 'Style Suggestions (1)' in report
         assert 'human judgment' in report
         assert 'qe-writing-002' in report
 
+    def test_suggestions_appear_before_fixes(self):
+        """Style suggestions should appear BEFORE applied fixes in the report."""
+        rule_v = [{'rule_id': 'qe-math-001', 'rule_title': 'Unicode'}]
+        style_v = [{'rule_id': 'qe-writing-002', 'rule_title': 'Clarity'}]
+        result = self._make_result(
+            rule_violations=rule_v,
+            style_violations=style_v,
+            issues_found=2,
+        )
+        report = format_report(result, 'test.md', dry_run=False)
+
+        suggestions_pos = report.index('Style Suggestions')
+        fixes_pos = report.index('Applied Fixes')
+        assert suggestions_pos < fixes_pos, "Suggestions should appear before Applied Fixes"
+
     def test_warnings_included(self):
         result = self._make_result(warnings=['Fix quality warning: text too short'])
-        report = format_report(result, 'lecture.md', fix_mode=False)
+        report = format_report(result, 'lecture.md', dry_run=False)
 
         assert 'Warnings (1)' in report
         assert 'Fix quality warning' in report
@@ -108,26 +127,56 @@ class TestFormatReport:
             warnings=['Some warning'],
             issues_found=2,
         )
-        report = format_report(result, 'test.md', fix_mode=False)
+        report = format_report(result, 'test.md', dry_run=False)
 
-        assert 'Rule Violations (1)' in report
+        assert 'Applied Fixes (1)' in report
         assert 'Style Suggestions (1)' in report
         assert 'Warnings (1)' in report
 
     def test_report_header(self):
         result = self._make_result()
-        report = format_report(result, 'path/to/my-lecture.md', fix_mode=False)
+        report = format_report(result, 'path/to/my-lecture.md', dry_run=False)
 
         assert 'my-lecture.md' in report
         assert f'v{__version__}' in report
+
+    def test_report_includes_mode(self):
+        """Report should indicate whether fixes were applied or dry-run."""
+        result = self._make_result()
+        report_fix = format_report(result, 'lecture.md', dry_run=False)
+        report_dry = format_report(result, 'lecture.md', dry_run=True)
+
+        assert 'fix' in report_fix.lower()
+        assert 'dry-run' in report_dry
 
     def test_missing_optional_fields(self):
         """Violations with missing optional fields should not crash."""
         violations = [{'rule_id': 'qe-code-001', 'rule_title': 'PEP8'}]
         result = self._make_result(rule_violations=violations, issues_found=1)
-        report = format_report(result, 'lecture.md', fix_mode=False)
+        report = format_report(result, 'lecture.md', dry_run=False)
 
         assert 'qe-code-001' in report
+
+
+# ---------------------------------------------------------------------------
+# default_report_path tests
+# ---------------------------------------------------------------------------
+
+class TestDefaultReportPath:
+    """Tests for the default_report_path() function."""
+
+    def test_basic(self):
+        path = default_report_path(Path('/tmp/lecture.md'))
+        assert path == Path('/tmp/qestyle-lecture.md')
+
+    def test_nested_path(self):
+        path = default_report_path(Path('/home/user/lectures/my-lecture.md'))
+        assert path == Path('/home/user/lectures/qestyle-my-lecture.md')
+
+    def test_preserves_parent_dir(self):
+        path = default_report_path(Path('lectures/intro.md'))
+        assert path.parent == Path('lectures')
+        assert path.name == 'qestyle-intro.md'
 
 
 # ---------------------------------------------------------------------------
@@ -168,7 +217,7 @@ class TestCLIInvocation:
         )
         assert result.returncode == 0
         assert 'categories' in result.stdout
-        assert '--fix' in result.stdout
+        assert '--dry-run' in result.stdout
 
     def test_missing_file_exits_with_error(self):
         result = subprocess.run(

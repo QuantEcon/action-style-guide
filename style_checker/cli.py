@@ -5,9 +5,9 @@ Shares the same review engine (StyleReviewer), prompts, and rules as the
 GitHub Action, so results are identical.
 
 Usage:
-    qestyle lecture.md                          # Report all categories
-    qestyle lecture.md --categories writing     # Report specific categories
-    qestyle lecture.md --fix                    # Apply rule-type fixes in place
+    qestyle lecture.md                          # Review, apply fixes, write report
+    qestyle lecture.md --categories writing     # Check specific categories only
+    qestyle lecture.md --dry-run                # Report only, don't modify the file
 
 Install from GitHub:
     pip install git+https://github.com/QuantEcon/action-style-guide.git
@@ -30,14 +30,20 @@ ALL_CATEGORIES = [
 ]
 
 
-def format_report(result: dict, lecture_path: str, fix_mode: bool) -> str:
+def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
     """
     Format review results into a readable Markdown report.
+
+    Report structure:
+    1. Header with metadata
+    2. Style Suggestions (unapplied — require human judgment)
+    3. Warnings (if any)
+    4. Applied Fixes summary (record of what was changed, at end)
 
     Args:
         result: Dictionary returned by StyleReviewer.review_lecture_single_rule()
         lecture_path: Path to the reviewed lecture file
-        fix_mode: Whether --fix was used (affects report wording)
+        dry_run: If True, fixes were NOT applied (report-only mode)
 
     Returns:
         Markdown-formatted report string
@@ -48,45 +54,17 @@ def format_report(result: dict, lecture_path: str, fix_mode: bool) -> str:
     lines.append(f"- **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     lines.append(f"- **Version:** qestyle v{__version__}")
     lines.append(f"- **Issues found:** {result.get('issues_found', 0)}")
+    if dry_run:
+        lines.append(f"- **Mode:** dry-run (no changes applied)")
+    else:
+        lines.append(f"- **Mode:** fix (rule violations applied to file)")
     lines.append(f"")
 
     rule_violations = result.get('rule_violations', [])
     style_violations = result.get('style_violations', [])
     warnings = result.get('warnings', [])
 
-    # Rule violations (auto-fixable)
-    if rule_violations:
-        if fix_mode:
-            lines.append(f"## Applied Fixes ({len(rule_violations)})")
-            lines.append(f"")
-            lines.append("The following rule violations were automatically fixed:")
-        else:
-            lines.append(f"## Rule Violations ({len(rule_violations)})")
-            lines.append(f"")
-            lines.append("These violations can be auto-fixed with `qestyle --fix`:")
-        lines.append(f"")
-
-        for i, v in enumerate(rule_violations, 1):
-            lines.append(f"### {i}. {v.get('rule_id', 'unknown')} — {v.get('rule_title', '')}")
-            if v.get('location'):
-                lines.append(f"**Location:** {v['location']}")
-            if v.get('description'):
-                lines.append(f"**Description:** {v['description']}")
-            if v.get('current_text'):
-                lines.append(f"**Current text:**")
-                lines.append(f"```")
-                lines.append(v['current_text'])
-                lines.append(f"```")
-            if v.get('suggested_fix'):
-                lines.append(f"**Suggested fix:**")
-                lines.append(f"```")
-                lines.append(v['suggested_fix'])
-                lines.append(f"```")
-            if v.get('explanation'):
-                lines.append(f"**Explanation:** {v['explanation']}")
-            lines.append(f"")
-
-    # Style suggestions (human review)
+    # --- Style suggestions FIRST (these need human attention) ---
     if style_violations:
         lines.append(f"## Style Suggestions ({len(style_violations)})")
         lines.append(f"")
@@ -112,7 +90,7 @@ def format_report(result: dict, lecture_path: str, fix_mode: bool) -> str:
                 lines.append(f"**Explanation:** {v['explanation']}")
             lines.append(f"")
 
-    # Warnings
+    # --- Warnings ---
     if warnings:
         lines.append(f"## Warnings ({len(warnings)})")
         lines.append(f"")
@@ -120,11 +98,51 @@ def format_report(result: dict, lecture_path: str, fix_mode: bool) -> str:
             lines.append(f"- {w}")
         lines.append(f"")
 
+    # --- Applied fixes AT THE END (diagnostic record) ---
+    if rule_violations:
+        if dry_run:
+            lines.append(f"## Rule Violations ({len(rule_violations)})")
+            lines.append(f"")
+            lines.append("These violations can be auto-fixed (run without `--dry-run`):")
+        else:
+            lines.append(f"## Applied Fixes ({len(rule_violations)})")
+            lines.append(f"")
+            lines.append("The following rule violations were automatically fixed:")
+        lines.append(f"")
+
+        for i, v in enumerate(rule_violations, 1):
+            lines.append(f"### {i}. {v.get('rule_id', 'unknown')} — {v.get('rule_title', '')}")
+            if v.get('location'):
+                lines.append(f"**Location:** {v['location']}")
+            if v.get('description'):
+                lines.append(f"**Description:** {v['description']}")
+            if v.get('current_text'):
+                lines.append(f"**Current text:**")
+                lines.append(f"```")
+                lines.append(v['current_text'])
+                lines.append(f"```")
+            if v.get('suggested_fix'):
+                if dry_run:
+                    lines.append(f"**Suggested fix:**")
+                else:
+                    lines.append(f"**Applied fix:**")
+                lines.append(f"```")
+                lines.append(v['suggested_fix'])
+                lines.append(f"```")
+            if v.get('explanation'):
+                lines.append(f"**Explanation:** {v['explanation']}")
+            lines.append(f"")
+
     if not rule_violations and not style_violations:
         lines.append("No issues found — lecture complies with the style guide.")
         lines.append(f"")
 
     return "\n".join(lines)
+
+
+def default_report_path(lecture_path: Path) -> Path:
+    """Return the default report file path: qestyle-{stem}.md next to the lecture."""
+    return lecture_path.parent / f"qestyle-{lecture_path.stem}.md"
 
 
 def main():
@@ -135,10 +153,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  qestyle lecture.md                          # Report all categories
-  qestyle lecture.md --categories writing     # Report writing rules only
-  qestyle lecture.md --categories math,code   # Report math and code rules
-  qestyle lecture.md --fix                    # Apply rule-type fixes in place
+  qestyle lecture.md                          # Review, apply fixes, write report
+  qestyle lecture.md --categories writing     # Check writing rules only
+  qestyle lecture.md --dry-run                # Report only, don't modify the file
+  qestyle lecture.md -o custom-report.md      # Write report to a custom path
 
 Categories:
   writing, math, code, jax, figures, references, links, admonitions
@@ -155,14 +173,14 @@ Categories:
         help="Comma-separated categories to check (default: all)",
     )
     parser.add_argument(
-        "--fix",
+        "--dry-run",
         action="store_true",
-        help="Apply rule-type fixes to the lecture file in place",
+        help="Report only — do not apply fixes to the file",
     )
     parser.add_argument(
         "-o", "--output",
         default=None,
-        help="Write report to this file instead of stdout",
+        help="Write report to this path (default: qestyle-{lecture}.md)",
     )
     parser.add_argument(
         "--api-key",
@@ -189,7 +207,7 @@ Categories:
     args = parser.parse_args()
 
     # --- Validate inputs ---
-    lecture_path = Path(args.lecture)
+    lecture_path = Path(args.lecture).resolve()
     if not lecture_path.exists():
         print(f"Error: file not found: {lecture_path}", file=sys.stderr)
         sys.exit(1)
@@ -214,12 +232,12 @@ Categories:
 
     # --- Run review ---
     print(f"qestyle v{__version__}")
-    print(f"Lecture: {lecture_path}")
+    print(f"Lecture: {lecture_path.name}")
     print(f"Categories: {', '.join(categories)}")
-    if args.fix:
-        print("Mode: fix (rule-type violations will be applied)")
+    if args.dry_run:
+        print("Mode: dry-run (report only, no changes)")
     else:
-        print("Mode: report only")
+        print("Mode: fix (rule violations will be applied)")
     print()
 
     # Read lecture content
@@ -237,28 +255,38 @@ Categories:
     result = reviewer.review_lecture_single_rule(content, categories, lecture_name)
 
     issues_found = result.get("issues_found", 0)
+    rule_count = len(result.get("rule_violations", []))
+    style_count = len(result.get("style_violations", []))
+
     print(f"\nReview complete: {issues_found} issue(s) found")
 
-    # --- Apply fixes if requested ---
-    if args.fix and result.get("corrected_content"):
+    # --- Apply fixes (default behavior, unless --dry-run) ---
+    fixes_applied = False
+    if not args.dry_run and result.get("corrected_content"):
         corrected = result["corrected_content"]
         if corrected != content:
             lecture_path.write_text(corrected, encoding="utf-8")
-            rule_count = len(result.get("rule_violations", []))
-            print(f"Applied {rule_count} fix(es) to {lecture_path}")
+            fixes_applied = True
+            print(f"Applied {rule_count} fix(es) to {lecture_path.name}")
+            print(f"  Restore original: git checkout {lecture_path.name}")
         else:
             print("No fixable changes to apply")
+    elif args.dry_run and rule_count > 0:
+        print(f"  {rule_count} fix(es) available (run without --dry-run to apply)")
+
+    if style_count > 0:
+        print(f"  {style_count} style suggestion(s) for human review")
 
     # --- Write report ---
-    report = format_report(result, str(lecture_path), fix_mode=args.fix)
+    report = format_report(result, str(lecture_path), dry_run=args.dry_run)
 
     if args.output:
-        output_path = Path(args.output)
-        output_path.write_text(report, encoding="utf-8")
-        print(f"Report written to {output_path}")
+        report_path = Path(args.output)
     else:
-        print()
-        print(report)
+        report_path = default_report_path(lecture_path)
+
+    report_path.write_text(report, encoding="utf-8")
+    print(f"\nReport: {report_path}")
 
 
 if __name__ == "__main__":

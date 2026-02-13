@@ -237,19 +237,18 @@ export ANTHROPIC_API_KEY='your-key-here'
 ### Usage
 
 ```bash
-# Report all categories (prints to stdout)
+# Review all categories — applies fixes, writes report to qestyle-lecture.md
 qestyle lecture.md
 
-# Report specific categories
+# Check specific categories only
 qestyle lecture.md --categories writing
 qestyle lecture.md --categories math,code
 
-# Apply rule-type fixes in place
-qestyle lecture.md --fix
-qestyle lecture.md --fix --categories writing,math
+# Report only, don't modify the file
+qestyle lecture.md --dry-run
 
-# Save report to file
-qestyle lecture.md -o report.md
+# Write report to a custom path
+qestyle lecture.md -o custom-report.md
 
 # Use a specific model or temperature
 qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 0
@@ -257,12 +256,14 @@ qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 0
 
 ### Output
 
-**Report mode** (default): Prints a Markdown report to stdout with:
-- **Rule violations** — auto-fixable issues (use `--fix` to apply)
-- **Style suggestions** — advisory items requiring human judgment
+By default, `qestyle` **applies rule-type fixes** directly to the lecture file and writes a Markdown report to `qestyle-{lecture}.md` alongside the original file. Since lectures live in Git repos, you can review changes with `git diff` and restore with `git checkout`.
+
+The report contains:
+- **Style suggestions** — advisory items requiring human judgment (listed first)
+- **Applied fixes** — record of what was automatically changed (at the end)
 - **Warnings** — any processing issues
 
-**Fix mode** (`--fix`): Applies rule-type fixes directly to the file and prints the report. Style suggestions are still reported but not applied. Since lectures live in Git repos, you can review changes with `git diff`.
+**Dry-run mode** (`--dry-run`): Skips applying fixes — just writes the report. Useful to preview what would change.
 
 ### Categories
 

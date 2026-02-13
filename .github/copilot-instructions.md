@@ -57,7 +57,7 @@ action-style-guide/
 
 ### Two Entry Points, One Engine
 
-- **`cli.py`** (`qestyle` command): Local CLI for authors. Reads files from disk, prints reports, optionally applies fixes.
+- **`cli.py`** (`qestyle` command): Local CLI for authors. Reads files from disk, applies rule-type fixes by default, writes report to file. Use `--dry-run` to skip fixes.
 - **`github.py`**: GitHub Action entry point. Reads files via GitHub API, creates PRs with fixes.
 - Both use the **same `StyleReviewer`**, prompts, rules, and `fix_applier` — results are identical.
 
@@ -260,7 +260,7 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ```bash
 # Test locally with CLI
 qestyle lecture.md --categories writing
-qestyle lecture.md --fix
+qestyle lecture.md --dry-run
 
 # Test GitHub Action entry point
 python style_checker/github.py --mode single --repository owner/repo --comment-body "..."
@@ -335,8 +335,8 @@ EOF
 # Test CLI on a test lecture
 qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --categories writing
 
-# Test with fix mode
-qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --fix --categories math
+# Test with dry-run mode (no changes applied)
+qestyle test-action-style-guide/lectures/quantecon-test-lecture.md --dry-run --categories math
 
 # Reset test files after testing
 cd test-action-style-guide && git checkout -- . && cd ..
