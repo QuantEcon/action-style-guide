@@ -258,8 +258,8 @@ Categories:
     parser.add_argument(
         "--temperature",
         type=float,
-        default=0.0,
-        help="LLM temperature, 0=deterministic (default: 0)",
+        default=1.0,
+        help="LLM temperature (default: 1.0, required for extended thinking)",
     )
     parser.add_argument(
         "--version",

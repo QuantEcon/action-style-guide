@@ -38,14 +38,15 @@ action-style-guide/
 │   ├── __init__.py              # Version info (__version__)
 │   ├── cli.py                   # Local CLI entry point (qestyle)
 │   ├── github.py                # GitHub Action entry point
-│   ├── reviewer.py              # LLM interaction, response parsing (shared)
+│   ├── reviewer.py              # LLM interaction with extended thinking (shared)
 │   ├── github_handler.py        # GitHub API interactions (action only)
 │   ├── fix_applier.py           # Apply fixes to markdown files (shared)
 │   ├── prompt_loader.py         # Load prompts and rules (shared)
-│   ├── prompts/                 # Category-specific prompts
+│   ├── prompts/                 # Minimal rule-agnostic prompt (identical for all categories)
 │   │   ├── writing-prompt.md
 │   │   ├── math-prompt.md
-│   │   └── ...
+│   │   ├── ...
+│   │   └── v0.6.1/             # Archived previous prompts
 │   └── rules/                   # Category-specific rules
 │       ├── writing-rules.md
 │       ├── math-rules.md
@@ -65,23 +66,25 @@ action-style-guide/
 
 ### LLM Architecture
 - **Single model**: Claude Sonnet 4.5 only (no model switching complexity)
+- **Extended thinking**: Model reasons internally (10K token budget) before outputting, eliminating false positives
+- **Temperature 1.0**: Required by Anthropic for extended thinking
 - **Sequential rule processing**: Process one rule at a time within each category, apply fixes between each
 - **Sequential category processing**: Process categories one at a time, feed updated document to next category
-- **Prompt-driven**: Instructions in prompts, not hardcoded logic
+- **Minimal prompt**: Rule-agnostic ~40-line prompt (identity + task + format template)
 - **Simple parsing**: Regex-based markdown response parsing
 
 ### Rule System
 - **Category-based**: 8 categories (writing, math, code, jax, figures, references, links, admonitions)
-- **Prompt + Rules**: Each category has a prompt template and rules document
+- **Prompt + Rules**: Single minimal prompt template + per-category rules document
 - **One rule per LLM call**: Each rule checked individually, fixes applied before next rule
 - **Order matters**: Rules evaluated in specified order (mechanical → structural → stylistic → creative)
 - **Single source of truth**: Version in `__init__.py`
 
 ### Prompt Files
 - **Location**: `style_checker/prompts/*.md`
+- **Design**: All 8 prompt files are identical (rule-agnostic). Consolidation to single `prompt.md` planned (see PLAN.md 4.6).
 - **Version tracking**: Each prompt has version comment at top: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
-- **Update on modification**: Bump version when prompt content changes (usually to match release version)
-- **Purpose**: Track which prompt version generated historical LLM responses
+- **Archive**: Previous prompts archived in `style_checker/prompts/v0.6.1/`
 
 ### GitHub Integration
 - **Programmatic fixes**: Apply fixes via code, don't ask LLM for full corrected content

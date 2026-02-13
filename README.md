@@ -1,23 +1,24 @@
 # QuantEcon Style Guide Checker
 
-[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/QuantEcon/action-style-guide/releases)
 [![Status](https://img.shields.io/badge/status-active-green.svg)](https://github.com/QuantEcon/action-style-guide)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 🚀 **Version 0.6.1**: Local CLI (`qestyle`), unified codebase for Action + CLI
+> 🚀 **Version 0.7.0**: Extended thinking for zero false positives, minimal unified prompts, local CLI (`qestyle`)
 
-A GitHub Action for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
+A GitHub Action and local CLI for automated style guide compliance checking of QuantEcon lecture materials using AI-powered analysis.
 
 ## Overview
 
-This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses category-specific focused prompts to check 49 style rules covering writing, mathematics, code, JAX patterns, figures, and more.
+This action automatically reviews MyST Markdown lecture files against the [QuantEcon Style Guide](https://manual.quantecon.org), ensuring consistency across all lecture series. It uses Claude Sonnet 4.5 with extended thinking to check 49 style rules covering writing, mathematics, code, JAX patterns, figures, and more.
 
 ## Features
 
-- 🤖 **AI-Powered Review**: Uses Claude Sonnet 4.5 for intelligent, nuanced style analysis
+- 🤖 **AI-Powered Review**: Uses Claude Sonnet 4.5 with extended thinking — zero false positives
 - 🏷️ **Category-Based Reviews**: Target specific areas (writing, math, code, jax, figures, references, links, admonitions)
-- 📝 **Focused Prompts**: Hand-crafted prompts + detailed rules = better quality, lower cost
+- 📝 **Minimal Prompts**: Rule-agnostic prompt + detailed rules = better quality, lower cost
 - 🎯 **Flexible Targeting**: Check all categories or focus on specific ones
+- 🖥️ **Local CLI**: `qestyle` command runs the same engine locally
 - 📅 **Scheduled Reviews**: Weekly automated reviews or on-demand via comments
 - 🔄 **Automated Fixes**: Applies fixes programmatically for reliable results
 - 🏷️ **PR Management**: Creates labeled PRs with detailed explanations
@@ -109,12 +110,11 @@ Ensure these labels exist in your repository:
 
 ### LLM Model
 
-The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) by default, which provides:
-- Excellent comprehension for nuanced style rules
-- Strong markdown and code understanding
-- Reliable structured output for suggestions and fixes
-
-The focused prompts architecture (85-line instructions + 120-235 line rules) ensures efficient token usage while maintaining comprehensive analysis.
+The action uses **Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`) with **extended thinking** by default:
+- Extended thinking lets the model reason internally before responding, eliminating false positives (0% FP rate)
+- Requires `temperature=1.0` (Anthropic constraint); thinking budget of 10,000 tokens
+- Minimal rule-agnostic prompt (~40 lines) + detailed rules (120-235 lines) per category
+- See [docs/testing-extended-thinking.md](docs/testing-extended-thinking.md) for experiment results
 
 ## Rule Types
 
@@ -148,14 +148,15 @@ Legacy patterns that should be updated (JAX and code categories only):
 
 ## Architecture
 
-The action uses a **focused prompts architecture** with **sequential category processing**:
+The action uses a **minimal prompt + extended thinking** architecture with **sequential category processing**:
 
-1. **Prompts** (`style_checker/prompts/*.md`): Concise instructions (~85 lines each) for LLM analysis
+1. **Prompt** (`style_checker/prompts/*.md`): A single minimal ~40-line prompt (identity + task + format)
 2. **Rules** (`style_checker/rules/*.md`): Detailed specifications (~120-235 lines each) with examples
-3. **Categories**: 8 focused areas (writing, math, code, jax, figures, references, links, admonitions)
-4. **Sequential Processing**: Processes categories one at a time, feeding the updated document from each category into the next
+3. **Extended Thinking**: Claude reasons internally (10K token budget) before outputting, eliminating false positives
+4. **Categories**: 8 focused areas (writing, math, code, jax, figures, references, links, admonitions)
+5. **Sequential Processing**: Processes categories one at a time, feeding the updated document from each category into the next
 
-Each category combines its prompt (how to check) with its rules (what to check) for targeted, efficient analysis.
+The prompt is rule-agnostic — scope and analysis context come from the rule definitions themselves.
 
 ### How Sequential Processing Works
 
@@ -250,8 +251,8 @@ qestyle lecture.md --dry-run
 # Write report to a custom path
 qestyle lecture.md -o custom-report.md
 
-# Use a specific model or temperature
-qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 0
+# Use a specific model or temperature (default: 1.0 for extended thinking)
+qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 1.0
 ```
 
 ### Output

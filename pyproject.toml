@@ -1,6 +1,6 @@
 [project]
 name = "qestyle"
-version = "0.6.1"
+version = "0.7.0"
 description = "AI-powered style guide compliance checker for QuantEcon lecture materials"
 requires-python = ">=3.11"
 readme = "README.md"
@@ -53,6 +53,7 @@ testpaths = ["tests"]
 addopts = [
     "-v",                    # Verbose output
     "--strict-markers",      # Error on unknown markers
+    "-m", "not integration", # Skip LLM integration tests by default (run with: pytest -m integration)
     "--tb=short",           # Shorter traceback format
     "--cov=style_checker",  # Coverage for style_checker module
     "--cov-report=term-missing",  # Show missing lines in coverage

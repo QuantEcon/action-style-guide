@@ -311,8 +311,8 @@ def main():
     parser.add_argument('--lectures-path', default='lectures/',
                        help='Path to lectures directory')
     parser.add_argument('--llm-model', help='Specific Claude model (default: claude-sonnet-4-5-20250929)')
-    parser.add_argument('--temperature', type=float, default=0.0,
-                       help='LLM temperature (0=deterministic, 1=creative, default: 0)')
+    parser.add_argument('--temperature', type=float, default=1.0,
+                       help='LLM temperature (default: 1.0, required for extended thinking)')
     parser.add_argument('--rule-categories', default='',
                        help='Comma-separated rule categories to check')
     parser.add_argument('--create-pr', default='true',
