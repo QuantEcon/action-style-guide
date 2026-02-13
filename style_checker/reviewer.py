@@ -361,6 +361,8 @@ class AnthropicProvider:
                 full_response = ""
                 with self.client.messages.stream(**api_kwargs) as stream:
                     for event in stream:
+                        # Only extract text blocks — thinking blocks are internal
+                        # reasoning and not needed in the final response
                         if hasattr(event, 'type') and event.type == 'content_block_delta':
                             if hasattr(event.delta, 'text'):
                                 full_response += event.delta.text

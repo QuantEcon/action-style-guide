@@ -352,12 +352,10 @@ Categories:
     print(f"\n✅ Review complete — {issues_found} issue(s) found")
 
     # --- Apply fixes (default behavior, unless --dry-run) ---
-    fixes_applied = False
     if not args.dry_run and result.get("corrected_content"):
         corrected = result["corrected_content"]
         if corrected != content:
             lecture_path.write_text(corrected, encoding="utf-8")
-            fixes_applied = True
             print(f"   🔧 Applied {rule_count} fix(es) to {lecture_path.name}")
             print(f"      Restore original: git checkout {lecture_path.name}")
         else:
