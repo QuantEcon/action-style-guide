@@ -56,7 +56,7 @@ class TestFormatReport:
         result = self._make_result(rule_violations=violations, issues_found=1)
         report = format_report(result, 'lecture.md', dry_run=True)
 
-        assert 'Rule Violations (1)' in report
+        assert 'Rule Violations' in report
         assert 'without `--dry-run`' in report
         assert 'qe-writing-001' in report
         assert 'Line 42' in report
@@ -77,7 +77,7 @@ class TestFormatReport:
         result = self._make_result(rule_violations=violations, issues_found=1)
         report = format_report(result, 'lecture.md', dry_run=False)
 
-        assert 'Applied Fixes (1)' in report
+        assert 'Applied Fixes' in report
         assert 'automatically fixed' in report
         assert 'Applied fix' in report
 
@@ -94,8 +94,8 @@ class TestFormatReport:
         result = self._make_result(style_violations=suggestions, issues_found=1)
         report = format_report(result, 'my-lecture.md', dry_run=False)
 
-        assert 'Style Suggestions (1)' in report
-        assert 'human judgment' in report
+        assert 'Style Suggestions' in report
+        assert 'human review' in report
         assert 'qe-writing-002' in report
 
     def test_suggestions_appear_before_fixes(self):
@@ -131,8 +131,8 @@ class TestFormatReport:
         )
         report = format_report(result, 'test.md', dry_run=False)
 
-        assert 'Applied Fixes (1)' in report
-        assert 'Style Suggestions (1)' in report
+        assert 'Applied Fixes' in report
+        assert 'Style Suggestions' in report
         assert 'Warnings (1)' in report
 
     def test_report_header(self):

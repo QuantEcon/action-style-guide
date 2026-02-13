@@ -67,9 +67,9 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
 
     # --- Style suggestions FIRST (these need human attention) ---
     if style_violations:
-        lines.append(f"## Style Suggestions ({len(style_violations)})")
+        lines.append(f"## 📝 Style Suggestions ({len(style_violations)})")
         lines.append(f"")
-        lines.append("These are advisory suggestions that require human judgment:")
+        lines.append("> **Action required:** These suggestions require human review and judgment.")
         lines.append(f"")
 
         for i, v in enumerate(style_violations, 1):
@@ -93,6 +93,8 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
 
     # --- Warnings ---
     if warnings:
+        lines.append(f"---")
+        lines.append(f"")
         lines.append(f"## Warnings ({len(warnings)})")
         lines.append(f"")
         for w in warnings:
@@ -101,14 +103,16 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
 
     # --- Applied fixes AT THE END (diagnostic record) ---
     if rule_violations:
+        lines.append(f"---")
+        lines.append(f"")
         if dry_run:
-            lines.append(f"## Rule Violations ({len(rule_violations)})")
+            lines.append(f"## 🔧 Rule Violations ({len(rule_violations)})")
             lines.append(f"")
-            lines.append("These violations can be auto-fixed (run without `--dry-run`):")
+            lines.append("> **Fixable:** These violations can be auto-fixed (run without `--dry-run`).")
         else:
-            lines.append(f"## Applied Fixes ({len(rule_violations)})")
+            lines.append(f"## ✅ Applied Fixes ({len(rule_violations)})")
             lines.append(f"")
-            lines.append("The following rule violations were automatically fixed:")
+            lines.append("> **No action required:** The following rule violations were automatically fixed in the lecture file.")
         lines.append(f"")
 
         for i, v in enumerate(rule_violations, 1):
