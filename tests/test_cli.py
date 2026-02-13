@@ -167,18 +167,22 @@ class TestFormatReport:
 class TestDefaultReportPath:
     """Tests for the default_report_path() function."""
 
-    def test_basic(self):
+    def test_basic_all(self):
         path = default_report_path(Path('/tmp/lecture.md'))
-        assert path == Path('/tmp/qestyle-lecture.md')
+        assert path == Path('/tmp/qestyle(all)-lecture.md')
+
+    def test_single_category(self):
+        path = default_report_path(Path('/tmp/lecture.md'), 'writing')
+        assert path == Path('/tmp/qestyle(writing)-lecture.md')
 
     def test_nested_path(self):
-        path = default_report_path(Path('/home/user/lectures/my-lecture.md'))
-        assert path == Path('/home/user/lectures/qestyle-my-lecture.md')
+        path = default_report_path(Path('/home/user/lectures/my-lecture.md'), 'math')
+        assert path == Path('/home/user/lectures/qestyle(math)-my-lecture.md')
 
     def test_preserves_parent_dir(self):
         path = default_report_path(Path('lectures/intro.md'))
         assert path.parent == Path('lectures')
-        assert path.name == 'qestyle-intro.md'
+        assert path.name == 'qestyle(all)-intro.md'
 
 
 # ---------------------------------------------------------------------------

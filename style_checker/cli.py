@@ -179,9 +179,9 @@ def format_report(result: dict, lecture_path: str, dry_run: bool) -> str:
     return "\n".join(lines)
 
 
-def default_report_path(lecture_path: Path) -> Path:
-    """Return the default report file path: qestyle-{stem}.md next to the lecture."""
-    return lecture_path.parent / f"qestyle-{lecture_path.stem}.md"
+def default_report_path(lecture_path: Path, category: str = "all") -> Path:
+    """Return the default report file path: qestyle({category})-{stem}.md next to the lecture."""
+    return lecture_path.parent / f"qestyle({category})-{lecture_path.stem}.md"
 
 
 def check_git_dirty(lecture_path: Path) -> bool:
@@ -374,7 +374,8 @@ Categories:
     if args.output:
         report_path = Path(args.output)
     else:
-        report_path = default_report_path(lecture_path)
+        category_label = args.categories if args.categories else "all"
+        report_path = default_report_path(lecture_path, category_label)
 
     report_path.write_text(report, encoding="utf-8")
     print(f"   📄 Report: {report_path}")

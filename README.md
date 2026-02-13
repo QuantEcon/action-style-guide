@@ -237,7 +237,7 @@ export ANTHROPIC_API_KEY='your-key-here'
 ### Usage
 
 ```bash
-# Review all categories — applies fixes, writes report to qestyle-lecture.md
+# Review all categories — applies fixes, writes report to qestyle(all)-lecture.md
 qestyle lecture.md
 
 # Check specific categories only
@@ -256,7 +256,7 @@ qestyle lecture.md --model claude-sonnet-4-5-20250929 --temperature 0
 
 ### Output
 
-By default, `qestyle` **applies rule-type fixes** directly to the lecture file and writes a Markdown report to `qestyle-{lecture}.md` alongside the original file. Since lectures live in Git repos, you can review changes with `git diff` and restore with `git checkout`.
+By default, `qestyle` **applies rule-type fixes** directly to the lecture file and writes a Markdown report to `qestyle({category})-{lecture}.md` alongside the original file. Since lectures live in Git repos, you can review changes with `git diff` and restore with `git checkout`.
 
 If the lecture file has **uncommitted changes**, `qestyle` will warn you and ask to confirm before proceeding — giving you a chance to commit or stash first.
 
