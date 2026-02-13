@@ -14,6 +14,7 @@ Install from GitHub:
 """
 
 import argparse
+import subprocess
 import sys
 import os
 from pathlib import Path
@@ -145,6 +146,30 @@ def default_report_path(lecture_path: Path) -> Path:
     return lecture_path.parent / f"qestyle-{lecture_path.stem}.md"
 
 
+def check_git_dirty(lecture_path: Path) -> bool:
+    """
+    Check if the lecture file has uncommitted changes in git.
+
+    Returns True if the file has uncommitted changes (staged or unstaged),
+    False if it's clean or not in a git repo.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain", str(lecture_path)],
+            capture_output=True, text=True,
+            cwd=lecture_path.parent,
+            timeout=5,
+        )
+        # Non-zero exit = not a git repo or git error — skip the check
+        if result.returncode != 0:
+            return False
+        # If output is non-empty, the file has uncommitted changes
+        return bool(result.stdout.strip())
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        # git not installed or timed out — skip the check
+        return False
+
+
 def main():
     """CLI entry point for qestyle."""
     parser = argparse.ArgumentParser(
@@ -229,6 +254,19 @@ Categories:
         print("Error: ANTHROPIC_API_KEY environment variable not set", file=sys.stderr)
         print("Set it with: export ANTHROPIC_API_KEY='your-key-here'", file=sys.stderr)
         sys.exit(1)
+
+    # --- Check for uncommitted changes (only in fix mode) ---
+    if not args.dry_run and check_git_dirty(lecture_path):
+        print(f"Warning: {lecture_path.name} has uncommitted changes.")
+        print("  qestyle will modify this file. Consider committing or stashing first.")
+        try:
+            answer = input("  Continue anyway? [y/N] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            answer = ""
+        if answer not in ("y", "yes"):
+            print("Aborted. Commit or stash your changes, then try again.")
+            sys.exit(0)
+        print()
 
     # --- Run review ---
     print(f"qestyle v{__version__}")

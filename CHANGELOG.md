@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Local CLI: `qestyle`** — New command-line tool that shares the same review engine, prompts, rules, and fix logic as the GitHub Action. Install with `pip install git+https://github.com/QuantEcon/action-style-guide.git`. Run `qestyle lecture.md` to review, apply fixes, and write a report (`qestyle-lecture.md`). Use `--dry-run` to skip applying fixes. Supports `--categories`, `--output`, `--model`, and `--temperature` options.
+- **Local CLI: `qestyle`** — New command-line tool that shares the same review engine, prompts, rules, and fix logic as the GitHub Action. Install with `pip install git+https://github.com/QuantEcon/action-style-guide.git`. Run `qestyle lecture.md` to review, apply fixes, and write a report (`qestyle-lecture.md`). Use `--dry-run` to skip applying fixes. Warns if the file has uncommitted changes before applying fixes. Supports `--categories`, `--output`, `--model`, and `--temperature` options.
 - **Category names as PR labels** — When specific categories are requested (e.g., `@qe-style-checker lectures/file.md code,math`), the category names are added as labels on the generated PR. Default labels (`automated`, `style-guide`, `review`) are always included.
 - **`--interactive` mode planned** — Future development: step-through TUI for reviewing suggestions one at a time (see `docs/FUTURE-ENHANCEMENTS.md`).
 

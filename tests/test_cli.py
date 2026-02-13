@@ -11,9 +11,11 @@ Does NOT test LLM integration — that's covered by test_reviewer.py and test_ll
 """
 
 import subprocess
+import os
+import tempfile
 from pathlib import Path
 
-from style_checker.cli import format_report, default_report_path, ALL_CATEGORIES
+from style_checker.cli import format_report, default_report_path, check_git_dirty, ALL_CATEGORIES
 from style_checker import __version__
 
 
@@ -177,6 +179,57 @@ class TestDefaultReportPath:
         path = default_report_path(Path('lectures/intro.md'))
         assert path.parent == Path('lectures')
         assert path.name == 'qestyle-intro.md'
+
+
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# check_git_dirty tests
+# ---------------------------------------------------------------------------
+
+class TestCheckGitDirty:
+    """Tests for the check_git_dirty() function."""
+
+    def test_clean_file_returns_false(self):
+        """A committed file with no changes should return False."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Set up a git repo with a clean file
+            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=tmpdir, capture_output=True)
+            f = Path(tmpdir) / "lecture.md"
+            f.write_text("# Clean")
+            subprocess.run(["git", "add", "."], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=tmpdir, capture_output=True)
+            assert check_git_dirty(f) is False
+
+    def test_modified_file_returns_true(self):
+        """A modified but uncommitted file should return True."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=tmpdir, capture_output=True)
+            f = Path(tmpdir) / "lecture.md"
+            f.write_text("# Original")
+            subprocess.run(["git", "add", "."], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=tmpdir, capture_output=True)
+            # Modify the file
+            f.write_text("# Modified")
+            assert check_git_dirty(f) is True
+
+    def test_untracked_file_returns_true(self):
+        """An untracked file should return True (has status output)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
+            f = Path(tmpdir) / "new-lecture.md"
+            f.write_text("# New")
+            assert check_git_dirty(f) is True
+
+    def test_not_a_git_repo_returns_false(self):
+        """A file outside a git repo should return False (skip check)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = Path(tmpdir) / "lecture.md"
+            f.write_text("# Test")
+            assert check_git_dirty(f) is False
 
 
 # ---------------------------------------------------------------------------
