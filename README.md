@@ -323,7 +323,7 @@ action-style-guide/
 ├── action.yml                 # GitHub Action definition
 ├── style_checker/            # Main package
 │   ├── cli.py               # Local CLI entry point (qestyle)
-│   ├── github.py            # GitHub Action entry point
+│   ├── action.py            # GitHub Action entry point
 │   ├── reviewer.py          # LLM review engine (shared)
 │   ├── fix_applier.py       # Apply fixes to files (shared)
 │   ├── github_handler.py    # GitHub API (action only)
