@@ -37,7 +37,7 @@ action-style-guide/
 ├── style_checker/                # Main package
 │   ├── __init__.py              # Version info (__version__)
 │   ├── cli.py                   # Local CLI entry point (qestyle)
-│   ├── github.py                # GitHub Action entry point
+│   ├── action.py                # GitHub Action entry point
 │   ├── reviewer.py              # LLM interaction with extended thinking (shared)
 │   ├── github_handler.py        # GitHub API interactions (action only)
 │   ├── fix_applier.py           # Apply fixes to markdown files (shared)
@@ -59,7 +59,7 @@ action-style-guide/
 ### Two Entry Points, One Engine
 
 - **`cli.py`** (`qestyle` command): Local CLI for authors. Reads files from disk, applies rule-type fixes by default, writes report to file. Use `--dry-run` to skip fixes.
-- **`github.py`**: GitHub Action entry point. Reads files via GitHub API, creates PRs with fixes.
+- **`action.py`**: GitHub Action entry point. Reads files via GitHub API, creates PRs with fixes.
 - Both use the **same `StyleReviewer`**, prompts, rules, and `fix_applier` — results are identical.
 
 ## Key Technical Decisions
@@ -155,7 +155,7 @@ assert github_token
 # In __init__.py
 __version__ = "0.6.1"  # Bump for every release
 
-# In github.py - print version at startup
+# In action.py - print version at startup
 print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 ```
 
@@ -266,7 +266,7 @@ qestyle lecture.md --categories writing
 qestyle lecture.md --dry-run
 
 # Test GitHub Action entry point
-python style_checker/github.py --mode single --repository owner/repo --comment-body "..."
+python style_checker/action.py --mode single --repository owner/repo --comment-body "..."
 
 # Run tests
 pytest tests/
