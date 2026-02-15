@@ -3,5 +3,5 @@ QuantEcon Style Guide Checker
 AI-powered style guide compliance checking for QuantEcon lecture materials.
 """
 
-__version__ = "0.7.0"
+__version__ = "0.7.1"
 __author__ = "QuantEcon"

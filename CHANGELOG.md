@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-02-16
+
+### Fixed
+
+- **Fixed circular import crashing all GitHub Action runs** — `style_checker/github.py` shadowed the PyGithub `github` package. When `github_handler.py` imported `from github import Github`, Python resolved it to the local `github.py` instead of PyGithub, causing a circular import. Renamed `github.py` to `action.py` to eliminate the name collision.
+
 ## [0.7.0] - 2026-02-13
 
 ### Added
