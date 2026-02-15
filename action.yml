@@ -44,9 +44,9 @@ inputs:
     required: false
     default: ''
   temperature:
-    description: 'LLM temperature (0=deterministic, 1=creative). Lower values give more consistent results.'
+    description: 'LLM temperature. Must be 1 for extended thinking (required by Anthropic).'
     required: false
-    default: '0'
+    default: '1'
 
 outputs:
   pr-number:

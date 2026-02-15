@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-02-16
+
+### Fixed
+
+- **Fixed temperature default breaking all LLM calls** — `action.yml` defaulted temperature to `0`, but extended thinking (enabled in v0.7.0) requires `temperature=1` per Anthropic's API. Every rule check silently errored with a 400, causing false "0 issues found" results. Changed default to `1`.
+
 ## [0.7.1] - 2026-02-16
 
 ### Fixed
