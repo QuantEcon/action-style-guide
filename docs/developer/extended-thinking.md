@@ -1,10 +1,14 @@
-# Extended Thinking: Testing & Findings
+---
+title: Extended Thinking Results
+---
 
-> Testing results from the v0.7.0 extended thinking integration (2026-02-13).
+# Extended Thinking Results
 
-## Problem: False Positives from Autoregressive Generation
+Testing results from the v0.7.0 extended thinking integration (2026-02-13).
 
-Prior to v0.7.0, the style checker had a persistent false positive problem where the model would report violations that didn't exist — the "suggested fix" was identical to the "current text." This happened at rates of 40-60% depending on the rule.
+## The Problem: False Positives from Autoregressive Generation
+
+Prior to v0.7.0, the style checker had a persistent false positive problem where the model would report violations that didn't exist — the "suggested fix" was identical to the "current text." This happened at rates of 40–60% depending on the rule.
 
 ### Root Cause
 
@@ -19,7 +23,7 @@ No amount of prompt engineering can fix this — the model must commit tokens se
 
 ## Solution: Extended Thinking
 
-Extended thinking (Anthropic's feature for Claude Sonnet 4.5) lets the model reason internally in a "thinking" phase before producing any output tokens. This means:
+Extended thinking (Anthropic's feature for Claude Sonnet 4.5) lets the model reason internally in a "thinking" phase before producing any output tokens:
 
 - The model analyzes the entire document silently
 - Verifies every candidate violation before committing any output
@@ -29,7 +33,6 @@ Extended thinking (Anthropic's feature for Claude Sonnet 4.5) lets the model rea
 ### Configuration
 
 ```python
-# In AnthropicProvider
 thinking = {
     "type": "enabled",
     "budget_tokens": 10000,  # Max tokens for internal reasoning
@@ -39,7 +42,7 @@ temperature = 1.0  # Required by Anthropic for extended thinking
 
 ## Experiment Results
 
-All experiments used rule `qe-writing-001` (one sentence per paragraph) against the test lecture `markov_chains_jax.md` (42 embedded violations across 8 categories).
+All experiments used rule `qe-writing-001` (one sentence per paragraph) against the test lecture `markov_chains_jax.md`.
 
 ### Prompt Iteration Results
 
@@ -53,7 +56,7 @@ All experiments used rule `qe-writing-001` (one sentence per paragraph) against 
 
 ### Ground Truth Validation
 
-A deterministic Python script (`find_multisentence.py`) was written to find all multi-sentence paragraph blocks in the test lecture. It identified 5-6 genuine violations. The extended thinking result (6 violations, all genuine) aligned correctly with ground truth.
+A deterministic Python script (`find_multisentence.py`) identified 5–6 genuine violations in the test lecture. The extended thinking result (6 violations, all genuine) aligned correctly with ground truth.
 
 The baseline's 21 "violations" included:
 - 9 outright false positives (identical text)
@@ -62,7 +65,7 @@ The baseline's 21 "violations" included:
 
 ### Full Production Validation
 
-After deploying to production (`qestyle lectures/markov_chains_jax.md -c writing`), the extended thinking approach was validated across all 8 writing rules:
+After deploying to production, extended thinking was validated across all 8 writing rules:
 
 | Metric | Result |
 |--------|--------|
@@ -70,7 +73,6 @@ After deploying to production (`qestyle lectures/markov_chains_jax.md -c writing
 | Applied fixes (rule-type) | 25 |
 | Style suggestions (advisory) | 15 |
 | False positives | **0** |
-| Warnings | 2 (minor parser issues) |
 
 All 25 applied fixes were legitimate corrections. All 15 style suggestions were reasonable recommendations.
 
@@ -109,41 +111,11 @@ Only include confirmed violations in your response. Report 0 if none exist.
 
 This is 40 lines vs the previous 120-line category-specific prompts, and it produces better results.
 
-## Testing Tools
-
-### `test_rule_prompt.py`
-
-Standalone script for prompt iteration. Located in [test-action-style-guide/scripts/](https://github.com/QuantEcon/test-action-style-guide).
-
-```bash
-# Test a single rule against a lecture
-python scripts/test_rule_prompt.py lectures/markov_chains_jax.md
-
-# Edit PROMPT and RULE in the script to iterate
-# Results saved to scripts/last_response.md
-```
-
-Features:
-- Configurable prompt, rule, model, temperature
-- Extended thinking toggle (`USE_EXTENDED_THINKING`)
-- Counts violations and false positives (identical text)
-- Saves raw response for comparison
-
-### `find_multisentence.py`
-
-Deterministic ground truth finder for `qe-writing-001` violations.
-
-```bash
-python scripts/find_multisentence.py lectures/markov_chains_jax.md
-```
-
-Parses the file structurally (skips code blocks, directives, frontmatter) and reports all paragraph blocks containing multiple sentences.
-
 ## Key Decisions
 
 | Decision | Rationale |
 |----------|-----------|
 | `thinking_budget=10000` | Enough for careful analysis, not excessive cost |
 | `temperature=1.0` | Required by Anthropic for extended thinking |
-| 8 identical prompt files (for now) | Validated on writing; consolidate to single file after testing all categories |
+| 8 identical prompt files (for now) | Consolidation to single file planned (validated on writing, pending other categories) |
 | Archive v0.6.1 prompts | Reference for regression testing and comparison |

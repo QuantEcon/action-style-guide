@@ -66,3 +66,6 @@ temp/
 # Output files
 output/
 results/
+
+# MyST build output
+docs/_build/
