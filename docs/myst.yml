@@ -1,0 +1,24 @@
+version: 1
+project:
+  title: QuantEcon Style Guide Checker
+  description: AI-powered style guide compliance checking for QuantEcon lecture materials
+  github: https://github.com/QuantEcon/action-style-guide
+  license: MIT
+  toc:
+    - file: index.md
+    - title: User Guide
+      children:
+        - file: user/getting-started.md
+        - file: user/configuration.md
+        - file: user/rules-reference.md
+        - file: user/cli.md
+        - file: user/github-app-setup.md
+    - title: Developer Guide
+      children:
+        - file: developer/architecture.md
+        - file: developer/contributing.md
+        - file: developer/testing.md
+        - file: developer/extended-thinking.md
+        - file: developer/roadmap.md
+site:
+  template: book-theme
