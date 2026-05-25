@@ -5,6 +5,7 @@ Manages PRs, issues, and comments
 
 import os
 import re
+import secrets
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 from github import Github, GithubException
@@ -13,17 +14,17 @@ from datetime import datetime
 
 class GitHubHandler:
     """Handles GitHub API interactions for PR and issue management"""
-    
+
     # Valid category names (must match files in style_checker/rules/)
     VALID_CATEGORIES = {
         'writing', 'math', 'code', 'jax',
         'figures', 'references', 'links', 'admonitions'
     }
-    
+
     def __init__(self, token: str, repository: str):
         """
         Initialize GitHub handler
-        
+
         Args:
             token: GitHub token or GitHub App token
             repository: Repository in format 'owner/repo'
@@ -31,6 +32,12 @@ class GitHubHandler:
         self.github = Github(token)
         self.repo = self.github.get_repo(repository)
         self.repository = repository
+        # Resolve the repo's default branch once at startup so we don't hardcode "main".
+        # Falls back to "main" if the metadata lookup fails for any reason.
+        try:
+            self.default_branch = self.repo.default_branch or 'main'
+        except GithubException:
+            self.default_branch = 'main'
     
     def extract_lecture_from_comment(self, comment_body: str) -> Optional[Tuple[str, List[str]]]:
         """
@@ -47,14 +54,14 @@ class GitHubHandler:
             Tuple of (lecture_name, categories) or None if not found.
             Categories is a list like ["writing", "math"] or ["all"] if not specified.
         """
-        # @qe-style-checker syntax
+        # @qe-style-checker syntax. The `lectures/...`-prefixed alternatives that
+        # used to live here were dead code: the `\S+` group already accepts paths
+        # like `lectures/foo.md`, and the body strips the `lectures/` prefix below.
         new_patterns = [
-            r'@qe-style-checker\s+(\S+)\s+([\w,]+)',  # With categories
-            r'@qe-style-checker\s+`(\S+)`\s+([\w,]+)',  # With backticks and categories
-            r'@qe-style-checker\s+lectures/(\S+)\s+([\w,]+)',  # With lectures/ prefix and categories
-            r'@qe-style-checker\s+(\S+)',  # Without categories (default to "all")
-            r'@qe-style-checker\s+`(\S+)`',  # With backticks only
-            r'@qe-style-checker\s+lectures/(\S+)',  # With lectures/ prefix only
+            r'@qe-style-checker\s+(\S+)\s+([\w,]+)',    # With categories
+            r'@qe-style-checker\s+`(\S+)`\s+([\w,]+)',  # Backtick-wrapped + categories
+            r'@qe-style-checker\s+(\S+)',               # Without categories (defaults to "all")
+            r'@qe-style-checker\s+`(\S+)`',             # Backtick-wrapped only
         ]
         
         for pattern in new_patterns:
@@ -129,30 +136,41 @@ class GitHubHandler:
         except GithubException as e:
             raise Exception(f"Failed to get lecture content: {e}")
     
-    def create_branch(self, branch_name: str, base_branch: str = 'main') -> str:
+    def create_branch(self, branch_name: str, base_branch: Optional[str] = None) -> str:
         """
-        Create a new branch
-        
+        Create a new branch.
+
+        If the requested branch name collides with an existing ref, append a short
+        random suffix and retry — committing onto an unknown pre-existing branch
+        could overwrite somebody else's WIP.
+
         Args:
             branch_name: Name for new branch
-            base_branch: Base branch to branch from
-            
+            base_branch: Base branch to branch from (defaults to the repo's default branch)
+
         Returns:
-            Created branch name
+            The actual branch name created (may include a collision-avoidance suffix).
         """
+        base = base_branch or self.default_branch
         try:
-            # Get base branch reference
-            base_ref = self.repo.get_git_ref(f'heads/{base_branch}')
-            base_sha = base_ref.object.sha
-            
-            # Create new branch
-            self.repo.create_git_ref(f'refs/heads/{branch_name}', base_sha)
-            return branch_name
+            base_ref = self.repo.get_git_ref(f'heads/{base}')
         except GithubException as e:
-            if 'Reference already exists' in str(e):
-                # Branch exists, use it
-                return branch_name
-            raise Exception(f"Failed to create branch: {e}")
+            raise Exception(f"Failed to read base branch '{base}': {e}")
+        base_sha = base_ref.object.sha
+
+        candidate = branch_name
+        for _ in range(5):
+            try:
+                self.repo.create_git_ref(f'refs/heads/{candidate}', base_sha)
+                return candidate
+            except GithubException as e:
+                if 'Reference already exists' in str(e):
+                    candidate = f"{branch_name}-{secrets.token_hex(3)}"
+                    continue
+                raise Exception(f"Failed to create branch: {e}")
+        raise Exception(
+            f"Failed to create branch after 5 attempts (last try: '{candidate}')"
+        )
     
     def commit_changes(
         self,
@@ -216,28 +234,29 @@ class GitHubHandler:
         title: str,
         body: str,
         head_branch: str,
-        base_branch: str = 'main',
+        base_branch: Optional[str] = None,
         labels: List[str] = None
     ) -> Tuple[int, str]:
         """
         Create a pull request
-        
+
         Args:
             title: PR title
             body: PR description
             head_branch: Head branch (source)
-            base_branch: Base branch (target)
+            base_branch: Base branch (target). Defaults to the repo's default branch.
             labels: Labels to add
-            
+
         Returns:
             Tuple of (PR number, PR URL)
         """
+        base = base_branch or self.default_branch
         try:
             pr = self.repo.create_pull(
                 title=title,
                 body=body,
                 head=head_branch,
-                base=base_branch
+                base=base
             )
             
             # Add labels if provided

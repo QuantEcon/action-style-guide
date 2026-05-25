@@ -10,6 +10,9 @@ import os
 import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
+
+import anthropic
+
 from .fix_applier import apply_fixes, validate_fix_quality
 
 
@@ -323,17 +326,29 @@ class AnthropicProvider:
     For latest models and limits, see: https://docs.anthropic.com/en/docs/about-claude/models
     """
     
+    # Per-request HTTP timeout for Anthropic API calls. With extended thinking + a
+    # large lecture this can take a minute or two; 5 minutes is generous without
+    # being open-ended. Without this, a hung connection would block the action up
+    # to the GitHub-Actions job timeout (6h by default).
+    REQUEST_TIMEOUT_SECONDS = 300.0
+    # Number of times to retry transient API failures (rate limits, 5xx). The SDK
+    # uses exponential backoff between attempts.
+    MAX_RETRIES = 3
+
     def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929",
                  temperature: float = 1.0, thinking_budget: int = 10000):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature  # Must be 1.0 for extended thinking
         self.thinking_budget = thinking_budget
-        try:
-            from anthropic import Anthropic
-            self.client = Anthropic(api_key=api_key)
-        except ImportError:
-            raise ImportError("anthropic package not installed. Run: pip install anthropic")
+        # `anthropic` is a required dep declared in pyproject.toml and imported at
+        # module top; if it's missing the module fails to import long before we get
+        # here, so no need to wrap construction in try/except ImportError.
+        self.client = anthropic.Anthropic(
+            api_key=api_key,
+            timeout=self.REQUEST_TIMEOUT_SECONDS,
+            max_retries=self.MAX_RETRIES,
+        )
     
     def check_single_rule(self, prompt: str) -> Dict[str, Any]:
         """Check a single rule using provided prompt with extended thinking"""
@@ -505,11 +520,16 @@ class StyleReviewer:
                     else:
                         print(f"      ✓ No violations")
                         
-                except Exception as e:
-                    warning = f"Error checking {rule_id}: {str(e)}"
+                except anthropic.APIError as e:
+                    # Recoverable: rate limits, transient 5xx, single-call timeouts.
+                    # Log per-rule but keep checking other rules.
+                    warning = f"API error checking {rule_id}: {e}"
                     print(f"      ⚠️  {warning}")
                     all_warnings.append(warning)
-        
+                # Any other exception (AttributeError, KeyError, TypeError, ...) is
+                # a programmer bug — let it bubble up so the action fails loudly
+                # instead of silently reporting "0 issues found" for a broken run.
+
         # Combine all results
         combined_result = {
             'issues_found': len(all_violations),

@@ -86,7 +86,7 @@ class TestApplyFixes:
         result, warnings, applied = apply_fixes(content, violations)
         assert result == content
         assert len(warnings) == 1
-        assert 'Could not find' in warnings[0]
+        assert 'not found' in warnings[0].lower()
         assert len(applied) == 0
 
     def test_empty_violations_list(self):
@@ -147,6 +147,61 @@ class TestApplyFixes:
         assert 'Same text stays.' in result
         assert len(applied) == 1
         assert applied[0]['rule_id'] == 'qe-test-001'
+
+    def test_descending_position_preserves_earlier_positions(self):
+        """Fixes should be applied in descending position order so earlier indices stay valid.
+
+        Replacing the LATER 'cat' with 'dog' first should not shift the position
+        of the EARLIER 'fish' replacement.
+        """
+        content = "we saw a fish at 5pm and a cat at 6pm"
+        violations = [
+            {
+                'rule_id': 'r-early',
+                'current_text': 'fish',
+                'suggested_fix': 'whale',
+                'location': 'line 1',
+            },
+            {
+                'rule_id': 'r-late',
+                'current_text': 'cat',
+                'suggested_fix': 'rhinoceros',  # longer than 'cat', would shift later indices
+                'location': 'line 1',
+            },
+        ]
+        result, _warnings, applied = apply_fixes(content, violations)
+        assert result == "we saw a whale at 5pm and a rhinoceros at 6pm"
+        assert len(applied) == 2
+
+    def test_overlapping_fixes_second_skipped(self):
+        """When two violations target overlapping regions, the higher-position fix
+        is applied first (descending sort) and the lower-position fix is then
+        skipped because its anchor no longer matches."""
+        # 'brown' starts at pos 10, 'quick brown fox' starts at pos 4.
+        # Descending order processes the inner 'brown' replacement first, after
+        # which the outer anchor 'quick brown fox' is no longer present.
+        content = "the quick brown fox"
+        violations = [
+            {
+                'rule_id': 'r-outer',
+                'current_text': 'quick brown fox',
+                'suggested_fix': 'lazy dog',
+                'location': 'line 1',
+            },
+            {
+                'rule_id': 'r-inner',
+                'current_text': 'brown',
+                'suggested_fix': 'red',
+                'location': 'line 1',
+            },
+        ]
+        result, warnings, applied = apply_fixes(content, violations)
+        assert result == "the quick red fox"
+        assert len(applied) == 1
+        assert applied[0]['rule_id'] == 'r-inner'
+        assert len(warnings) == 1
+        assert 'r-outer' in warnings[0]
+        assert 'no longer matches' in warnings[0]
 
 
 class TestValidateFixQuality:
