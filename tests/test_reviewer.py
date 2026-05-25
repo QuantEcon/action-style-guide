@@ -2,11 +2,17 @@
 Tests for reviewer.py — extract_individual_rules() and RULE_EVALUATION_ORDER
 """
 
+from pathlib import Path
+
+import style_checker
 from style_checker.categories import VALID_CATEGORIES
 from style_checker.reviewer import (
     extract_individual_rules,
     RULE_EVALUATION_ORDER,
 )
+
+
+PROMPTS_DIR = Path(style_checker.__file__).parent / "prompts"
 
 
 # Expected rule counts per category (from rule files)
@@ -132,6 +138,29 @@ class TestRuleEvaluationOrder:
             for rule_id in order:
                 assert rule_id in existing_ids, \
                     f"'{category}': '{rule_id}' in order but not in rule file"
+
+
+class TestPromptFile:
+    """Test the single shared prompt file used by create_single_rule_prompt.
+
+    Replaces coverage from the deleted test_prompt_loader.py — but for a
+    single consolidated prompt instead of one file per category.
+    """
+
+    def test_prompt_file_exists(self):
+        """create_single_rule_prompt() raises FileNotFoundError at runtime if
+        the prompt file is missing — assert at test time so we catch packaging
+        regressions before they hit production."""
+        prompt_file = PROMPTS_DIR / "prompt.md"
+        assert prompt_file.exists(), \
+            f"Shared prompt file missing: {prompt_file}"
+
+    def test_prompt_file_has_version_header(self):
+        """The prompt should carry a `<!-- Prompt Version: X.Y.Z ... -->` comment
+        so logs can record which prompt produced a given review."""
+        content = (PROMPTS_DIR / "prompt.md").read_text()
+        assert "Prompt Version:" in content, \
+            "prompt.md missing the 'Prompt Version: ...' header comment"
 
 
 class TestRuleTypeCounts:
