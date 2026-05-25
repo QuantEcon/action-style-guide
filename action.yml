@@ -71,32 +71,42 @@ runs:
         token: ${{ inputs.github-token }}
         fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        python-version: '3.11'
+        enable-cache: true
 
     - name: Install dependencies
       shell: bash
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ${{ github.action_path }}/requirements.txt
+      working-directory: ${{ github.action_path }}
+      run: uv sync --extra action --frozen
 
     - name: Run style checker
       id: run-checker
       shell: bash
+      working-directory: ${{ github.action_path }}
       env:
-        PYTHONPATH: ${{ github.action_path }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        # User-controlled inputs are passed via env to avoid shell interpolation
+        # (issue comments / PR bodies could otherwise inject shell commands).
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_LECTURES_PATH: ${{ inputs.lectures-path }}
+        INPUT_LLM_MODEL: ${{ inputs.llm-model }}
+        INPUT_RULE_CATEGORIES: ${{ inputs.rule-categories }}
+        INPUT_CREATE_PR: ${{ inputs.create-pr }}
+        INPUT_PR_BRANCH_PREFIX: ${{ inputs.pr-branch-prefix }}
+        INPUT_TEMPERATURE: ${{ inputs.temperature }}
+        INPUT_COMMENT_BODY: ${{ inputs.comment-body }}
+        INPUT_REPOSITORY: ${{ github.repository }}
       run: |
-        python ${{ github.action_path }}/style_checker/action.py \
-          --mode "${{ inputs.mode }}" \
-          --lectures-path "${{ inputs.lectures-path }}" \
-          --llm-model "${{ inputs.llm-model }}" \
-          --rule-categories "${{ inputs.rule-categories }}" \
-          --create-pr "${{ inputs.create-pr }}" \
-          --pr-branch-prefix "${{ inputs.pr-branch-prefix }}" \
-          --temperature "${{ inputs.temperature }}" \
-          --comment-body "${{ inputs.comment-body }}" \
-          --repository "${{ github.repository }}"
+        uv run python style_checker/action.py \
+          --mode "$INPUT_MODE" \
+          --lectures-path "$INPUT_LECTURES_PATH" \
+          --llm-model "$INPUT_LLM_MODEL" \
+          --rule-categories "$INPUT_RULE_CATEGORIES" \
+          --create-pr "$INPUT_CREATE_PR" \
+          --pr-branch-prefix "$INPUT_PR_BRANCH_PREFIX" \
+          --temperature "$INPUT_TEMPERATURE" \
+          --comment-body "$INPUT_COMMENT_BODY" \
+          --repository "$INPUT_REPOSITORY"

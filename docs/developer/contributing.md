@@ -10,25 +10,33 @@ Guidelines for contributing to the QuantEcon Style Guide Checker.
 
 ### Prerequisites
 
-- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (handles Python, venv, and deps for you)
 - Git
 - GitHub account
 
 ### Local Development
 
 ```bash
-# Clone and install
+# Clone
 git clone https://github.com/QuantEcon/action-style-guide.git
 cd action-style-guide
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
+
+# uv reads pyproject.toml + uv.lock and creates a .venv automatically.
+# --all-extras installs PyGithub (action) + pytest/ruff (dev).
+uv sync --all-extras
+
+# Run commands via `uv run` (no need to activate the venv):
+uv run qestyle --version
+uv run pytest tests/
 
 # Set up API keys
 export ANTHROPIC_API_KEY="your-key"
 export GITHUB_TOKEN="your-token"
 ```
+
+> Don't want `uv`? You can still use `pip install -e ".[dev,action]"` — the
+> dependency manifest is the same. `uv` just makes installs faster and
+> reproducible via `uv.lock`.
 
 ## Code Style
 
@@ -111,21 +119,27 @@ Rules are in `style_checker/rules/` and are read directly by the LLM — **no co
 
 ## Version Management
 
+The version lives in **one place** — `style_checker/__init__.py`:
+
 ```python
 # In __init__.py — bump for every release
 __version__ = "0.7.2"
 ```
 
+`pyproject.toml` reads it via `[tool.setuptools.dynamic] version = {attr = "style_checker.__version__"}`,
+so `pip install qestyle` and `qestyle --version` always report the same number.
+
 ### Release Process
 
 1. Make changes
-2. **Run full test suite**: `pytest tests/ -v`
+2. **Run full test suite**: `uv run pytest tests/ -v`
 3. Update `__version__` in `style_checker/__init__.py`
-4. Update prompt versions if prompts were modified
-5. Update `CHANGELOG.md`
-6. Commit: `Release vX.Y.Z - Description`
-7. Create GitHub release: `gh release create vX.Y.Z`
-8. Update floating tag: `git tag -f v0.7 && git push origin v0.7 --force`
+4. Regenerate the lockfile: `uv lock` (commit the diff)
+5. Update prompt versions if prompts were modified
+6. Update `CHANGELOG.md`
+7. Commit: `Release vX.Y.Z - Description`
+8. Create GitHub release: `gh release create vX.Y.Z`
+9. Update floating tag: `git tag -f v0.7 && git push origin v0.7 --force`
 
 ## Debugging LLM Issues
 

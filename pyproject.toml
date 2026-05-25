@@ -1,6 +1,6 @@
 [project]
 name = "qestyle"
-version = "0.7.0"
+dynamic = ["version"]
 description = "AI-powered style guide compliance checker for QuantEcon lecture materials"
 requires-python = ">=3.11"
 readme = "README.md"
@@ -16,8 +16,22 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Text Processing :: Markup :: Markdown",
 ]
+# Core runtime dependency — the qestyle CLI only needs the Anthropic SDK.
 dependencies = [
     "anthropic>=0.18.0",
+]
+
+[project.optional-dependencies]
+# Extra dependencies needed by the GitHub Action entry point (action.py / github_handler.py)
+# which talks to the GitHub API via PyGithub. The CLI does not need these.
+action = [
+    "PyGithub>=2.1.1",
+]
+# Dev/test tooling. Install with `uv sync --all-extras` or `pip install -e ".[dev]"`.
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff",
 ]
 
 [project.scripts]
@@ -31,6 +45,9 @@ Issues = "https://github.com/QuantEcon/action-style-guide/issues"
 [build-system]
 requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "style_checker.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["style_checker*"]

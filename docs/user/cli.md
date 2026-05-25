@@ -8,7 +8,7 @@ The `qestyle` command runs the **exact same** review engine locally — same pro
 
 ## Installation
 
-Install directly from GitHub:
+### With `pip`
 
 ```bash
 # Latest release
@@ -21,6 +21,19 @@ pip install git+https://github.com/QuantEcon/action-style-guide.git@v0.7
 git clone https://github.com/QuantEcon/action-style-guide.git
 cd action-style-guide
 pip install -e .
+```
+
+### With [`uv`](https://docs.astral.sh/uv/) (recommended)
+
+```bash
+# Install qestyle as a global tool (no virtualenv juggling)
+uv tool install git+https://github.com/QuantEcon/action-style-guide.git
+
+# Or, from a local clone — same as `pip install -e .` but faster + reproducible
+git clone https://github.com/QuantEcon/action-style-guide.git
+cd action-style-guide
+uv sync          # creates .venv, installs deps from uv.lock
+uv run qestyle --version
 ```
 
 Set your Anthropic API key:
