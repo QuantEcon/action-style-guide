@@ -96,6 +96,7 @@ runs:
         INPUT_RULE_CATEGORIES: ${{ inputs.rule-categories }}
         INPUT_CREATE_PR: ${{ inputs.create-pr }}
         INPUT_PR_BRANCH_PREFIX: ${{ inputs.pr-branch-prefix }}
+        INPUT_PR_LABELS: ${{ inputs.pr-labels }}
         INPUT_TEMPERATURE: ${{ inputs.temperature }}
         INPUT_COMMENT_BODY: ${{ inputs.comment-body }}
         INPUT_REPOSITORY: ${{ github.repository }}
@@ -107,6 +108,7 @@ runs:
           --rule-categories "$INPUT_RULE_CATEGORIES" \
           --create-pr "$INPUT_CREATE_PR" \
           --pr-branch-prefix "$INPUT_PR_BRANCH_PREFIX" \
+          --pr-labels "$INPUT_PR_LABELS" \
           --temperature "$INPUT_TEMPERATURE" \
           --comment-body "$INPUT_COMMENT_BODY" \
           --repository "$INPUT_REPOSITORY"
