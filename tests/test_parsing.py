@@ -13,12 +13,13 @@ from style_checker.github_handler import GitHubHandler
 
 @pytest.fixture
 def handler():
-    """Create a GitHubHandler without connecting to GitHub."""
+    """Create a GitHubHandler without connecting to GitHub.
+
+    The method under test reads VALID_CATEGORIES from the module-level
+    `style_checker.categories` import, so no class-attribute setup needed.
+    """
     with patch.object(GitHubHandler, '__init__', lambda self, *a, **kw: None):
-        h = GitHubHandler.__new__(GitHubHandler)
-        # Set the class attribute that extract_lecture_from_comment uses
-        h.VALID_CATEGORIES = GitHubHandler.VALID_CATEGORIES
-        return h
+        return GitHubHandler.__new__(GitHubHandler)
 
 
 class TestCommentParsing:

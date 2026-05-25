@@ -27,8 +27,7 @@ tests/
 ├── test_github_handler.py    # GitHub API interaction, comment parsing
 ├── test_markdown_parser.py   # LLM response parsing
 ├── test_parsing.py           # Comment trigger pattern matching
-├── test_prompt_loader.py     # Prompt/rules file loading
-├── test_reviewer.py          # Rule extraction and evaluation order
+├── test_reviewer.py          # Rule extraction, RULE_EVALUATION_ORDER, prompt file
 ├── test_llm_integration.py   # Real LLM API calls (@integration)
 └── test_cli.py               # CLI argument parsing
 ```
@@ -43,8 +42,7 @@ Run automatically with `pytest`:
 | `test_github_handler.py` | GitHub API interaction, comment parsing |
 | `test_markdown_parser.py` | LLM response parsing |
 | `test_parsing.py` | Comment trigger pattern matching (real method) |
-| `test_prompt_loader.py` | Prompt/rules file loading |
-| `test_reviewer.py` | Rule extraction and evaluation order |
+| `test_reviewer.py` | Rule extraction, RULE_EVALUATION_ORDER consistency, prompt file existence |
 | `test_cli.py` | CLI argument parsing |
 
 ### Integration Tests (Slow, Costs Money)
@@ -69,15 +67,14 @@ pytest --cov=style_checker --cov-report=html
 open htmlcov/index.html
 ```
 
-Current coverage:
+Current coverage (approximate — re-measure with `pytest --cov`):
 
 | File | Coverage |
 |------|----------|
-| `fix_applier.py` | 92% |
-| `prompt_loader.py` | 86% |
-| `github_handler.py` | 55% |
-| `reviewer.py` | 47% |
-| `action.py` | 0% (needs integration mocking) |
+| `fix_applier.py` | high |
+| `github_handler.py` | medium |
+| `reviewer.py` | medium |
+| `action.py` | 0% (needs integration mocking — tracked in TECHNICAL-REVIEW §6.1) |
 
 ## CI Pipeline
 

@@ -15,7 +15,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from style_checker.cli import format_report, default_report_path, check_git_dirty, ALL_CATEGORIES
+from style_checker.cli import format_report, default_report_path, check_git_dirty
+from style_checker.categories import VALID_CATEGORIES
 from style_checker import __version__
 
 
@@ -244,12 +245,12 @@ class TestCategories:
     """Tests for category validation."""
 
     def test_all_categories_present(self):
-        """ALL_CATEGORIES should match the 8 standard categories."""
+        """VALID_CATEGORIES should match the 8 standard categories."""
         expected = {'writing', 'math', 'code', 'jax', 'figures', 'references', 'links', 'admonitions'}
-        assert set(ALL_CATEGORIES) == expected
+        assert set(VALID_CATEGORIES) == expected
 
     def test_all_categories_count(self):
-        assert len(ALL_CATEGORIES) == 8
+        assert len(VALID_CATEGORIES) == 8
 
 
 # ---------------------------------------------------------------------------

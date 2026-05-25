@@ -117,5 +117,5 @@ This is 40 lines vs the previous 120-line category-specific prompts, and it prod
 |----------|-----------|
 | `thinking_budget=10000` | Enough for careful analysis, not excessive cost |
 | `temperature=1.0` | Required by Anthropic for extended thinking |
-| 8 identical prompt files (for now) | Consolidation to single file planned (validated on writing, pending other categories) |
+| Single shared `prompts/prompt.md` | Consolidated from 8 byte-identical files (validated on writing, then rolled out across all categories) |
 | Archive v0.6.1 prompts | Reference for regression testing and comparison |

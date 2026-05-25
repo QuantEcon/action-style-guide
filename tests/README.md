@@ -33,21 +33,14 @@ Tests the fix application engine:
 - First-occurrence-only replacement
 - Fix quality validation warnings
 
-### `test_prompt_loader.py`
-Tests prompt and rules loading:
-- Single and multi-category prompt loading
-- All 8 categories loadable
-- Invalid category error handling
-- Prompt version tracking presence
-- Rules file content validation
-
 ### `test_reviewer.py`
-Tests rule extraction and evaluation order:
+Tests rule extraction, evaluation order, and prompt-file invariants:
 - Rule counts per category (49 total)
 - Rule type distribution (32 rule, 13 style, 4 migrate)
-- RULE_EVALUATION_ORDER consistency with rule files
+- RULE_EVALUATION_ORDER consistency with rule files AND with VALID_CATEGORIES (drift detection)
 - Rule field validation and ID format
 - No duplicate rule IDs
+- Shared `prompts/prompt.md` exists and carries a version header
 
 ### `test_llm_integration.py`
 **Integration tests** that make real LLM API calls (marked with `@pytest.mark.integration`):
@@ -107,7 +100,8 @@ pytest -m integration -v
 
 Install test dependencies:
 ```bash
-pip install -r requirements.txt
+uv sync --all-extras       # recommended (uses uv.lock)
+# or: pip install -e ".[dev,action]"
 ```
 
 This includes:
