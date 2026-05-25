@@ -13,6 +13,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 import anthropic
 
+from .categories import VALID_CATEGORIES
 from .fix_applier import apply_fixes, validate_fix_quality
 
 
@@ -575,24 +576,15 @@ class StyleReviewer:
         Returns:
             Dictionary with all violations found across all categories
         """
-        # Define all categories to check (matches files in style_checker/rules/)
-        all_categories = [
-            'writing',
-            'math',
-            'code',
-            'jax',
-            'figures',
-            'references',
-            'links',
-            'admonitions'
-        ]
-        
+        # Single source of truth for the category list lives in categories.py.
+        all_categories = list(VALID_CATEGORIES)
+
         print(f"\n🤖 Starting AI-powered review using single-rule evaluation...")
         print(f"📊 Lecture: {lecture_name}")
         print(f"\n📦 Processing {len(all_categories)} categories:")
         for category in all_categories:
             print(f"   • {category}")
-        
+
         # Delegate to review_lecture_single_rule which handles:
         # - Single-rule-per-LLM-call evaluation
         # - Sequential fix application between rules

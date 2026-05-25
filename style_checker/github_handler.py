@@ -11,15 +11,11 @@ from pathlib import Path
 from github import Github, GithubException
 from datetime import datetime
 
+from .categories import VALID_CATEGORIES
+
 
 class GitHubHandler:
     """Handles GitHub API interactions for PR and issue management"""
-
-    # Valid category names (must match files in style_checker/rules/)
-    VALID_CATEGORIES = {
-        'writing', 'math', 'code', 'jax',
-        'figures', 'references', 'links', 'admonitions'
-    }
 
     def __init__(self, token: str, repository: str):
         """
@@ -79,10 +75,10 @@ class GitHubHandler:
                     
                     # Validate categories
                     if categories != ['all']:
-                        invalid = [c for c in categories if c not in self.VALID_CATEGORIES]
+                        invalid = [c for c in categories if c not in VALID_CATEGORIES]
                         if invalid:
                             print(f"⚠️  Invalid categories: {', '.join(invalid)}")
-                            print(f"   Valid categories: {', '.join(sorted(self.VALID_CATEGORIES))}")
+                            print(f"   Valid categories: {', '.join(sorted(VALID_CATEGORIES))}")
                             return None
                 else:
                     categories = ['all']  # Default to all categories

@@ -22,14 +22,8 @@ from pathlib import Path
 from datetime import datetime
 
 from style_checker import __version__
+from style_checker.categories import VALID_CATEGORIES
 from style_checker.reviewer import StyleReviewer
-
-
-# All available categories (matches reviewer.RULE_EVALUATION_ORDER keys)
-ALL_CATEGORIES = [
-    "writing", "math", "code", "jax",
-    "figures", "references", "links", "admonitions",
-]
 
 
 def display_width(s: str) -> int:
@@ -278,13 +272,13 @@ Categories:
     # Parse categories
     if args.categories:
         categories = [c.strip() for c in args.categories.split(",")]
-        invalid = [c for c in categories if c not in ALL_CATEGORIES]
+        invalid = [c for c in categories if c not in VALID_CATEGORIES]
         if invalid:
             print(f"Error: invalid categories: {', '.join(invalid)}", file=sys.stderr)
-            print(f"Valid categories: {', '.join(ALL_CATEGORIES)}", file=sys.stderr)
+            print(f"Valid categories: {', '.join(VALID_CATEGORIES)}", file=sys.stderr)
             sys.exit(1)
     else:
-        categories = list(ALL_CATEGORIES)
+        categories = list(VALID_CATEGORIES)
 
     # API key
     api_key = args.api_key or os.environ.get("ANTHROPIC_API_KEY")
