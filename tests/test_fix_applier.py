@@ -86,7 +86,7 @@ class TestApplyFixes:
         result, warnings, applied = apply_fixes(content, violations)
         assert result == content
         assert len(warnings) == 1
-        assert 'Could not find' in warnings[0]
+        assert 'not found' in warnings[0].lower()
         assert len(applied) == 0
 
     def test_empty_violations_list(self):
@@ -147,6 +147,59 @@ class TestApplyFixes:
         assert 'Same text stays.' in result
         assert len(applied) == 1
         assert applied[0]['rule_id'] == 'qe-test-001'
+
+    def test_descending_position_preserves_earlier_positions(self):
+        """Fixes should be applied in descending position order so earlier indices stay valid.
+
+        Replacing the LATER 'cat' with 'dog' first should not shift the position
+        of the EARLIER 'fish' replacement.
+        """
+        content = "we saw a fish at 5pm and a cat at 6pm"
+        violations = [
+            {
+                'rule_id': 'r-early',
+                'current_text': 'fish',
+                'suggested_fix': 'whale',
+                'location': 'line 1',
+            },
+            {
+                'rule_id': 'r-late',
+                'current_text': 'cat',
+                'suggested_fix': 'rhinoceros',  # longer than 'cat', would shift later indices
+                'location': 'line 1',
+            },
+        ]
+        result, _warnings, applied = apply_fixes(content, violations)
+        assert result == "we saw a whale at 5pm and a rhinoceros at 6pm"
+        assert len(applied) == 2
+
+    def test_overlapping_fixes_second_skipped(self):
+        """When two violations target the same region, the second should be skipped
+        rather than silently scribbling over an already-modified span."""
+        content = "the quick brown fox"
+        violations = [
+            {
+                'rule_id': 'r-outer',
+                'current_text': 'quick brown fox',
+                'suggested_fix': 'lazy dog',
+                'location': 'line 1',
+            },
+            {
+                'rule_id': 'r-inner',
+                'current_text': 'brown',
+                'suggested_fix': 'red',
+                'location': 'line 1',
+            },
+        ]
+        result, warnings, applied = apply_fixes(content, violations)
+        # The outer fix (later position—wait, both start... let me think)
+        # 'quick brown fox' starts at pos 4; 'brown' starts at pos 10. Inner has higher pos.
+        # Descending order: inner first → 'brown' → 'red' giving 'the quick red fox'.
+        # Then outer tries to find 'quick brown fox' at pos 4, but content is now 'quick red fox' → mismatch → skipped.
+        assert 'red' in result or 'lazy dog' in result
+        assert len(applied) == 1
+        assert len(warnings) == 1
+        assert 'no longer matches' in warnings[0] or 'overlap' in warnings[0].lower()
 
 
 class TestValidateFixQuality:

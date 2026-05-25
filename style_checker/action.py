@@ -179,22 +179,22 @@ def review_bulk_lectures(
     # Review each lecture
     all_results = []
     total_issues = 0
-    
+
     for i, lecture_file in enumerate(lectures, 1):
         lecture_name = Path(lecture_file).stem
         print(f"\n[{i}/{len(lectures)}] Reviewing: {lecture_name}")
-        
+
         try:
             # Get content
             content = gh_handler.get_lecture_content(lecture_file)
-            
+
             # Review using sequential category processing
             result = reviewer.review_lecture_smart(content, lecture_name)
-            
+
             issues_found = result.get('issues_found', 0)
             total_issues += issues_found
             print(f"  → {issues_found} issues found")
-            
+
             # Commit if there are changes
             if create_pr and issues_found > 0:
                 commit_msg = gh_handler.format_commit_message(
@@ -208,13 +208,26 @@ def review_bulk_lectures(
                     branch_name
                 )
                 print(f"  ✓ Committed fixes")
-            
+
             all_results.append(result)
-            
+
         except Exception as e:
             print(f"  ❌ Error: {e}")
             all_results.append({'error': str(e), 'lecture': lecture_name})
-    
+
+    # Track per-lecture outcomes so the summary and the GH Actions outputs are accurate.
+    lectures_with_issues = sum(1 for r in all_results if r.get('issues_found', 0) > 0)
+    errors_count = sum(1 for r in all_results if 'error' in r)
+
+    # Fail loud if more than a quarter of lectures errored out — almost certainly an
+    # auth / quota / config problem rather than a content issue. Without this, every
+    # lecture can fail and the action still exits 0 with "0 issues found".
+    if errors_count and errors_count >= max(2, len(lectures) // 4):
+        raise RuntimeError(
+            f"Bulk review aborting: {errors_count}/{len(lectures)} lectures errored. "
+            f"First error: {next(r['error'] for r in all_results if 'error' in r)}"
+        )
+
     # Create single PR with all changes
     if create_pr and total_issues > 0:
         print(f"\n📝 Creating pull request for bulk review...")
@@ -238,14 +251,18 @@ def review_bulk_lectures(
         
         return {
             'lectures_reviewed': len(lectures),
+            'lectures_with_issues': lectures_with_issues,
+            'errors_count': errors_count,
             'total_issues': total_issues,
             'pr_number': pr_number,
             'pr_url': pr_url,
             'results': all_results
         }
-    
+
     return {
         'lectures_reviewed': len(lectures),
+        'lectures_with_issues': lectures_with_issues,
+        'errors_count': errors_count,
         'total_issues': total_issues,
         'results': all_results
     }

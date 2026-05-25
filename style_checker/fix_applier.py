@@ -7,107 +7,102 @@ from typing import List, Dict, Any, Tuple
 def apply_fixes(content: str, violations: List[Dict[str, Any]]) -> Tuple[str, List[str], List[Dict[str, Any]]]:
     """
     Apply fixes from violations to content programmatically.
-    
+
+    Strategy: locate each violation's `current_text` in `content`, then apply
+    fixes in descending position order using slice-based substitution. Processing
+    higher positions first means earlier (lower) positions are unaffected by
+    each edit, so the originally-computed positions remain valid throughout.
+
     Args:
         content: Original lecture content
         violations: List of violations with current_text and suggested_fix
-        
+
     Returns:
         Tuple of (corrected_content, list of warnings, list of actually applied violations)
     """
     corrected = content
-    applied_count = 0
     skipped_count = 0
     warnings = []
-    applied_violations = []  # Track which violations actually changed content
-    
+    applied_violations = []
+
     # Debug: Show LLM's original order
     print(f"  ℹ️  LLM identified violations in this rule order:")
-    rule_sequence = [v.get('rule_id', 'unknown') for v in violations[:10]]  # First 10
+    rule_sequence = [v.get('rule_id', 'unknown') for v in violations[:10]]
     print(f"      {', '.join(rule_sequence)}")
     if len(violations) > 10:
         print(f"      ... and {len(violations) - 10} more")
-    
-    # Sort violations by position in content (reverse order to avoid offset issues)
-    # We'll try to apply them in the order they appear
-    violations_with_pos = []
+
+    # Locate each violation's anchor in the source. Skip anything malformed up front.
+    violations_with_pos: List[Tuple[int, Dict[str, Any]]] = []
     for v in violations:
         current_text = v.get('current_text', '').strip()
         suggested_fix = v.get('suggested_fix', '').strip()
-        
+        rule_id = v.get('rule_id', 'unknown')
+
         if not current_text:
-            warnings.append(f"⚠️  Skipping {v.get('rule_id', 'unknown')}: No current_text provided")
+            warnings.append(f"⚠️  Skipping {rule_id}: No current_text provided")
             skipped_count += 1
             continue
-        
+
         if not suggested_fix:
-            warnings.append(
-                f"⚠️  Skipping {v.get('rule_id', 'unknown')}: "
-                f"No suggested_fix provided"
-            )
+            warnings.append(f"⚠️  Skipping {rule_id}: No suggested_fix provided")
             skipped_count += 1
             continue
-        
-        # Skip no-op fixes where original and fix are identical
+
         if current_text == suggested_fix:
             warnings.append(
-                f"ℹ️  Skipping {v.get('rule_id', 'unknown')}: "
-                f"No change needed (original and fix are identical)"
+                f"ℹ️  Skipping {rule_id}: No change needed (original and fix are identical)"
             )
             skipped_count += 1
             continue
-        
-        # Find position of current_text in content
+
         pos = corrected.find(current_text)
         if pos == -1:
-            # Try with normalized whitespace
-            normalized_current = ' '.join(current_text.split())
-            normalized_content = ' '.join(corrected.split())
-            pos = normalized_content.find(normalized_current)
-            
-            if pos == -1:
-                warnings.append(
-                    f"⚠️  Skipping {v.get('rule_id', 'unknown')}: "
-                    f"Could not find exact match in content (Location: {v.get('location', 'unknown')})"
-                )
-                skipped_count += 1
-                continue
-        
+            # Most common cause is the LLM paraphrasing whitespace (collapsing newlines,
+            # trimming indentation) so the exact substring isn't present. Surface a clear
+            # cause rather than the misleading "text changed since parsing" message the
+            # old fallback emitted after silently failing to apply anything.
+            warnings.append(
+                f"⚠️  Skipping {rule_id}: LLM-quoted current_text not found verbatim "
+                f"in source (likely whitespace mismatch) at "
+                f"{v.get('location', 'unknown')}"
+            )
+            skipped_count += 1
+            continue
+
         violations_with_pos.append((pos, v))
-    
-    # Sort by position (descending) so we can apply fixes without affecting earlier positions
-    violations_with_pos.sort(reverse=True, key=lambda x: x[0])
-    
-    # Apply fixes
+
+    # Descending position order: higher edits don't shift the indices of lower ones.
+    violations_with_pos.sort(key=lambda x: x[0], reverse=True)
+
+    # Apply each fix by exact slice — `pos` was captured before any edits, and all
+    # edits we've applied so far are at higher positions, so `pos` is still valid.
+    # Verify the anchor still matches before substituting (defends against the rare
+    # case where two violations overlap or share text at adjacent positions).
     for pos, violation in violations_with_pos:
         current_text = violation.get('current_text', '').strip()
         suggested_fix = violation.get('suggested_fix', '').strip()
-        
-        # Apply the fix
-        try:
-            # Find and replace
-            if current_text in corrected:
-                corrected = corrected.replace(current_text, suggested_fix, 1)
-                applied_count += 1
-                applied_violations.append(violation)
-                print(f"    ✓ Applied fix for {violation.get('rule_id', 'unknown')}")
-            else:
-                warnings.append(
-                    f"⚠️  Could not apply {violation.get('rule_id', 'unknown')}: "
-                    f"Text changed since parsing"
-                )
-                skipped_count += 1
-        except Exception as e:
+        rule_id = violation.get('rule_id', 'unknown')
+
+        end = pos + len(current_text)
+        if corrected[pos:end] != current_text:
+            # Earlier fix overlapped or removed this region. Skip with a clear message
+            # rather than silently picking the wrong occurrence via str.replace().
             warnings.append(
-                f"⚠️  Error applying {violation.get('rule_id', 'unknown')}: {str(e)}"
+                f"⚠️  Could not apply {rule_id}: position {pos} no longer matches "
+                f"current_text (likely overlapped by an earlier fix)"
             )
             skipped_count += 1
-    
-    # Summary
-    print(f"\n  📊 Applied {applied_count}/{len(violations)} fixes")
+            continue
+
+        corrected = corrected[:pos] + suggested_fix + corrected[end:]
+        applied_violations.append(violation)
+        print(f"    ✓ Applied fix for {rule_id}")
+
+    print(f"\n  📊 Applied {len(applied_violations)}/{len(violations)} fixes")
     if skipped_count > 0:
         print(f"  ⚠️  Skipped {skipped_count} fixes (see warnings)")
-    
+
     return corrected, warnings, applied_violations
 
 
