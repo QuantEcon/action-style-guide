@@ -174,8 +174,12 @@ class TestApplyFixes:
         assert len(applied) == 2
 
     def test_overlapping_fixes_second_skipped(self):
-        """When two violations target the same region, the second should be skipped
-        rather than silently scribbling over an already-modified span."""
+        """When two violations target overlapping regions, the higher-position fix
+        is applied first (descending sort) and the lower-position fix is then
+        skipped because its anchor no longer matches."""
+        # 'brown' starts at pos 10, 'quick brown fox' starts at pos 4.
+        # Descending order processes the inner 'brown' replacement first, after
+        # which the outer anchor 'quick brown fox' is no longer present.
         content = "the quick brown fox"
         violations = [
             {
@@ -192,14 +196,12 @@ class TestApplyFixes:
             },
         ]
         result, warnings, applied = apply_fixes(content, violations)
-        # The outer fix (later position—wait, both start... let me think)
-        # 'quick brown fox' starts at pos 4; 'brown' starts at pos 10. Inner has higher pos.
-        # Descending order: inner first → 'brown' → 'red' giving 'the quick red fox'.
-        # Then outer tries to find 'quick brown fox' at pos 4, but content is now 'quick red fox' → mismatch → skipped.
-        assert 'red' in result or 'lazy dog' in result
+        assert result == "the quick red fox"
         assert len(applied) == 1
+        assert applied[0]['rule_id'] == 'r-inner'
         assert len(warnings) == 1
-        assert 'no longer matches' in warnings[0] or 'overlap' in warnings[0].lower()
+        assert 'r-outer' in warnings[0]
+        assert 'no longer matches' in warnings[0]
 
 
 class TestValidateFixQuality:

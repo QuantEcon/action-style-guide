@@ -4,6 +4,7 @@ Orchestrates the review process
 """
 
 import argparse
+import math
 import sys
 import os
 from pathlib import Path
@@ -83,10 +84,11 @@ def review_single_lecture(
     if create_pr and issues_found > 0:
         print(f"\n📝 Creating pull request...")
         
-        # Create branch
+        # Create branch — create_branch may append a collision-avoidance suffix,
+        # so always use the name it returns for all subsequent operations.
         timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-        branch_name = f"{pr_branch_prefix}/{lecture_name}-{timestamp}"
-        gh_handler.create_branch(branch_name)
+        requested_branch = f"{pr_branch_prefix}/{lecture_name}-{timestamp}"
+        branch_name = gh_handler.create_branch(requested_branch)
         print(f"✓ Created branch: {branch_name}")
         
         # Commit changes
@@ -168,12 +170,14 @@ def review_bulk_lectures(
         print("❌ No lectures found")
         return {'error': 'No lectures found'}
     
-    # Create branch for all changes
+    # Create branch for all changes — create_branch may append a collision-avoidance
+    # suffix, so always use the name it returns for subsequent commits + PR.
     timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-    branch_name = f"{pr_branch_prefix}/bulk-review-{timestamp}"
-    
+    requested_branch = f"{pr_branch_prefix}/bulk-review-{timestamp}"
+    branch_name = requested_branch
+
     if create_pr:
-        gh_handler.create_branch(branch_name)
+        branch_name = gh_handler.create_branch(requested_branch)
         print(f"✓ Created branch: {branch_name}\n")
     
     # Review each lecture
@@ -219,12 +223,15 @@ def review_bulk_lectures(
     lectures_with_issues = sum(1 for r in all_results if r.get('issues_found', 0) > 0)
     errors_count = sum(1 for r in all_results if 'error' in r)
 
-    # Fail loud if more than a quarter of lectures errored out — almost certainly an
-    # auth / quota / config problem rather than a content issue. Without this, every
-    # lecture can fail and the action still exits 0 with "0 issues found".
-    if errors_count and errors_count >= max(2, len(lectures) // 4):
+    # Fail loud when many lectures error — almost certainly an auth / quota / config
+    # problem rather than per-lecture content. Threshold: at least 25% (rounded up)
+    # of the batch AND at least 2 errors. The 2-error floor avoids false alarms on
+    # tiny batches where a single transient blip would otherwise abort the run.
+    error_threshold = max(2, math.ceil(len(lectures) / 4))
+    if errors_count >= error_threshold:
         raise RuntimeError(
-            f"Bulk review aborting: {errors_count}/{len(lectures)} lectures errored. "
+            f"Bulk review aborting: {errors_count}/{len(lectures)} lectures errored "
+            f"(threshold: {error_threshold}). "
             f"First error: {next(r['error'] for r in all_results if 'error' in r)}"
         )
 

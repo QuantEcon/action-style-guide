@@ -341,15 +341,14 @@ class AnthropicProvider:
         self.model = model
         self.temperature = temperature  # Must be 1.0 for extended thinking
         self.thinking_budget = thinking_budget
-        try:
-            from anthropic import Anthropic
-            self.client = Anthropic(
-                api_key=api_key,
-                timeout=self.REQUEST_TIMEOUT_SECONDS,
-                max_retries=self.MAX_RETRIES,
-            )
-        except ImportError:
-            raise ImportError("anthropic package not installed. Run: pip install anthropic")
+        # `anthropic` is a required dep declared in pyproject.toml and imported at
+        # module top; if it's missing the module fails to import long before we get
+        # here, so no need to wrap construction in try/except ImportError.
+        self.client = anthropic.Anthropic(
+            api_key=api_key,
+            timeout=self.REQUEST_TIMEOUT_SECONDS,
+            max_retries=self.MAX_RETRIES,
+        )
     
     def check_single_rule(self, prompt: str) -> Dict[str, Any]:
         """Check a single rule using provided prompt with extended thinking"""
