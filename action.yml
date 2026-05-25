@@ -75,6 +75,10 @@ runs:
       uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
+        # By default setup-uv searches **/uv.lock in the consumer repo, which
+        # won't have one. Point it at this action's own lockfile so the cache
+        # key is keyed off our deps.
+        cache-dependency-glob: ${{ github.action_path }}/uv.lock
 
     - name: Install dependencies
       shell: bash
