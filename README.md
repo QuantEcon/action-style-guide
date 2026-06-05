@@ -40,6 +40,7 @@ Full documentation is available at the [docs site](https://quantecon.github.io/a
 - [Configuration](docs/user/configuration.md) — Action inputs, LLM model, rule types
 - [Rules Reference](docs/user/rules-reference.md) — All 49 rules by category and type
 - [CLI Guide](docs/user/cli.md) — Local `qestyle` command usage
+- [CLI Tutorial](docs/user/cli-tutorial.md) — Hands-on walkthrough on a real lecture
 - [GitHub App Setup](docs/user/github-app-setup.md) — Production setup with GitHub Apps
 
 ### Developer Guide

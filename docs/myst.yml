@@ -12,6 +12,7 @@ project:
         - file: user/configuration.md
         - file: user/rules-reference.md
         - file: user/cli.md
+        - file: user/cli-tutorial.md
         - file: user/github-app-setup.md
     - title: Developer Guide
       children:
