@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Bumped GitHub Actions to Node 24-compatible versions** — GitHub forces Node 24 as the default runner runtime from 2026-06-02 (Node 20 fully removed 2026-09-16). Updated `actions/checkout@v4→v5` and `astral-sh/setup-uv@v3→v7` in `action.yml` and CI; the docs workflow now uses `actions/setup-node@v4→v6` (Node 22), `actions/upload-pages-artifact@v3→v5`, and `actions/deploy-pages@v4→v5`. Resolves #16.
+
 ## [0.7.2] - 2026-02-16
 
 ### Fixed
