@@ -1,209 +1,79 @@
 # Contributing to QuantEcon Style Guide Checker
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing! 🎉
 
-## Development Setup
+> **📖 Full developer guide:** The complete, up-to-date guide — development
+> setup, adding rules and categories, testing, and the release process — lives
+> in [`docs/developer/contributing.md`](docs/developer/contributing.md). This
+> page is a quick summary.
 
-### Prerequisites
+## Quick Start
 
-- Python 3.11+
-- Git
-- GitHub account
-
-### Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/QuantEcon/action-style-guide.git
-   cd action-style-guide
-   ```
-
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt  # If available
-   ```
-
-4. **Set up API keys**
-   ```bash
-   export ANTHROPIC_API_KEY="your-key"  # For Claude Sonnet 4.5
-   export GITHUB_TOKEN="your-token"     # For GitHub API
-   ```
-
-## Testing Locally
-
-### Test Single Lecture Review
+The project uses [uv](https://docs.astral.sh/uv/) to manage Python, the
+virtualenv, and dependencies.
 
 ```bash
-python -m style_checker.main \
-  --mode single \
-  --lectures-path lectures/ \
-  --repository owner/repo \
-  --comment-body "@qe-style-checker lecture-name" \
-  --create-pr false
+git clone https://github.com/QuantEcon/action-style-guide.git
+cd action-style-guide
+
+# uv reads pyproject.toml + uv.lock and creates a .venv automatically.
+# --all-extras installs PyGithub (action) + pytest/ruff (dev).
+uv sync --all-extras
+
+# Run commands via `uv run` (no need to activate the venv):
+uv run qestyle --version
+uv run pytest tests/
 ```
 
-### Test Bulk Review
+Prefer pip? `pip install -e ".[dev,action]"` uses the same dependency manifest.
+
+To run against real lectures, set your API keys first:
 
 ```bash
-python -m style_checker.main \
-  --mode bulk \
-  --lectures-path lectures/ \
-  --repository owner/repo \
-  --create-pr false
+export ANTHROPIC_API_KEY="your-key"   # Claude (Anthropic)
+export GITHUB_TOKEN="your-token"      # GitHub API
 ```
 
-## Adding New Features
+## Adding Style Rules
 
-### Adding New Style Rules
+Rules live in `style_checker/rules/*.md` and are read directly by the LLM — **no
+code change is needed** to add a rule to an existing category. Adding a whole new
+category also requires updating `VALID_CATEGORIES`
+(`style_checker/categories.py`) and `RULE_EVALUATION_ORDER`
+(`style_checker/reviewer.py`); the test suite fails loudly if those drift. See
+the [full guide](docs/developer/contributing.md#adding-new-rules) for the rule
+format and details.
 
-Rules are now organized in category-specific files in `style_checker/rules/`:
+## Pull Requests
 
-1. Edit the appropriate rules file (e.g., `style_checker/rules/writing-rules.md`)
-2. Add rule following the existing Markdown format:
-   ```markdown
-   ## Rule Title
-   
-   **Description**: Clear explanation of what the rule checks
-   
-   **Why**: Rationale for this rule
-   
-   **Good**:
-   ```python
-   # Good example
-   ```
-   
-   **Bad**:
-   ```python
-   # Bad example
-   ```
-   ```
+1. Fork the repository and create a feature branch:
+   `git checkout -b feature/your-feature-name`
+2. Make your changes; add tests where it makes sense.
+3. Run the suite: `uv run pytest tests/`
+4. Commit using conventional commits (below) and open a PR with a clear
+   description that references any related issues.
 
-3. Rules are grouped into 8 categories:
-   - writing, math, code, jax, figures, references, links, admonitions
+### Commit Message Format
 
-4. If needed, update corresponding prompt file in `style_checker/prompts/`
-
-5. Test with sample lectures
-
-### Adding New LLM Providers
-
-The action currently uses Claude Sonnet 4.5 via the Anthropic API. The provider logic is in `style_checker/reviewer.py`.
-
-To switch or add a provider:
-1. Update the API client setup in `AnthropicProvider.__init__()`
-2. Adjust model name and parameters as needed
-3. Update `requirements.txt` with new dependencies
-4. Test with real lecture files
-
-### Improving Prompts
-
-The action uses a focused prompts architecture:
-- **Prompts** (`style_checker/prompts/*.md`): Concise instructions for the LLM
-- **Rules** (`style_checker/rules/*.md`): Detailed specifications with examples
-
-To improve:
-- Edit the appropriate prompt or rules file
-- Test with various lecture types
-- Ensure Markdown output format is maintained
-- Validate against all rule categories
-
-## Code Style
-
-- Follow PEP 8
-- Use type hints
-- Add docstrings to all functions/classes
-- Keep functions focused and small
-- Comment complex logic
-
-## Pull Request Process
-
-1. **Fork the repository**
-2. **Create feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-3. **Make changes**
-   - Write clean, documented code
-   - Add tests if applicable
-   - Update documentation
-
-4. **Test thoroughly**
-   - Test locally with real lectures
-   - Verify PR creation works
-   - Check all output formats
-
-5. **Commit with clear messages**
-   ```bash
-   git commit -m "feat: add feature description"
-   ```
-
-6. **Push and create PR**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-7. **PR Requirements**
-   - Clear description of changes
-   - Reference any related issues
-   - Include test results
-   - Update README if needed
-
-## Commit Message Format
-
-Use conventional commits:
+Use [conventional commits](https://www.conventionalcommits.org/):
 
 - `feat:` New feature
 - `fix:` Bug fix
 - `docs:` Documentation changes
-- `style:` Code style changes (formatting)
+- `style:` Code style / formatting
 - `refactor:` Code refactoring
 - `test:` Adding tests
 - `chore:` Maintenance tasks
 
 ## Reporting Issues
 
-When reporting issues, include:
-
-1. **Description** of the problem
-2. **Steps to reproduce**
-3. **Expected behavior**
-4. **Actual behavior**
-5. **Environment details** (OS, Python version, etc.)
-6. **Relevant logs** or error messages
+Include: a description of the problem, steps to reproduce, expected vs. actual
+behavior, environment details (OS, Python version), and any relevant logs or
+error messages.
 
 ## Suggesting Enhancements
 
-For feature requests:
-
-1. **Use case**: Why is this needed?
-2. **Proposed solution**: How should it work?
-3. **Alternatives considered**: Other approaches?
-4. **Implementation ideas**: Technical approach?
-
-## Style Guide Rules
-
-When adding or modifying style guide rules:
-
-1. **Clear and specific**: Rules should be unambiguous
-2. **Actionable**: Include examples of correct/incorrect usage
-3. **Categorized properly**: Use one of the 8 categories (writing, math, code, jax, figures, references, links, admonitions)
-4. **Typed correctly**: 
-   - `rule`: Actionable, automatically applied
-   - `style`: Advisory, requires human judgment
-   - `migrate`: Legacy pattern modernization
-
-## Questions?
-
-- Open a discussion on GitHub
-- Check existing issues and PRs
-- Review the documentation
+Open a GitHub discussion or issue describing the use case, your proposed
+solution, and any alternatives you considered.
 
 Thank you for contributing! 🎉

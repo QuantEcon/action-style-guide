@@ -11,6 +11,7 @@ from pathlib import Path
 from github import Github, GithubException
 from datetime import datetime
 
+from . import __version__
 from .categories import VALID_CATEGORIES
 
 
@@ -298,7 +299,6 @@ class GitHubHandler:
         Returns:
             Detailed markdown report with all violations (wrapped in <details>)
         """
-        from . import __version__
         
         # Wrap in collapsible details block
         report = f"<details>\n<summary><b>📊 Detailed Style Review Report</b> (click to expand)</summary>\n\n"
@@ -374,7 +374,6 @@ class GitHubHandler:
         Returns:
             Detailed markdown report of applied fixes (wrapped in <details>)
         """
-        from . import __version__
         
         fix_log = review_result.get('fix_log', [])
         original_content = review_result.get('original_content', '')
@@ -445,7 +444,6 @@ class GitHubHandler:
         Returns:
             Open markdown report of style suggestions (NOT collapsible - visible by default)
         """
-        from . import __version__
         
         style_violations = review_result.get('style_violations', [])
         
@@ -508,7 +506,6 @@ class GitHubHandler:
         Returns:
             Concise PR body with summary
         """
-        from . import __version__
         
         body = f"## 📋 Style Guide Review: {lecture_name}\n\n"
         body += f"This PR addresses style guide compliance issues found in the `{lecture_name}` lecture.\n\n"

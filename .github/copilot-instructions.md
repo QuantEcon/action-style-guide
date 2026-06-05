@@ -151,7 +151,7 @@ assert github_token
 
 ```python
 # In __init__.py
-__version__ = "0.6.1"  # Bump for every release
+__version__ = "0.7.2"  # Bump for every release
 
 # In action.py - print version at startup
 print(f"📋 QuantEcon Style Guide Checker v{__version__}")
@@ -162,7 +162,7 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 **CRITICAL: Always run tests before any release!**
 
 1. Make changes
-2. **Run full test suite**: `pytest tests/ -v`
+2. **Run full test suite**: `uv run pytest tests/ -v`
 3. **Verify all tests pass** (except LLM integration tests which require API keys)
 4. Update `__version__` in `style_checker/__init__.py`
 5. **Update prompt versions** if any prompts were modified:
@@ -172,7 +172,7 @@ print(f"📋 QuantEcon Style Guide Checker v{__version__}")
 6. Update `CHANGELOG.md` (move Unreleased to new version)
 7. Commit: "Release vX.Y.Z - Description"
 8. Create GitHub release: `gh release create vX.Y.Z --title "..." --notes "..."`
-9. Update floating tag: `git tag -f v0.3 && git push origin v0.3 --force`
+9. Update floating tag (current minor, e.g. `v0.7`): `git tag -f vX.Y && git push origin vX.Y --force`
 10. Push main branch: `git push origin main`
 
 **Never skip testing** - it catches regressions and ensures quality.
