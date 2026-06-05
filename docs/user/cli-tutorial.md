@@ -22,12 +22,11 @@ during a screen-share.
 ```
 
 ```{note}
-**Short on time, or no API key handy?** Pre-executed output for this exact run
-is committed in the test repo under
-[`examples/`](https://github.com/QuantEcon/test-action-style-guide/tree/main/examples) —
-the full report, the applied-changes diff, and a precision/recall analysis vs the
-42-violation catalog (27/30 rules, 90%). You can show those directly instead of
-running live.
+**Short on time, or no API key handy?** A pre-baked run of this exact tutorial —
+the console output, the applied-changes diff, and a precision/recall analysis — is
+on the companion page [Sample CLI output](cli-tutorial-output.md). That run found
+86 issues and reached **rule-level recall of 27 of the 30 rules seeded in the test
+catalog (90%)**. Walk through that page instead of running live.
 ```
 
 ## Before you start
@@ -87,7 +86,7 @@ The console output looks like:
 ✅ Review complete — 9 issue(s) found
    🔧 6 fix(es) available (run without --dry-run to apply)
    📝 3 style suggestion(s) for human review
-   📄 Report: lectures/qestyle(writing)-markov_chains_jax.md
+   📄 Report: …/lectures/qestyle(writing)-markov_chains_jax.md
 ```
 
 Two numbers matter here:
@@ -102,7 +101,8 @@ Two numbers matter here:
 Open the report written next to the lecture:
 
 ```bash
-open lectures/'qestyle(writing)-markov_chains_jax.md'   # or your editor
+# macOS `open`; on Linux use `xdg-open`, or just open it in your editor
+open lectures/'qestyle(writing)-markov_chains_jax.md'
 ```
 
 It has a fixed structure — **style suggestions first** (they need your
@@ -170,7 +170,7 @@ qestyle lectures/markov_chains_jax.md -c writing
    🔧 Applied 6 fix(es) to markov_chains_jax.md
       Restore original: git checkout markov_chains_jax.md
    📝 3 style suggestion(s) for human review
-   📄 Report: lectures/qestyle(writing)-markov_chains_jax.md
+   📄 Report: …/lectures/qestyle(writing)-markov_chains_jax.md
 ```
 
 Because the lecture lives in a git repo, the changes are reviewable with a plain
@@ -284,7 +284,7 @@ cd test-action-style-guide
 qestyle lectures/markov_chains_jax.md --dry-run -c writing
 
 # 2. Show the report (style suggestions vs auto-fixes)
-open lectures/'qestyle(writing)-markov_chains_jax.md'
+open lectures/'qestyle(writing)-markov_chains_jax.md'   # macOS; use xdg-open / your editor elsewhere
 
 # 3. Apply fixes for real
 qestyle lectures/markov_chains_jax.md -c writing
