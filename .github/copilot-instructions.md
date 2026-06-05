@@ -41,12 +41,10 @@ action-style-guide/
 │   ├── reviewer.py              # LLM interaction with extended thinking (shared)
 │   ├── github_handler.py        # GitHub API interactions (action only)
 │   ├── fix_applier.py           # Apply fixes to markdown files (shared)
-│   ├── prompt_loader.py         # Load prompts and rules (shared)
-│   ├── prompts/                 # Minimal rule-agnostic prompt (identical for all categories)
-│   │   ├── writing-prompt.md
-│   │   ├── math-prompt.md
-│   │   ├── ...
-│   │   └── v0.6.1/             # Archived previous prompts
+│   ├── categories.py            # Single source of truth for category names (VALID_CATEGORIES)
+│   ├── prompts/                 # Single rule-agnostic prompt, shared across all categories
+│   │   ├── prompt.md            # The shared prompt
+│   │   └── v0.6.1/              # Archived previous (per-category) prompts
 │   └── rules/                   # Category-specific rules
 │       ├── writing-rules.md
 │       ├── math-rules.md
