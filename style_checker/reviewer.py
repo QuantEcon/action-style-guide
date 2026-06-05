@@ -13,6 +13,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 import anthropic
 
+from .categories import VALID_CATEGORIES
 from .fix_applier import apply_fixes, validate_fix_quality
 
 
@@ -153,25 +154,28 @@ def extract_individual_rules(category: str) -> List[Dict[str, str]]:
 def create_single_rule_prompt(category: str, rule: Dict[str, str], lecture_content: str) -> str:
     """
     Create a focused prompt for checking a single rule.
-    
+
+    The base prompt is rule-agnostic — a single `prompts/prompt.md` is shared
+    across all categories. The `category` arg is currently unused but kept in
+    the signature so callers don't need to change if a category-specific
+    prompt is ever reintroduced.
+
     Args:
-        category: Category name (e.g., 'writing')
+        category: Category name (e.g., 'writing') — currently unused
         rule: Dict with 'rule_id', 'title', and 'content'
         lecture_content: The lecture to check
-        
+
     Returns:
         Complete prompt focused on one specific rule
     """
-    # Load the base prompt (without rules)
     prompts_dir = Path(__file__).parent / "prompts"
-    prompt_file = prompts_dir / f"{category}-prompt.md"
-    
+    prompt_file = prompts_dir / "prompt.md"
+
     if not prompt_file.exists():
         raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
-    
-    with open(prompt_file, 'r') as f:
-        base_prompt = f.read()
-    
+
+    base_prompt = prompt_file.read_text()
+
     # Create focused prompt with single rule
     focused_prompt = f"""{base_prompt}
 
@@ -185,7 +189,7 @@ def create_single_rule_prompt(category: str, rule: Dict[str, str], lecture_conte
 
 {lecture_content}
 """
-    
+
     return focused_prompt
 
 def parse_markdown_response(response: str) -> Dict[str, Any]:
@@ -575,24 +579,15 @@ class StyleReviewer:
         Returns:
             Dictionary with all violations found across all categories
         """
-        # Define all categories to check (matches files in style_checker/rules/)
-        all_categories = [
-            'writing',
-            'math',
-            'code',
-            'jax',
-            'figures',
-            'references',
-            'links',
-            'admonitions'
-        ]
-        
+        # Single source of truth for the category list lives in categories.py.
+        all_categories = list(VALID_CATEGORIES)
+
         print(f"\n🤖 Starting AI-powered review using single-rule evaluation...")
         print(f"📊 Lecture: {lecture_name}")
         print(f"\n📦 Processing {len(all_categories)} categories:")
         for category in all_categories:
             print(f"   • {category}")
-        
+
         # Delegate to review_lecture_single_rule which handles:
         # - Single-rule-per-LLM-call evaluation
         # - Sequential fix application between rules

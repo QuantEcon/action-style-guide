@@ -17,7 +17,7 @@ Technical documentation for developers working on the QuantEcon Style Guide Chec
                            ▼
 ┌─────────────────────────────────────────────────────┐
 │                      action.yml                      │
-│  Sets up Python, installs deps, invokes action.py    │
+│  Installs uv, syncs deps, invokes action.py via uv   │
 └──────────────────────────┬──────────────────────────┘
                            │
               ┌────────────┴────────────┐
@@ -32,17 +32,15 @@ Technical documentation for developers working on the QuantEcon Style Guide Chec
                     ┌───────────────────┼──────────────┐
                     ▼                   ▼              ▼
           ┌──────────────┐   ┌──────────────┐  ┌─────────────┐
-          │prompt_loader  │   │ fix_applier   │  │Anthropic API│
-          │Load prompts   │   │Apply fixes    │  │(Claude)     │
-          │Load rules     │   │Validate       │  └─────────────┘
-          └──────┬───────┘   └──────────────┘
-          ┌──────┴───────┐
-          ▼              ▼
-    ┌──────────┐  ┌──────────┐
-    │prompts/  │  │ rules/   │
-    │(8 files) │  │(8 files) │
-    └──────────┘  └──────────┘
+          │ prompts/      │   │ fix_applier   │  │Anthropic API│
+          │ prompt.md     │   │Apply fixes    │  │(Claude)     │
+          │  + rules/*.md │   │Validate       │  └─────────────┘
+          └──────────────┘   └──────────────┘
 ```
+
+`categories.py` is the single source of truth for the 8 category names
+(`writing`, `math`, `code`, `jax`, `figures`, `references`, `links`,
+`admonitions`); every other module imports `VALID_CATEGORIES` from it.
 
 ## Two Entry Points, One Engine
 
@@ -87,15 +85,21 @@ Key classes:
 - `AnthropicProvider` — Claude API wrapper with extended thinking and streaming fallback
 - `StyleReviewer` — Main review orchestrator
 
-### Prompt Loader (`prompt_loader.py`)
+### Prompt Construction (`reviewer.create_single_rule_prompt`)
 
-Loads and combines category-specific prompts and rules:
+For each rule, the reviewer builds an LLM prompt as:
 
 ```
-[Category Prompt]  +  [Style Guide Rules]  +  [Lecture Content]  →  LLM
+[Shared base prompt (prompts/prompt.md)]
+  + [Single rule definition from rules/{category}-rules.md]
+  + [Lecture content]
+  → LLM
 ```
 
-The prompt is rule-agnostic — all 8 category prompts are identical. Scope and analysis context come from the rule definitions themselves. This prevents signal dilution from category-specific instructions.
+The base prompt is rule-agnostic — a single `prompts/prompt.md` file is
+shared across all 8 categories. Scope and analysis context come from the
+rule definitions themselves, which prevents signal dilution from
+category-specific instructions.
 
 ### Fix Applier (`fix_applier.py`)
 
@@ -228,16 +232,18 @@ Depends on lecture length and violations found.
 ```
 action-style-guide/
 ├── action.yml                 # GitHub Action definition
+├── pyproject.toml             # Package + dep manifest (uv-managed)
+├── uv.lock                    # Reproducible dep lockfile
 ├── style_checker/             # Main package
 │   ├── __init__.py            # Version (__version__)
+│   ├── categories.py          # Single source of truth for VALID_CATEGORIES
 │   ├── cli.py                 # Local CLI entry point (qestyle)
 │   ├── action.py              # GitHub Action entry point
 │   ├── reviewer.py            # LLM review engine (shared)
 │   ├── fix_applier.py         # Apply fixes to files (shared)
 │   ├── github_handler.py      # GitHub API (action only)
-│   ├── prompt_loader.py       # Load prompts + rules (shared)
-│   ├── prompts/               # Minimal rule-agnostic prompts
-│   └── rules/                 # Category-specific rule definitions
+│   ├── prompts/               # Single shared prompt.md (+ v0.6.1 archive)
+│   └── rules/                 # Per-category rule definitions
 ├── tests/                     # Test suite
 ├── docs/                      # Documentation (this site)
 └── examples/                  # Example workflows

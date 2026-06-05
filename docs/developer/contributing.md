@@ -88,16 +88,15 @@ Rules are in `style_checker/rules/` and are read directly by the LLM — **no co
    [Good and bad examples]
    ```
 
-3. Update corresponding prompt file in `style_checker/prompts/` if needed
+3. The base prompt (`prompts/prompt.md`) is shared across all categories; usually no edit needed there.
 4. Test with real lecture files
 
 ### Adding a New Category
 
-1. Create `prompts/category-prompt.md`
-2. Create `rules/category-rules.md`
-3. Add category to `VALID_CATEGORIES` in `github_handler.py` and `prompt_loader.py`
-4. Add to category list in `review_lecture_smart()`
-5. Test end-to-end
+1. Create `style_checker/rules/{category}-rules.md`
+2. Add the new name to `VALID_CATEGORIES` in `style_checker/categories.py`
+3. Add an entry for it in `RULE_EVALUATION_ORDER` in `style_checker/reviewer.py` (the test suite will fail loudly if the keys drift)
+4. Test end-to-end
 
 ## Pull Request Process
 

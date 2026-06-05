@@ -28,7 +28,7 @@ The project is in **active development**. Breaking changes are acceptable — th
 ### Phase 3: Test Suite Improvements ✅
 
 - Fixed `test_parsing.py` to test real methods
-- Added tests for `fix_applier.py`, `prompt_loader.py`, `reviewer.py`
+- Added tests for `fix_applier.py`, `reviewer.py` (incl. RULE_EVALUATION_ORDER drift detection and prompt file existence)
 - Set up CI pipeline (GitHub Actions, ruff linting, Python 3.11/3.12/3.13)
 
 ## In Progress
@@ -44,7 +44,7 @@ Focus: reduce LLM hallucinations, improve fix accuracy, move mechanical rules to
 | 4.3 Deterministic Checkers | ~13 mechanical rules via regex (zero hallucination risk) | Planned |
 | 4.4 Rule Clarity | Improve 12 rule descriptions to reduce misinterpretation | Planned |
 | 4.5 Scope Reduction | Reduce noise from overly subjective rules | Planned |
-| 4.6 Prompt Consolidation | Merge 8 identical prompt files into single `prompt.md` | Planned |
+| 4.6 Prompt Consolidation | Merge 8 identical prompt files into single `prompt.md` | **Done** (PR #17) |
 | 4.7 Extended Thinking | Claude reasons internally → 0% false positives | **Done** (v0.7.0) |
 
 ### Phase 5: Style Suggestion UX
