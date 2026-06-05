@@ -6,6 +6,11 @@ title: Local CLI
 
 The `qestyle` command runs the **exact same** review engine locally — same prompts, rules, and fix logic as the GitHub Action.
 
+```{tip}
+New to `qestyle`? Start with the [CLI Tutorial](cli-tutorial.md) — a 10-minute
+hands-on walkthrough on a real lecture. This page is the full flag reference.
+```
+
 ## Installation
 
 ### With `pip`
