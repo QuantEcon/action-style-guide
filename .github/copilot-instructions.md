@@ -79,9 +79,9 @@ action-style-guide/
 - **Single source of truth**: Version in `__init__.py`
 
 ### Prompt Files
-- **Location**: `style_checker/prompts/*.md`
-- **Design**: All 8 prompt files are identical (rule-agnostic). Consolidation to single `prompt.md` planned (see PLAN.md 4.6).
-- **Version tracking**: Each prompt has version comment at top: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
+- **Location**: `style_checker/prompts/prompt.md`
+- **Design**: A single rule-agnostic prompt shared across all 8 categories (consolidated in #17; previously one identical file per category).
+- **Version tracking**: The prompt has a version comment at top: `<!-- Prompt Version: X.Y.Z | Last Updated: YYYY-MM-DD | Description -->`
 - **Archive**: Previous prompts archived in `style_checker/prompts/v0.6.1/`
 
 ### GitHub Integration
