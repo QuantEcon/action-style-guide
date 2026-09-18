@@ -10,17 +10,23 @@ on:
 
 jobs:
   check-trigger:
-    # Only run if comment contains the trigger phrase
-    if: contains(github.event.comment.body, '@qe-style-checker') || contains(github.event.issue.body, '@qe-style-checker')
+    # Check each event's own text: a comment on comment events, the issue on issue events.
+    # (On a comment event github.event.issue.body is the parent issue, so testing it there
+    # would re-run the check on every later comment once the issue mentions the trigger.)
+    if: >-
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qe-style-checker')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@qe-style-checker'))
     runs-on: ubuntu-latest
     
     permissions:
       contents: write
       pull-requests: write
-      issues: read
+      issues: write
     
     steps:
       - name: React to comment
+        # An issues event carries no comment to react to
+        if: github.event_name == 'issue_comment'
         uses: actions/github-script@v9
         with:
           script: |

@@ -27,7 +27,9 @@ on:
 
 jobs:
   check-trigger:
-    if: contains(github.event.comment.body, '@qe-style-checker')
+    if: >-
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qe-style-checker')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@qe-style-checker'))
     runs-on: ubuntu-latest
     steps:
       - uses: QuantEcon/action-style-guide@v0.8

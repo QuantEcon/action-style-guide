@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Moved the example workflows and usage docs onto Node 24** — `examples/style-guide-comment.yml` and `examples/style-guide-weekly.yml` now pin `actions/github-script@v7→v9` (`runs.using: node24`; the example scripts use only `github.rest.*` and `context`, which v9's breaking changes do not touch). The examples and the `docs/user/*` snippets move from `@v0.7→@v0.8`, superseding the `@v0.7` bump above: the `v0.7` tag's `action.yml` still nests Node 20 actions (`actions/checkout@v4`, `actions/setup-python@v5`), while `main`'s nests only Node 24 ones. `docs/user/github-app-setup.md` also moves `actions/create-github-app-token@v1→v3` (the first Node 24 major). Part of QuantEcon/workspace-lectures#68.
 - **Moved the docs build onto Node 24** — `.github/workflows/docs.yml` now uses `actions/setup-node@v6→v7` with `node-version: '22'→'24'` for the `mystmd` build, superseding the Node 22 setting above.
 
+### Fixed
+
+- **Example workflow permissions** — `examples/style-guide-comment.yml` granted `issues: read`, but its `github-script` steps react to the triggering comment and post the result as an issue comment, both of which need `issues: write`; on a plain issue both calls were refused with 403. `examples/style-guide-weekly.yml` granted no `issues` permission, so its `issues.create` step was refused the same way. Both now grant `issues: write`.
+- **Trigger condition in the comment example and the Getting Started snippet** — the snippet listened for `issues` events but only tested `github.event.comment.body`, so issue events always produced skipped runs. The example tested `github.event.issue.body` on every event, and on a comment event that is the parent issue's text, so once an issue mentioned `@qe-style-checker` every later comment re-ran the check; its reaction step also read `context.payload.comment.id`, which an `issues` event does not carry, so the issue-body trigger it advertised failed before the checker ran. Both now test the comment on `issue_comment` events and the issue on `issues` events, and the example skips the reaction step on `issues` events.
+
 ## [0.7.2] - 2026-02-16
 
 ### Fixed
