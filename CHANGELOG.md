@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Bumped GitHub Actions to Node 24-compatible versions** — GitHub forces Node 24 as the default runner runtime from 2026-06-02 (Node 20 fully removed 2026-09-16). Updated `actions/checkout@v4→v5` and `astral-sh/setup-uv@v3→v7` in `action.yml` and CI; the docs workflow now uses `actions/setup-node@v4→v6` (Node 22), `actions/upload-pages-artifact@v3→v5`, and `actions/deploy-pages@v4→v5`. Resolves #16.
 - **Bumped example workflows to `@v0.7`** — `examples/style-guide-comment.yml` and `examples/style-guide-weekly.yml` pinned the action at the long-stale `@v0.3`; they now track the current `v0.7` release line, matching the `docs/user/*` snippets.
+- **Moved the example workflows and usage docs onto Node 24** — `examples/style-guide-comment.yml` and `examples/style-guide-weekly.yml` now pin `actions/github-script@v7→v9` (`runs.using: node24`; the example scripts use only `github.rest.*` and `context`, which v9's breaking changes do not touch). The examples and the `docs/user/*` snippets move from `@v0.7→@v0.8`, superseding the `@v0.7` bump above: the `v0.7` tag's `action.yml` still nests Node 20 actions (`actions/checkout@v4`, `actions/setup-python@v5`), while `main`'s nests only Node 24 ones. `docs/user/github-app-setup.md` also moves `actions/create-github-app-token@v1→v3` (the first Node 24 major). Part of QuantEcon/workspace-lectures#68.
+- **Moved the docs build onto Node 24** — `.github/workflows/docs.yml` now uses `actions/setup-node@v6→v7` with `node-version: '22'→'24'` for the `mystmd` build, superseding the Node 22 setting above.
 
 ## [0.7.2] - 2026-02-16
 

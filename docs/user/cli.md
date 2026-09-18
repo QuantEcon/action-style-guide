@@ -20,7 +20,7 @@ hands-on walkthrough on a real lecture. This page is the full flag reference.
 pip install git+https://github.com/QuantEcon/action-style-guide.git
 
 # Specific version
-pip install git+https://github.com/QuantEcon/action-style-guide.git@v0.7
+pip install git+https://github.com/QuantEcon/action-style-guide.git@v0.8
 
 # Development (editable install from local clone)
 git clone https://github.com/QuantEcon/action-style-guide.git

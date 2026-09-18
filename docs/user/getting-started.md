@@ -30,7 +30,7 @@ jobs:
     if: contains(github.event.comment.body, '@qe-style-checker')
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v0.7
+      - uses: QuantEcon/action-style-guide@v0.8
         with:
           mode: 'single'
           lectures-path: 'lectures/'
@@ -107,7 +107,7 @@ jobs:
   bulk-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: QuantEcon/action-style-guide@v0.7
+      - uses: QuantEcon/action-style-guide@v0.8
         with:
           mode: 'bulk'
           lectures-path: 'lectures/'

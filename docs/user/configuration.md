@@ -96,7 +96,7 @@ Reviews a single lecture file. Triggered by issue comments:
 Reviews all lectures in the `lectures-path` directory. Typically used with scheduled workflows:
 
 ```yaml
-- uses: QuantEcon/action-style-guide@v0.7
+- uses: QuantEcon/action-style-guide@v0.8
   with:
     mode: 'bulk'
     lectures-path: 'lectures/'
