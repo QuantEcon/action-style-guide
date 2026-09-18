@@ -77,13 +77,13 @@ jobs:
     steps:
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Run style guide checker
-        uses: QuantEcon/action-style-guide@v0.7
+        uses: QuantEcon/action-style-guide@v0.8
         with:
           mode: 'single'
           github-token: ${{ steps.generate-token.outputs.token }}
@@ -107,7 +107,7 @@ For more control, generate the token manually:
     echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
 - name: Use token
-  uses: QuantEcon/action-style-guide@v0.7
+  uses: QuantEcon/action-style-guide@v0.8
   with:
     github-token: ${{ steps.app-token.outputs.token }}
 ```
