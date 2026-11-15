@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-16
+
+### Changed
+
+- **Inputs reach the action's script through `env:`** — the `Run style checker` step in `action.yml` now passes every input it uses, and `github.repository`, to its script as an environment variable, rather than writing the value into the script. The `Install dependencies` and `Run style checker` steps find the action's files from `$GITHUB_ACTION_PATH`. The inputs, their defaults and the action's behaviour are unchanged.
+
 ## [0.7.2] - 2026-02-16
 
 ### Fixed
