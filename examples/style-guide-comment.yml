@@ -13,11 +13,20 @@ jobs:
     # Check each event's own text: a comment on comment events, the issue on issue events.
     # (On a comment event github.event.issue.body is the parent issue, so testing it there
     # would re-run the check on every later comment once the issue mentions the trigger.)
+    # Run only for comments and issues written by the repository's owners, members and
+    # collaborators.
     if: >-
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qe-style-checker')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@qe-style-checker'))
+      (github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@qe-style-checker') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)) ||
+      (github.event_name == 'issues' &&
+        contains(github.event.issue.body, '@qe-style-checker') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
     
+    # contents and pull-requests: the action pushes a branch, opens a PR, labels it and
+    # comments on it. issues: the steps below react to the trigger comment and post the
+    # result on the triggering issue.
     permissions:
       contents: write
       pull-requests: write

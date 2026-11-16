@@ -73,7 +73,15 @@ on:
 
 jobs:
   review:
+    # Run only for comments that mention the trigger and were written by the
+    # repository's owners, members and collaborators.
+    if: >-
+      contains(github.event.comment.body, '@qe-style-checker') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Generate token
         id: generate-token
@@ -123,7 +131,7 @@ For more control, generate the token manually:
 ## Testing the Setup
 
 1. Create a test issue in your repository
-2. Comment: `@quantecon-style-guide test-lecture`
+2. As an owner, member or collaborator of the repository, comment: `@qe-style-checker test-lecture`
 3. Verify:
    - The workflow triggers
    - A branch is created
