@@ -28,9 +28,16 @@ on:
 jobs:
   check-trigger:
     if: >-
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qe-style-checker')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@qe-style-checker'))
+      (github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@qe-style-checker') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)) ||
+      (github.event_name == 'issues' &&
+        contains(github.event.issue.body, '@qe-style-checker') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association))
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: QuantEcon/action-style-guide@v0.8
         with:
@@ -40,6 +47,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-body: ${{ github.event.comment.body || github.event.issue.body }}
 ```
+
+The job runs only when the comment, or the issue, that mentions `@qe-style-checker` was written by one of the repository's owners, members or collaborators. Its `permissions:` let the action push a branch, open a pull request, label it and comment on it.
 
 ### 2. Configure Secrets
 
@@ -60,7 +69,7 @@ The action adds these labels to PRs it creates.
 
 ## Triggering a Review
 
-Comment on any issue in your lecture repository:
+As an owner, member or collaborator of the repository, comment on any issue in your lecture repository:
 
 ```
 @qe-style-checker lecture_name

@@ -30,21 +30,30 @@ jobs:
       
       - name: Summary
         if: always()
+        env:
+          LECTURES_REVIEWED: ${{ steps.review.outputs.lectures-reviewed }}
+          ISSUES_FOUND: ${{ steps.review.outputs.issues-found }}
+          PR_URL: ${{ steps.review.outputs.pr-url }}
         run: |
           echo "📊 Review Summary"
-          echo "Lectures reviewed: ${{ steps.review.outputs.lectures-reviewed }}"
-          echo "Issues found: ${{ steps.review.outputs.issues-found }}"
-          echo "PR URL: ${{ steps.review.outputs.pr-url }}"
+          echo "Lectures reviewed: $LECTURES_REVIEWED"
+          echo "Issues found: $ISSUES_FOUND"
+          echo "PR URL: $PR_URL"
       
       - name: Create issue if problems found
         if: steps.review.outputs.issues-found > 0
         uses: actions/github-script@v9
+        env:
+          LECTURES_REVIEWED: ${{ steps.review.outputs.lectures-reviewed }}
+          ISSUES_FOUND: ${{ steps.review.outputs.issues-found }}
+          PR_URL: ${{ steps.review.outputs.pr-url }}
         with:
           script: |
+            const { LECTURES_REVIEWED, ISSUES_FOUND, PR_URL } = process.env;
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '📋 Weekly Style Guide Review Complete',
-              body: `The weekly automated style guide review has been completed.\n\n**Summary:**\n- Lectures reviewed: ${{ steps.review.outputs.lectures-reviewed }}\n- Issues found: ${{ steps.review.outputs.issues-found }}\n- PR: ${{ steps.review.outputs.pr-url }}\n\nPlease review the PR and merge or request changes as needed.`,
+              body: `The weekly automated style guide review has been completed.\n\n**Summary:**\n- Lectures reviewed: ${LECTURES_REVIEWED}\n- Issues found: ${ISSUES_FOUND}\n- PR: ${PR_URL}\n\nPlease review the PR and merge or request changes as needed.`,
               labels: ['automated', 'style-guide', 'weekly-review']
             })
