@@ -79,9 +79,10 @@ jobs:
       contains(github.event.comment.body, '@qe-style-checker') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    # The action checks out and calls the API with the App token, so the job's
+    # own GITHUB_TOKEN only needs to read.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - name: Generate token
         id: generate-token
@@ -106,13 +107,17 @@ For more control, generate the token manually:
 ```yaml
 - name: Generate App Token
   id: app-token
+  env:
+    APP_ID: ${{ secrets.APP_ID }}
+    APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+    INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
   run: |
     TOKEN=$(curl -X POST \
-      -H "Authorization: Bearer $(ruby -e "require 'jwt'; puts JWT.encode({iat: Time.now.to_i, exp: Time.now.to_i + 60, iss: '${{ secrets.APP_ID }}'}, OpenSSL::PKey::RSA.new('${{ secrets.APP_PRIVATE_KEY }}'), 'RS256')")" \
+      -H "Authorization: Bearer $(ruby -e "require 'jwt'; puts JWT.encode({iat: Time.now.to_i, exp: Time.now.to_i + 60, iss: ENV['APP_ID']}, OpenSSL::PKey::RSA.new(ENV['APP_PRIVATE_KEY']), 'RS256')")" \
       -H "Accept: application/vnd.github+json" \
-      https://api.github.com/app/installations/${{ secrets.INSTALLATION_ID }}/access_tokens | jq -r .token)
+      "https://api.github.com/app/installations/${INSTALLATION_ID}/access_tokens" | jq -r .token)
     echo "::add-mask::$TOKEN"
-    echo "token=$TOKEN" >> $GITHUB_OUTPUT
+    echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
 - name: Use token
   uses: QuantEcon/action-style-guide@v0.8
