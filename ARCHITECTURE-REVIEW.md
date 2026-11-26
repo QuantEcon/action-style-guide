@@ -61,11 +61,21 @@ The two things that matter most:
    updates": heading case, `pmatrix`→`bmatrix`, `align`→`aligned` (fixes PDF builds), `prf:`
    prefixes, `hide-output` tags, `lw=2`, cross-series `{doc}` links, whitespace and more. These cost
    nothing, run in milliseconds, behave identically every time, and can run in pre-commit and on
-   every PR. §5 gives measured hit rates and precision on the real corpus.
+   every PR. **Measured:** a ~700-line prototype checked 21 rules across all 161 lectures of
+   `lecture-python.myst` in **7.3 seconds**. It found **≈ 2,500 edits that are safe to apply
+   automatically** (one of them verified end-to-end by re-parsing) (§5).
 2. **A findings file with an interactive `qestyle review`** (plus GitHub suggestion blocks for PR
    diffs). This is the accept / reject / edit experience. Finding *what to suggest* (expensive, done
    by the LLM, possibly overnight in CI) is separated from *deciding* (cheap, done by a person,
    whenever suits them).
+
+The prototype also showed that **some rules are themselves the problem**:
+- **qe-math-002 (`^T` → `^\top`):** none of 157 hits in the series is a transpose. All are powers,
+  horizons or limits.
+- **qe-code-002 (Greek identifiers):** 42% of its hits are library keyword arguments, including
+  QuantEcon's own `qe.LQ(beta=…)`, that must not be renamed.
+
+Both are auto-applied today. A short **rule-text review** belongs before any prompt tuning.
 
 Before any of that, three **urgent fixes** (§3.1) are needed whatever the architecture. One is
 verified: **a fresh `pip install` of the CLI is broken today.**
@@ -225,7 +235,10 @@ Errors in examples teach the model the wrong thing:
 - `qe-fig-009` (80–100% width) and `qe-fig-001` (don't set size) pull in opposite directions without
   saying how they interact.
 
-§5 adds the issues the prototype surfaced.
+The prototype found more (§5.2, and the appendix lists 12):
+- `qe-math-002` and `qe-code-002` are actively harmful as written.
+- link-002's examples include invalid `{doc}` syntax and an intersphinx prefix the repo doesn't define.
+- Several rules lack exceptions that real lectures need.
 
 ### 3.3 Smaller issues
 
@@ -364,7 +377,18 @@ harder to control in bulk.
 
 ### 4.6 Evaluation and feedback
 
-- **`qestyle eval`:** run against a golden set — the seeded `markov_chains_jax.md` + its annotated
+- **Repair the key first.** The prototype found that the annotated catalogue for
+  `markov_chains_jax.md` can't be trusted as it stands:
+  - its line numbers are off by 3–74 lines;
+  - two catalogued violations don't exist in the file (the double space; the missing `lw`);
+  - at least 15 real violations under the rules as written aren't catalogued (10 Title-Case
+    headings, 4 multi-sentence paragraphs, a real `$P^T$` transpose), so an LLM that finds them is
+    scored as wrong;
+  - `test-lecture-clean.md`, meant to pass everything, has ≥ 17 violations.
+
+  The Tier 1 checker can regenerate the mechanical part of the key, anchored by content instead of
+  by line number.
+- **`qestyle eval`:** run against a golden set — the seeded `markov_chains_jax.md` with its repaired
   catalogue, plus a few real lectures with human-labelled findings. Report **per-rule precision and
   recall**, anchor-rejection rate and cost. Run it on every rule, prompt or model change (a few
   dollars per run). Deterministic rules get the same treatment through fixture tests.
@@ -386,13 +410,113 @@ harder to control in bulk.
 
 ## 5. Evidence — deterministic checks on real lectures
 
-<!-- EMPIRICAL-RESULTS -->
+### 5.1 Setup
+
+A throwaway prototype (~700 lines of Python) checked 21 rules deterministically:
+- **Parser:** `markdown-it-py` + `mdit-py-plugins` (front matter, MyST blocks/roles, dollarmath,
+  amsmath, colon fence), with directive bodies re-parsed recursively as MyST does.
+- **Checks:** regex over the classified regions, plus Python `ast` on code cells.
+- **Corpus:** all **161 lectures of `QuantEcon/lecture-python.myst`**. That's 6.7 M characters
+  (≈ 1.9 M tokens); the median lecture is ≈ 35 k characters (≈ 10 k tokens), p90 ≈ 78 k (≈ 22 k tokens).
+- **Seeded lecture:** `test-action-style-guide/markov_chains_jax.md`, checked against its annotated
+  catalogue.
+
+**Runtime: 7.3 s for the whole series on one core (≈ 45 ms per lecture), $0.**
+
+Precision is a spot-check against each rule *as written*: 5–27 hits read per rule, except `^T`, where
+every hit was reviewed. I independently re-checked the headline numbers (size distribution, `^\top`
+usage, the `^T` sample, the `qe.LQ(beta=…)` trap). Full tables and verbatim `file:line` examples are in
+[`.reports/2026-11-26-deterministic-prototype.md`](.reports/2026-11-26-deterministic-prototype.md).
+
+### 5.2 Results and proposed tier per rule
+
+| Rule | Hits / lectures | Spot-check precision | Proposed tier → action | Why |
+|---|---|---|---|---|
+| writing-008 multiple spaces | 1,927 / 86 | ~100% | **Tier 1 → autofix** | Fix verified: 1,369 lines fixed, re-parse shows **no** code, math or directive content changed. |
+| writing-006 heading case | 507 naive / 124 (≈ 344 after lexicon) | ~95% (title-case `##`) | **Tier 1 → autofix** (with proper-noun lexicon) | 27% of naive hits are headings whose only capitals are proper nouns (Bellman, Kiyotaki-Wright). A lexicon auto-built from corpus prose (336 words) handles most; multi-word names need a small list. |
+| math-003 `pmatrix` | 51 / 9 | ~100% | **Tier 1 → autofix** | Pure rename. Also add `\left(\begin{array}` detection (13 more). |
+| math-004 `\mathbf{1}` | 123 / 23 | ~100% | **Tier 1 → autofix** to `\mathbb{1}` | The rest of math-004 is *not* safe; see the next table. |
+| fig-006 axis-label case | 93 / 20 | ~100% after filtering | **Tier 1 → autofix** | Skip acronyms, proper nouns, single-letter variables. |
+| link-002 cross-series URLs | 22 / 15 (+10 same-series, link-001) | 100% | **Tier 1 → autofix** 18; suggest 4 | 4 carry `#anchor`, which `{doc}` can't express. |
+| admon-002/004/005, math-006/007 | 0 | — | **Tier 1 → guard** | The series is clean. Keep the checks so new content stays clean. |
+| writing-001 one sentence per paragraph | 739 / 115 | sentence boundaries ~96%; clear violations ~30% | **Tier 1 detect → suggest** (top-level prose only: 192 / 55) | 74% of hits are list items, run-in labels ("Part 2.", "**Theorem.**"), theorem bodies and **quoted literature** — the rule doesn't say whether these count. |
+| fig-003 embedded titles | 396 / 96 | ~100% for single-figure titles (76) | **Tier 1 detect → suggest** | 250 are per-panel subplot titles that a caption can't replace; 69 are in exercises (allowed). |
+| fig-008 `lw=2` | 758 / 119 | ~92% as written | **Tier 1 detect → suggest** | Thin 45° reference lines, transparent path bundles and marker-only plots must not be thickened. |
+| code-004/005 timing | 51 / 15 | ~100% | **Tier 1 detect → LLM/human fix** | Elapsed times feed later calculations; the rewrite needs judgment. |
+| math-002 `^\prime` | 60 / 9 | ~58% | **Tier 1 detect → suggest** | `^\prime` also marks derivatives and next-period values. |
+
+The safe autofix rows (writing-008, writing-006, math-003, math-004 `\mathbf{1}`, fig-006, link-002)
+add up to **≈ 2,500 edits across the series, applied in seconds at $0.** That is the "high-value
+automatic update" stream. Today each of them costs an LLM call and can land in the wrong place.
+
+**Rules that should be rewritten before any automation, LLM or deterministic:**
+
+| Rule | What the corpus shows |
+|---|---|
+| **math-002 `^T` → `^\top`** | **0 of 157 hits is a transpose.** Every one is a horizon, history, power, limit or space (`\beta^T`, `H^T`, `Q^T`, `\sum_{t=0}^T`, `\mathbb{R}^T`). Authors already write `^\top` 1,568 times. Today this is a `rule`-type (auto-applied) LLM rule, so any misjudgment by the model corrupts mathematics. A blind fix would damage 119 lines in 29 lectures. |
+| **code-002 Greek identifiers** | **42% of naive hits are library names that must not change:** 499 matplotlib `alpha=`, `rng.beta()`, `scipy.stats.beta`, `LinearStateSpace(mu_0=, Sigma_0=)`, and QuantEcon's own **`qe.LQ(..., beta=β)`**. Seven renames would collide with an existing `μ`/`β`. 151/161 lectures already use Greek identifiers, so this is low-value as well as risky. Also `rule`-typed today. |
+| **math-004 (other bold)** | In 27 of 40 lecture/symbol pairs the plain letter means something else in the same lecture (bold random vector **X** vs scalar X). Removing bold changes meaning. |
+| **writing-001, fig-003, fig-008, code-003** | Each needs explicit exceptions (lists/labels/quotes; per-panel titles; reference lines; `skip-execution` install cells). |
+
+### 5.3 What the evidence changes
+
+1. **Tier 1 is clearly feasible and is where the automatic-update volume is.** It's precise where the
+   rule is crisp, instant, free, and testable with fixtures.
+2. **On a mature corpus, many "violations" are really gaps in the rule definitions.** The prototype
+   lists 12 rule-text problems: internal contradictions, invalid examples (link-002's
+   `{doc}`…`.html#anchor`), an undefined intersphinx prefix (`intermediate:`), and missing exceptions.
+   That supports S9: **a rule-text review pass should precede prompt tuning.**
+3. **Value concentrates on new content.** The existing series already follows most conventions
+   (`^\top`, unicode identifiers, dropdown solutions, installs at top). Checking what authors are
+   writing *now* — PR mode — gives the best return per dollar.
+4. **The current evaluation key is unreliable** (details in §4.6). The "27/30 rule-level recall"
+   figure was measured against it.
 
 ---
 
 ## 6. Cost model
 
-<!-- COST-MODEL -->
+These are **estimates**: the code doesn't log `usage`, and thinking tokens (billed as output) are the
+biggest unknown. Step 0 of §7 adds token logging to replace them with measurements.
+
+**Assumptions:**
+- Median lecture ≈ 10 k tokens, p90 ≈ 22 k (from §5; chars/3.5 likely *under*-counts LaTeX).
+- Rule + prompt ≈ 1.5 k tokens per call.
+- Thinking + reply ≈ 2.5–7.5 k output tokens per call (the cap is 10 k).
+
+**Today** — 49 sequential calls, Sonnet 4.5 at $3 / $15 per MTok, no caching:
+
+| | Input | Output | Total |
+|---|---|---|---|
+| Median lecture | 49 × 11.5 k ≈ 0.56 M → $1.7 | 49 × 2.5–7.5 k ≈ 0.12–0.37 M → $1.8–5.5 | **≈ $3.5–7** |
+| p90 lecture | 49 × 23.5 k ≈ 1.15 M → $3.5 | same → $1.8–5.5 | **≈ $5–9** |
+| Whole series (161) | ≈ 105 M → $316 | ≈ 20–59 M → $300–890 | **≈ $600–1,200 per pass** |
+
+- **Wall-clock:** 49 calls × ~30–90 s ≈ 25–75 min per lecture → **≈ 70–200 hours per series**,
+  against GitHub's 6-hour job limit.
+- **Versus the docs:** this is roughly 10–20× the documented "$0.08–0.40".
+
+**Proposed** — Tier 1 handles ~20 rules for $0. ~27 LLM rules run against one cached snapshot on a
+current Sonnet (Sonnet 5.5: $2 / $10 per MTok, cache write ≈ $2.50 per MTok, cache read $0.10 per
+MTok):
+
+| | Cost (median lecture) |
+|---|---|
+| Lecture prefix: 1 cache write + 26 cache reads | ≈ $0.03 + $0.03 |
+| Rule text, uncached (27 × 1.5 k) | ≈ $0.08 |
+| Output (27 × 2.5–7.5 k) | ≈ $0.7–2.0 |
+| **Total** | **≈ $0.8–2.1 per lecture** (≈ 3–4× cheaper) |
+
+- **Whole series:** ≈ $130–350 per pass, or about half that through the Message Batches API
+  (caching inside batches is best-effort, so treat the combined saving as approximate).
+- **Wall-clock:** minutes per lecture with concurrent calls, bounded by rate limits.
+- **PR mode** checks only changed paragraphs: **cents per PR**.
+
+Output tokens dominate the remaining cost. So the next levers, each to be judged with the §4.6 eval,
+are:
+1. a lower `effort` for simpler judgment rules;
+2. grouping rules per category (8 calls instead of 27);
+3. retiring rules whose suggestions authors rarely accept.
 
 ---
 
@@ -400,8 +524,9 @@ harder to control in bulk.
 
 | Step | Scope | Maps to existing plan | Outcome |
 |---|---|---|---|
-| **0. Hotfixes** (days) | U1–U3: pin or migrate the SDK call (drop `temperature`, adaptive thinking, current model), fail fast on 4xx, show coverage and skipped rules in the PR and the CLI exit code; log `usage` tokens per call; fix doc drift (`@v0.8`, cost table, "per category"). | 5.3 (token tracking) | The CLI installs again; failures are visible; real cost data starts flowing. |
-| **1. Tier 1 MVP** (1–2 wks) | Parser + `Finding` model + ~10 highest-yield deterministic rules from §5 with fixture tests; `qestyle check` / `fix`; pre-commit hook; take those rules out of the LLM set. | 4.3, 4.1 (guardrails come for free from the region map) | High-value automatic updates on every commit, at $0. |
+| **0. Hotfixes** (days) | U1–U3: pin or migrate the SDK call (drop `temperature`, adaptive thinking, current model), fail fast on 4xx, show coverage and skipped rules in the PR and the CLI exit code; log `usage` tokens per call; fix doc drift (`@v0.8`, cost table, "per category"). **Change `qe-math-002` and `qe-code-002` from `rule` to `style`** so they stop auto-applying (§5.2). | 5.3 (token tracking) | The CLI installs again; failures are visible; real cost data starts flowing; the two harmful auto-fixes stop. |
+| **0b. Rule-text review** (days, in parallel) | Fix the contradictions and missing exceptions listed in §5 and the appendix. Decide the policy questions (lists/labels/quotes for writing-001; per-panel titles; reference-line widths; `%time`; capitals after a colon). Repair the seeded catalogue and the "clean" fixture. | 4.4, 4.5 | The specification, the LLM prompts and the evaluation key all improve at once. |
+| **1. Tier 1 MVP** (1–2 wks) | Parser + `Finding` model + the autofix rows of §5.2 (writing-008, writing-006 + lexicon, math-003, `\mathbf{1}`, fig-006, link-002, admonition guards) with fixture tests; `qestyle check` / `fix`; pre-commit hook; take those rules out of the LLM set. The detect→suggest rows follow. | 4.3, 4.1 (guardrails come for free from the region map) | ≈ 2,500 automatic fixes in the intermediate series alone, at $0 and in seconds; checks on every commit. |
 | **2. Tier 2 v2** (2–3 wks) | Rule front-matter metadata; snapshot + merge; structured output; verified line anchors; scope guard; cached prefix; `qestyle eval` on the golden set; choose model/effort by score. | 4.2, 4.4, 4.6, roadmap "multi-model" | Measurable, cheaper, safer LLM findings. |
 | **3. Decision UX** (2 wks) | Findings file; `qestyle review` / `apply`; GitHub PR mode with suggestion blocks on changed lines; scheduled audit = Tier 1 autofix PRs + Tier 2 artifact via the Batch API. | 5.1, 5.2, 6.1, 6.2, 6.5 | Accept / reject / change in one keystroke or one click; decisions recorded. |
 | **4. Feedback loop** (ongoing) | Acceptance telemetry → promote or demote rules; optional Claude Code skill packaging. | 6.4 | Rules improve from evidence. |
