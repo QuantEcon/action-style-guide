@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-26
+
+### Fixed
+
+- **Every rule check failed silently, reporting "0 issues found"** — `requirements.txt` and `pyproject.toml` required only `anthropic>=0.18.0`, so from 2026-10-21 a fresh install picked up `anthropic` 2.x. That release removed the `temperature` argument this version sends, so each rule raised `TypeError: Messages.create() got an unexpected keyword argument 'temperature'`. The per-rule error handler logged it as a warning and carried on, and the run reported a clean lecture without creating a PR. The dependency is now capped at `anthropic>=0.18.0,<1`. No other behaviour changes.
+
 ## [0.7.3] - 2026-11-16
 
 ### Changed

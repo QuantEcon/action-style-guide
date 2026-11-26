@@ -2,7 +2,10 @@
 PyGithub>=2.1.1
 
 # LLM provider
-anthropic>=0.18.0
+# Capped below 1.0: release 2.0.0 (2026-10-21) removed the `temperature`
+# argument this version sends, which made every rule check fail and the
+# action report "0 issues found".
+anthropic>=0.18.0,<1
 
 # Utilities
 requests>=2.31.0
